@@ -1,1 +1,5 @@
 .*.swp
+.vscode
+*.dSYM
+src/server
+src/data.txt
