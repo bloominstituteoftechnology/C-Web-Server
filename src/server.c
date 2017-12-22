@@ -178,10 +178,27 @@ int get_listener_socket(char *port)
  * body is the data to send
  * 
  * Return the value from the send() function.
+ The send() call:
+
+int send(int sockfd, const void *msg, int len, int flags); 
+sockfd is the socket descriptor you want to send data to (whether it's the one returned by socket() or the one you got with accept().) msg is a pointer to the data you want to send, and len is the length of that data in bytes. Just set flags to 0. (See the send() man page for more information concerning flags.)
+
+Some sample code might be:
+ 
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
     // !!!! IMPLEMENT ME
+    int stringLength, bufferLength;
+    stringLength = strlen(body);
+    char buffer[2000];
+  char buf[1024];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+    bufferLength = sprintf(buffer, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, buf, stringLength, content_type, body);
+    printf("%s", buffer);
+    return send(fd, buffer, bufferLength, 0);
 }
 
 
@@ -205,6 +222,12 @@ void get_root(int fd)
 {
     // !!!! IMPLEMENT ME
     //send_response(...
+    char response_body[1024];
+
+    sprintf(response_body, "<h1>Hello, world!</h1>");
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+
 }
 
 /**
@@ -213,6 +236,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
     // !!!! IMPLEMENT ME
+    int random1to20;
+    
+    srand ( time(NULL) );
+    random1to20 = rand() % 20 + 1;
+    char response_body[16];
+
+    sprintf(response_body, "%d", random1to20);
+
+    send_response(fd, "HTTP/1.1 200", "text/plain", response_body);
+    
 }
 
 /**
@@ -221,6 +254,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
     // !!!! IMPLEMENT ME
+    char response_body[1024];
+    char buf[1024];
+    time_t now = time(0);
+    struct tm tm = *gmtime(&now);
+    strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+    sprintf(response_body, "%s", buf);
+
+    send_response(fd, "HTTP/1.1 200", "text/plain", response_body);
 }
 
 /**
@@ -242,6 +283,27 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
     // !!!! IMPLEMENT ME
+    int i;
+    char *pointer;
+    char test1[20];
+    char test2[20];
+    char test3[20];
+    sprintf(test1, "\n\n");
+    pointer = strchr(header, test1);
+    if (pointer != NULL)  {
+        return pointer;
+    }
+    sprintf(test1, "\r\r");
+    pointer = strchr(header, test2);
+    if (pointer != NULL)  {
+        return pointer;
+    }
+    sprintf(test3, "\r\n\r\n");
+    pointer = strchr(header, test3);
+    if (pointer != NULL)  {
+        return pointer;
+    }
+    return NULL;
 }
 
 /**
@@ -263,9 +325,24 @@ void handle_http_request(int fd)
         perror("recv");
         return;
     }
+    printf("%s", request);
 
     // !!!! IMPLEMENT ME
-
+    char path[56];
+    sscanf(request, "%s %s",request_type, path );
+    printf("%s", path);
+    if (strcmp("/", path) == 0) {
+        printf("request path");
+        get_root(fd);
+    }
+    if (strcmp("/d20", path) == 0) {
+        printf("request path");
+        get_d20(fd);
+    }
+    if (strcmp("/date", path) == 0) {
+        printf("request path");
+        get_date(fd);
+    }
     // Parse the header
     // Get the request type and path from the first line
     // find_end_of_header()
