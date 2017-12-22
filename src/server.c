@@ -197,7 +197,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
     int bodylen = strlen(body);
 
-    char res_header[256];
+    char res_header[128];
     sprintf(res_header,
             "%s\n"
             "Content-Length: %d\n"
@@ -247,7 +247,7 @@ void get_root(int fd)
 void get_d20(int fd)
 {
     char res[8];
-    srand(time(NULL) + getpid());
+    srand(time(NULL));
     sprintf(res, "%d", (rand() % 20) + 1);
 
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", res);
