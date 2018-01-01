@@ -181,7 +181,29 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-    // !!!! IMPLEMENT ME
+    char response[99999];
+    int content_length = strlen(body);
+    int response_length = sprintf(response,
+        "%s\n"
+        "Date: %s\n"
+        "Connection: closed\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n"
+        "%s",
+
+        header,
+        "some day",
+        content_length,
+        content_type,
+        body
+    );
+
+    int count = send(fd, response, response_length, 0);
+
+    if (count < 0) {
+        perror("send");
+    }
 }
 
 
@@ -203,8 +225,7 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-    // !!!! IMPLEMENT ME
-    //send_response(...
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello Squeel!</h1>");
 }
 
 /**
@@ -212,7 +233,12 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-    // !!!! IMPLEMENT ME
+    srand(time(NULL));
+    int r = rand() % 21; 
+    char str[10];
+    sprintf(str, "%d", r);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", str);
 }
 
 /**
@@ -220,7 +246,12 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-    // !!!! IMPLEMENT ME
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    char str[200];
+
+    sprintf(str, "%d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", str);
 }
 
 /**
@@ -228,9 +259,43 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-    // !!!! IMPLEMENT ME
-
     // Save the body and send a response
+    char *status;
+
+    // Open the file that we write the post data to
+    int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
+
+    // a file descriptor returns a negative number if there was an error opening it
+    if (file_fd >= 0) {
+        // lock the file so we properly update the file, without other processes reading from it
+        // this prevents concurrency issues with multiple processes trying to write to the filea the same time
+        flock(file_fd, LOCK_EX);
+
+        // write the body message to the file
+        write(file_fd, body, strlen(body));
+
+        // unlock the file
+        flock(file_fd, LOCK_UN);
+
+        // close the file
+        close(file_fd);
+
+        // set the reponse status to ok
+        status = "ok";
+    } else {
+        // set the reponse status to fail
+        status = "fail";
+    }
+
+    // Now send an HTTP response
+
+    char response_body[128];
+
+    // print in in the status of the writing of to the file or not
+    sprintf(response_body, "{\"status\": \"%s\"}", status);
+
+    // send the json reponse of the status of success of the writing of the file
+    send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -241,7 +306,20 @@ void post_save(int fd, char *body)
  */
 char *find_end_of_header(char *header)
 {
-    // !!!! IMPLEMENT ME
+    // find the first occruence of '\r\n', '\r\r', '\n\n'
+    char *p;
+
+    p = strstr(header, "\n\n");
+
+    if (p != NULL) return p;
+
+    p = strstr(header, "\r\n\r\n");
+
+    if (p != NULL) return p;
+
+    p = strstr(header, "\r\r");
+
+    return p;
 }
 
 /**
@@ -252,16 +330,69 @@ void handle_http_request(int fd)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
     char *p;
-    char request_type[8]; // GET or POST
+    char request_method[8]; // GET or POST
     char request_path[1024]; // /info etc.
     char request_protocol[128]; // HTTP/1.1
 
-    // Read request
+    // Read request and get the number of bytes in the request, returns an int
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
         perror("recv");
         return;
+    }
+
+    // NUL terminate request string
+    request[bytes_recvd] = '\0';
+
+    // printf("%s\n", request);
+
+    // Parse the first line of the request which has method, path, and protocol type 
+    char *first_line = request;
+
+    // Look for newline
+    p = strchr(first_line, '\n');
+    *p = '\0';
+
+    // Remaining header
+    char *header = p + 1; // +1 to skip the '\n'
+
+    // Look for two newlines marking the end of the header
+    p = find_end_of_header(header);
+
+    // p should be two new lines and print out two lines of nothing
+    printf("%s\n", p);
+
+    if (p == NULL) {
+        printf("Could not find end of header\n");
+        exit(1);
+    }
+
+    // And here is the body
+    char *body = p;
+
+    // read the headers
+    sscanf(request, "%s %s %s", request_method, request_path, request_protocol);
+
+    // printf("Method %s\n", request_method);
+    // printf("Path %s\n", request_path);
+
+    if (strcmp(request_method, "GET") == 0) {
+        if (strcmp(request_path, "/") == 0) {
+            get_root(fd);
+        }
+        if (strcmp(request_path, "/d20") == 0) {
+            get_d20(fd);
+        }
+        if (strcmp(request_path, "/date") == 0) {
+            get_date(fd);
+        }
+    }
+    else if (strcmp(request_method, "POST") == 0) {
+        if (strcmp(request_path, "/save") == 0) {
+            // get the body data
+            post_save(fd, body);
+        }
     }
 
     // !!!! IMPLEMENT ME
