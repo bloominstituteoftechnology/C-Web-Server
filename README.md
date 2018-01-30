@@ -102,7 +102,7 @@ Content-Type: text/html
 The end of the header on both the request and response is marked by a blank line
 (i.e. two newlines in a row).
 
-If the file is not found, a 404 response is generated and returned by the
+If the file is not found, a `404` response is generated and returned by the
 server:
 
 ```
@@ -147,13 +147,21 @@ We will write a simple web server that returns data on three `GET` endpoints:
 
 Examine the skeleton source code for which pieces you'll need to implement.
 
-For the portions that are already written, study the well-commented code to see how it works.
+For the portions that are already written, study the well-commented code to see
+how it works.
 
 ### Stretch Goals
 
+#### POST a file
 * Handle a `POST` request that sends a payload of plain text data to the `/save`
   endpoint.
   * The web server should save this data in a file.
   * The response should be of type `application/json` and should be `{"status":"ok"}`.
-  * What happens if multiple processes try to write to this file at the same
-    time? How can you mitigate concurrency problems?
+
+#### Concurrency
+
+* Convert the web server to be multiprocessed by using the `fork()` system call.
+  * Set up a signal handler on `SIGCHLD` to know when child processes exit.
+    * `wait()` or `waitpid()` for child processes in the signal handler.
+  * What happens if multiple processes try to write to the POSTed file (from the
+    above goal) at the same time? How can you mitigate concurrency problems?
