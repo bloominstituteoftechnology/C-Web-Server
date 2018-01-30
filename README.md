@@ -194,9 +194,13 @@ Convert the web server to be multiprocessed by using the `fork()` system call.
 1. Examine and understand the signal handler on `SIGCHLD` that watches for when
    child processes exit. (This is already written for you.)
 
-2. Modify the main `while` loop to `fork()` a new child process to handle each request.
+2. Modify the main `while` loop to `fork()` a new child process to handle each
+   request.
 
    _Be careful not to fork-bomb your system to its knees!_
+
+   _Your child process **must** call `exit()` or you will risk having piles of
+   extra processes at work!_
 
 3. Modify the `post_save()` function to get an exclusive lock on the file using
    `flock()`. The lock should be unlocked once the file has been written.
