@@ -150,18 +150,56 @@ Examine the skeleton source code for which pieces you'll need to implement.
 For the portions that are already written, study the well-commented code to see
 how it works.
 
+Don't worry: the networking code is already written.
+
+### Main Goals
+
+1. Add parsing of the first line of the HTTP request header that arrives. It
+   will be in the `request` array.
+
+   Read the three components from the first line of the HTTP header. Hint:
+   `sscanf()`.
+
+   Decide which handler to call based on the request type (`GET`, `POST`) and
+   the path (`/`, `/d20`, etc.)
+
+2. Implement the `get_root()` handler. This will call `send_response()`.
+
+3. Implement `send_response()`. Hint: `sprintf()`, `strlen()` for computing
+   content length.
+
+4. Implement the `get_d20()` handler. Hint: `srand()` with `time(NULL)`,
+   `rand()`.
+
+5. Implement the `get_date()` handler. Hint: `time(NULL)`, `gmtime()`.
+
 ### Stretch Goals
 
-#### POST a file
-* Handle a `POST` request that sends a payload of plain text data to the `/save`
-  endpoint.
-  * The web server should save this data in a file.
-  * The response should be of type `application/json` and should be `{"status":"ok"}`.
+Post a file:
 
-#### Concurrency
+1. Implement `find_end_of_header()` to locate the end of the HTTP request header
+   (and start of the body).
 
-* Convert the web server to be multiprocessed by using the `fork()` system call.
-  * Set up a signal handler on `SIGCHLD` to know when child processes exit.
-    * `wait()` or `waitpid()` for child processes in the signal handler.
-  * What happens if multiple processes try to write to the POSTed file (from the
-    above goal) at the same time? How can you mitigate concurrency problems?
+2. Implement the `post_save()` handler. Modify the main loop to pass the body
+   into it. Have this handler write the file to disk. Hint: `fopen()`,
+   `fwrite()`, `fclose()`.
+
+   The response from `post_save()` should be of type `application/json` and
+   should be `{"status":"ok"}`.
+
+Concurrency:
+
+Convert the web server to be multiprocessed by using the `fork()` system call.
+
+1. Examine and understand the signal handler on `SIGCHLD` that watches for when
+   child processes exit. (This is already written for you.)
+
+2. Modify the main `while` loop to `fork()` a new child process to handle each request.
+
+   _Be careful not to fork-bomb your system to its knees!_
+
+3. Modify the `post_save()` function to get an exclusive lock on the file using
+   `flock()`. The lock should be unlocked once the file has been written.
+
+   What happens if multiple processes try to write to the POSTed file at the
+   same time without locking the file?
