@@ -187,7 +187,20 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  // !!!! IMPLEMENT ME
+  const int max_response_size = 65536;
+  char response[max_response_size];
+  int response_length;
+
+  // !!!!  IMPLEMENT ME
+
+  // Send it all!
+  int rv = send(fd, response, response_length, 0);
+
+  if (rv < 0) {
+    perror("send");
+  }
+
+  return rv;
 }
 
 
