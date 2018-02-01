@@ -285,7 +285,53 @@ void post_save(int fd, char *body)
  */
 char *find_end_of_header(char *header)
 {
-  // !!!! IMPLEMENT ME
+  int state = 0;
+  for (char *p = header; *p != '\0'; p++) {
+    switch(state) {
+      case 0:
+        switch (*p) {
+          case '\n': state = 4; break;
+          case '\r': state = 1; break;
+        }
+        break;
+      case 1:
+        switch (*p) {
+          case '\n': state = 5; break;
+          case '\r': state = 2; break;
+          default: state = 0;
+        }
+        break;
+      case 2:
+        switch (*p) {
+          case '\r': state = 3; break;
+          default: state = 0;
+        }
+        break;
+      case 3: // fallthru
+      case 4:
+        switch (*p) {
+          case '\n': state = 5; break;
+          default: state = 0;
+        }
+        break;
+      case 5: // accept state
+        return p;
+    }
+  }
+  return NULL;
+  // char *p;
+  
+  // p = strstr(header, "\n\n");
+
+  // if (P != NULL) return p;
+  
+  // p = strstr(header, "\r\n\r\n");
+
+  // if (p != NULL) return p;
+
+  // p = strstr(header, "\r\r");
+
+  // return p;
 }
 
 /**
