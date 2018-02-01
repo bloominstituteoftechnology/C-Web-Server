@@ -190,10 +190,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
+  int body_length = strlen(body);
 
-  // !!!!  IMPLEMENT ME
+  response_length = snprintf(response, max_response_size, "%s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header, body_length, content_type, body
+  );
 
-  // Send it all!
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
@@ -221,8 +228,11 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<!DOCTYPE html><html><head><title>Lambda School</title></head><body><h1>Hello World!</h1></body></html>");
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -273,7 +283,7 @@ void handle_http_request(int fd)
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
-
+  
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -281,15 +291,24 @@ void handle_http_request(int fd)
     perror("recv");
     return;
   }
-
+  printf("hitting here");
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // find_end_of_header()
+  printf("%s %s %s\n", request_type, request_path, request_protocol);
   // call the appropriate handler functions, above, with the incoming data
+  printf("hitting here %s\n", request);
+
+  if (strcmp(request_path, "/") == 0) {
+    get_root(fd);
+  }
+
 }
+
 
 /**
  * Main
