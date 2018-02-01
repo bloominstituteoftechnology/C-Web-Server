@@ -258,8 +258,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   char response_body[1024];
+  
+  time_t t1 = time(NULL);
+  struct tm *gtime = gmtime(&t1);
 
-  sprintf(response_body, "");
+  sprintf(response_body, "%s", asctime(gtime));
 
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
