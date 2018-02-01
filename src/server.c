@@ -187,16 +187,12 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  // char new_body[1000];
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
   printf("\"%s\"", body);
   printf(">>>%c\n", body[0]);
-  // body = "2";
-  // strcpy(new_body, "17");
   int body_length = strlen(body);
-  // body_length = 0;
 
   response_length = snprintf(response, max_response_size, "%s\n"
     "Connection: close\n"
@@ -206,9 +202,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
     "%s",
     header, body_length, content_type, body
   );
-  // printf(">>%s\n", response);
-  // printf("The response length: %i\n", response_length);
-  // printf("The body length: %d\n", body_length);
   // fflush(stdout);
   int rv = send(fd, response, response_length, 0);
 
@@ -255,8 +248,7 @@ void get_d20(int fd)
   int r = rand() % 20;
 
   sprintf(response_body, "%02i", r);
-  // printf("The random number is: %i\n", r);
-  // printf("BODY: %s\n", response_body);
+
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
