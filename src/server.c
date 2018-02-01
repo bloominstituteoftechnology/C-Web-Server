@@ -291,7 +291,6 @@ void handle_http_request(int fd)
     perror("recv");
     return;
   }
-  printf("hitting here");
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
@@ -301,7 +300,6 @@ void handle_http_request(int fd)
   // find_end_of_header()
   printf("%s %s %s\n", request_type, request_path, request_protocol);
   // call the appropriate handler functions, above, with the incoming data
-  printf("hitting here %s\n", request);
 
   if (strcmp(request_path, "/") == 0) {
     get_root(fd);
