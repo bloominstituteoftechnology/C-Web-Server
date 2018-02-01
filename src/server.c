@@ -210,20 +210,20 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length = strlen(body);
-  char lengthBuf[7];
-  sprintf(lengthBuf, "%d\n", response_length);
-  strcpy(response, header);
-  strcat(response, "\nConnection: close\n");
-  strcat(response, "Content-Length: ");
-  strcat(response, lengthBuf);
-  strcat(response, "Content-Type: ");
-  strcat(response, content_type);
-  strcat(response, "\n\n");
-  strcat(response, body);
-  strcat(response, "\n");
+  int response_length;
+  int body_length = strlen(body);
+
+  response_length = sprintf(response,
+  "%s\n"
+  "Connection: close\n"
+  "Content-Length: %d\n"
+  "Content-Type: %s\n"
+  "\n"
+  "%s",
+  header, body_length, content_type, body);
+  
   // Send it all!
-  int rv = send(fd, response, strlen(response), 0);
+  int rv = send(fd, response, response_length, 0);
 
   if (rv < 0)
   {
@@ -243,6 +243,7 @@ void resp_404(int fd, char *path)
   sprintf(response_body, "404: %s not found", path);
 
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
+  exit(0);
 }
 
 /**
@@ -250,9 +251,10 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-  printf("get_root fd: %d\n", fd);
+  // printf("get_root fd: %d\n", fd);
   send_response(fd, "HTTP/1.1 200 OK", "text/html",
                 "<!DOCTYPE html><html><head><title>Lambda School</title></head><body><h1>Hello World!</h1></body></html>\n");
+  exit(0);
 }
 int random_number(int min_num, int max_num)
 {
@@ -281,7 +283,7 @@ void get_d20(int fd)
   char buf[256];
   sprintf(buf, "%d", random_number(0, 20));
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", buf);
-  // !!!! IMPLEMENT ME
+  exit(0);
 }
 
 /**
@@ -289,7 +291,7 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  printf("get_date fd %d\n", fd);
+  // printf("get_date fd %d\n", fd);
   time_t ltime;
   char buf[512];
   time(&ltime);
@@ -297,7 +299,8 @@ void get_date(int fd)
           asctime(gmtime(&ltime)));
   printf("get_date buf %s\n", buf);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", buf);
-  printf("get_date done");
+  // printf("get_date done");
+  exit(0);
 }
 
 /**
@@ -309,10 +312,11 @@ void post_save(int fd, char *body)
   const char *outputFile = "saved.json";
   unlink(outputFile);
   FILE *f = fopen(outputFile, "w");
-  // flock(f->_fileno, LOCK_EX);
+  flock(f->_fileno, LOCK_EX);
   fputs(body, f);
   fclose(f); // this should call close(f->_fileno) and unlock the file
   send_response(fd, "HTTP/1.1 200 OK", "text/json", "{\"status\":\"ok\"}");
+  exit(0);
 }
 
 /**
@@ -442,8 +446,8 @@ int main(void)
 
     // !!!! IMPLEMENT ME
     // Convert this to be multiprocessed with fork()
-
-    handle_http_request(newfd);
+    if (fork() == 0) 
+      handle_http_request(newfd);
 
     // Done with this
     close(newfd);
