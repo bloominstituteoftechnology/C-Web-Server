@@ -200,6 +200,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
     "%s",
     header, body_length, content_type, body
   );
+  printf("The response length: %i\n", response_length);
+  printf("The body length: %d\n", body_length);
 
   int rv = send(fd, response, response_length, 0);
 
@@ -240,7 +242,15 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[1024];
+
+  srand(time(NULL));
+  int r = rand() % 20;
+
+  sprintf(response_body, "%i\n", r);
+  printf("The random number is: %i\n", r);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -248,7 +258,11 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[1024];
+
+  sprintf(response_body, "");
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -294,15 +308,16 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  // find_end_of_header()
-  printf("%s %s %s\n", request_type, request_path, request_protocol);
-  // call the appropriate handler functions, above, with the incoming data
 
+  // call the appropriate handler functions, above, with the incoming data
   if (strcmp(request_path, "/") == 0) {
     get_root(fd);
+  } else if (strcmp(request_path, "/d20")) {
+    get_d20(fd);
+  } else if (strcmp(request_path, "/date")) {
+    get_date(fd);
   }
 
 }
