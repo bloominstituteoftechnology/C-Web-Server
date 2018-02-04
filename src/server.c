@@ -1,4 +1,4 @@
-/**
+/** Update with state machine from QA for find_end_of_header 
  * webserver.c -- A webserver written in C
  * 
  * Test with curl (if you don't have it, install it):
@@ -15,7 +15,7 @@
  * 
  * (Posting data is harder to test from a browser.)
  */
-
+#define  testingConcurrecy true
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -212,7 +212,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length;
   int body_length = strlen(body);
-
+#if testingConcurrecy
+  printf("PID: %d\n", getpid());
+#endif
   response_length = sprintf(response,
   "%s\n"
   "Connection: close\n"
@@ -297,7 +299,7 @@ void get_date(int fd)
   time(&ltime);
   sprintf(buf, "Coordinated Universal Time is %s\n",
           asctime(gmtime(&ltime)));
-  printf("get_date buf %s\n", buf);
+  // printf("get_date buf %s\n", buf);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", buf);
   // printf("get_date done");
   exit(0);
@@ -325,25 +327,46 @@ void post_save(int fd, char *body)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_end_of_header(char *header)
-{
-  // printf("find_end_of_header header: %s", header);
-  const char *searchString = "Connection: keep-alive";
-  const int L = strlen(searchString);
-  char *p = header + strlen(header) - 1;
-  if (p < header)
-    return header;
 
-  for (; *p != 0; p--) {
+char *find_end_of_header(char *header) {
+    int state = 0;
 
-    if (strncmp(p, searchString, L) == 0) {
-      p += L;     
-      break;
+    for (char *p = header; *p != '\0'; p++) {
+        // Crazy state machine solution. strstr() is easier. :slightly_smiling_face:
+        switch (state) {
+            case 0:
+                switch (*p) {
+                    case '\n': state = 4; break;
+                    case '\r': state = 1; break;
+                    default: state = 0;
+                }
+                break;
+            case 1:
+                switch (*p) {
+                    case '\n': state = 2; break;
+                    case '\r': state = 5; break;
+                    default: state = 0;
+                }
+                break;
+            case 2:
+                switch (*p) {
+                    case '\r': state = 3; break;
+                    default: state = 0;
+                }
+                break;
+            case 3: // fallthru
+            case 4:
+                switch (*p) {
+                    case '\n': state = 5; break;
+                    default: state = 0;
+                }
+                break;
+            case 5: // accept
+                return p;
+        }
     }
-  }
-  p += 2;
-  //printf("find_end_of_header end p: %s", pc);
-  return p;
+
+    return NULL;
 }
 
 /**
