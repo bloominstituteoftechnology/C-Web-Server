@@ -287,6 +287,9 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
+  // Hint: sscanf()!
+
+  // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
   // call the appropriate handler functions, above, with the incoming data
 }
@@ -337,7 +340,7 @@ int main(void)
     // newfd is a new socket descriptor for the new connection.
     // listenfd is still listening for new connections.
 
-    // !!!! IMPLEMENT ME
+    // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
     handle_http_request(newfd);

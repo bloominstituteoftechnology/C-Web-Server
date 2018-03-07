@@ -154,19 +154,38 @@ Don't worry: the networking code is already written.
 
 ### Main Goals
 
-1. Add parsing of the first line of the HTTP request header that arrives. It
-   will be in the `request` array.
+1. Add parsing of the first line of the HTTP request header that arrives in the
+   `handle_http_request()` function. It will be in the `request` array.
 
    Read the three components from the first line of the HTTP header. Hint:
    `sscanf()`.
 
-   Decide which handler to call based on the request type (`GET`, `POST`) and
-   the path (`/`, `/d20`, etc.)
+   Right after that, call the appropriate handler based on the request type
+   (`GET`, `POST`) and the path (`/`, `/d20`, etc.) You can start by just
+   checking for `/` and add the others later as you get to them. Hint:
+   `strcmp()`. Another hint: `strcmp()` returns `0 if the strings are the
+   _same_!
 
-2. Implement the `get_root()` handler. This will call `send_response()`.
+   If you can't find an appropriate handler, call `resp_404()` instead to give them a "404 Not Found" response.
+
+2. Implement the `get_root()` handler. This will call `send_response()`. If you
+   need a hint as to what the `send_response()` call should look like, check out
+   the usage of it in `resp_404()`, just above there.
+
+   > The `fd` variable that is passed widely around to all the functions holds a
+   > _file descriptor_. It's just a number use to represent an open
+   > communications path. Usually they point to regular files on disk, but in
+   > the case it points to an open _socket_ network connection. All of the code
+   > to create and use `fd` has been written already, but we still need to pass
+   > it around to the points it is used.
 
 3. Implement `send_response()`. Hint: `sprintf()`, `strlen()` for computing
-   content length.
+   content length. `sprintf()` also returns the total number of bytes in the
+   result string, which might be helpful.
+
+   > The HTTP `Content-Length` header only includes the length of the body, not
+   > the header. But the `response_length` variable used by `send()` is the
+   > total length of both header and body.
 
 4. Implement the `get_d20()` handler. Hint: `srand()` with `time(NULL)`,
    `rand()`.
