@@ -348,7 +348,6 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
-<<<<<<< HEAD
   p = find_end_header(header);
   if (p == NULL)
   {
@@ -358,13 +357,10 @@ void handle_http_request(int fd)
   
   char *body = p;
   sscanf(request, "%s %s", request_type, request_path);
-=======
-
   // !!!! IMPLEMENT ME
->>>>>>> upstream/master
   // call the appropriate handler functions, above, with the incoming data
 
-  if (strcmp(request_method, "GET") == 0)
+  if (strcmp(request_type, "GET") == 0)
   {
     if (strcmp(request_path, "/") == 0)
     {
@@ -388,9 +384,9 @@ void handle_http_request(int fd)
       resp_404(fd, request_path);
     }
   }
-  else if (strcmp(request_method, "POST") == 0)
+  else if (strcmp(request_type, "POST") == 0)
   {
-    if (strcmp(path, "/save") == 0)
+    if (strcmp(request_path, "/save") == 0)
     {
       post_save(fd, body);
     }
