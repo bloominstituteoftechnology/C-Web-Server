@@ -348,7 +348,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
-  p = find_end_header(header);
+  p = find_end_header();
   if (p == NULL)
   {
     printf("An error occured finding the end of header\n");
