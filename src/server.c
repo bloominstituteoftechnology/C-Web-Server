@@ -205,7 +205,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
                               "Content-Type: %s\n"
                               "\n"
                               "%s", 
-                                  header, formatted_time, content_length, content_type, body);       
+                                  header, formatted_time, response_length, content_type, body);       
                              
   // Send it all!
   int rv = send(fd, response, response_length, 0);
