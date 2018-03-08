@@ -348,6 +348,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
+<<<<<<< HEAD
   p = find_end_header(header);
   if (p == NULL)
   {
@@ -357,6 +358,10 @@ void handle_http_request(int fd)
   
   char *body = p;
   sscanf(request, "%s %s", request_type, request_path);
+=======
+
+  // !!!! IMPLEMENT ME
+>>>>>>> upstream/master
   // call the appropriate handler functions, above, with the incoming data
 
   if (strcmp(request_method, "GET") == 0)
