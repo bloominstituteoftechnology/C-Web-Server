@@ -18,7 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h>        
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
@@ -192,7 +192,21 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
-
+  char formatted_time[1024];
+  time_t current_time =  time(NULL);
+  struct tm *l_time = localtime(&current_time);
+  strftime(formatted_time, 1024, "%A, %B %d %X %Z %Y", l_time);
+  
+  response_length = sprintf(response,
+                              "%s\n"
+                              "Date: %s\n"
+                              "Connection: close\n"
+                              "Content-Length: %d\n"
+                              "Content-Type: %s\n"
+                              "\n"
+                              "%s", 
+                                  header, formatted_time, content_length, content_type, body);       
+                             
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -222,7 +236,9 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
+  char *response_body = "<html><head></head><body></body><h1>Implemented the response</h1></body></head></html>\n";
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OKEEDOKE", "text/html", response_body);
 }
 
 /**
@@ -231,6 +247,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[8];
+  sprintf(response_body, "%d\n", rand() % 20 +1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+
 }
 
 /**
@@ -239,6 +260,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+    char response_body[1024];
+
+    time_t current_time = time(NULL);
+    struct tm *l_time = localtime(&current_time);
+    strftime(response_body, 1024, "%A, %B %d %X %Z %Y\n", l_time);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -247,8 +275,13 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
-
   // Save the body and send a response
+    char *response_body = "{\"status\":\"ok\"}\n";
+
+    send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
+
+    save_data(body);
+  
 }
 
 /**
@@ -260,6 +293,24 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *hp;
+  hp = strstr(header, "\n\n");
+
+  if (hp != NULL)
+  {
+    return hp;
+  }
+
+  hp = strstr(header, "\r\n\r\n");
+
+  if (hp != NULL)
+  {
+    return hp;
+  }
+
+  hp = strstr(header, "\r\r");
+
+  return hp;
 }
 
 /**
@@ -288,10 +339,61 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  
+  char *first_ln = request;
+
+  p = strchr(first_ln, '\n');
+  *p = '\0';
+  sscanf(request, "%s %s", request_type, request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
+  p = find_end_header(header);
+  if (p == NULL)
+  {
+    printf("An error occured finding the end of header\n");
+    return(1);
+  }
+  
+  char *body = p;
+  sscanf(request, "%s %s", request_type, request_path);
   // call the appropriate handler functions, above, with the incoming data
+
+  if (strcmp(request_method, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      srand(time(NULL));
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else if (strcmp(request_path, "/save") == 0)
+    {
+      get_save(fd);
+    }
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
+  else if (strcmp(request_method, "POST") == 0)
+  {
+    if (strcmp(path, "/save") == 0)
+    {
+      post_save(fd, body);
+    }
+    else 
+    {
+      resp_404(fd, request_path);
+    }
+  }
 }
 
 /**
