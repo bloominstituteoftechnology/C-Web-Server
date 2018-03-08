@@ -444,9 +444,12 @@ int main(void)
 
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
+    if (fork() == 0)
+    {
 
-    handle_http_request(newfd);
-
+      close (listenfd);
+      handle_http_request(newfd);
+    }
     // Done with this
     close(newfd);
   }
