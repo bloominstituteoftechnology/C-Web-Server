@@ -344,7 +344,7 @@ void handle_http_request(int fd)
 
   p = strchr(first_ln, '\n');
   *p = '\0';
-  sscanf(request, "%s %s", request_type, request_path);
+  sscanf(request, "%s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
@@ -356,7 +356,7 @@ void handle_http_request(int fd)
   }
   
   char *body = p;
-  sscanf(request, "%s %s", request_type, request_path);
+  sscanf(request, "%s %s", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
 
@@ -364,7 +364,7 @@ void handle_http_request(int fd)
   {
     if (strcmp(request_path, "/") == 0)
     {
-      get_root(fd);
+      get_root(fd); //TODO: confirm we should pass fd through here without changing
     }
     else if (strcmp(request_path, "/d20") == 0)
     {
