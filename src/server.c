@@ -254,7 +254,6 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   char response_body[1024];
-
   int min = 1;
   int max = 20;
 
@@ -274,9 +273,7 @@ void get_date(int fd)
   char response_body[1024];
   char *time_as_string;
   time_t current_time = time(NULL);
-
   time_as_string = ctime(&current_time);
-
 
   sprintf(response_body, "%s", time_as_string);
   printf("%s\n",response_body);
@@ -357,11 +354,6 @@ void handle_http_request(int fd)
       resp_404(fd, request_path);
     }
 
-  }
-
-  if(!strcmp("/", request_path)) 
-  {
-    get_root(fd);
   }
   
 }
