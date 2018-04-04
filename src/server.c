@@ -191,7 +191,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length;
 
-  // !!!!  IMPLEMENT ME
+  respone_length = sprintf(respone, "%\nDate: Wed Dec 20\nConnection: close\nContent-Length: %lu\nContent-Type: %s\n\n%s", 
+                            header, 
+                            strlen(body), 
+                            content_type, 
+                            body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
