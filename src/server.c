@@ -204,13 +204,16 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
   int response_body_length = strlen(body);
-  // printf("%d", response_body_length);
 
-  // sprintf(response, "%s\n%s\n%s\nContent-Length: %s\nContent-Type: %s\n", header, 'date', 'connection close', response_body_length, content_type);
-  response_length = sprintf(response, "%s\nContent-Type: %s\n\n%s\n", header, content_type, body);
-  // printf("response: %s", response);
-  // response_length = srtlen(&response);
-  // printf("response length: %d", response_length);
+  response_length = sprintf(response,
+                            "%s\n"
+                            "Content-Length: %d\n"
+                            "Content-Type: %s\n\n"
+                            "%s\n",
+                            header,
+                            response_body_length,
+                            content_type,
+                            body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -244,7 +247,7 @@ void get_root(int fd)
   //send_response(...
   char response_body[1024];
 
-  sprintf(response_body, "<h1>Hello, world!</h1>");
+  sprintf(response_body, "<h1>Hello, world!</h1>\n");
 
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -255,6 +258,18 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char *response_body = malloc(sizeof(int));
+
+  int num;
+
+  do
+  {
+    num = rand() % 100;
+  } while (num - 20 > 0 || num - 1 < 0);
+
+  sprintf(response_body, "%d\n", num);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -323,9 +338,18 @@ void handle_http_request(int fd)
   char *root = malloc(strlen("/"));
   strcpy(root, "/");
 
+  char *d20 = malloc(strlen("/d20"));
+  strcpy(d20, "/d20");
+
   if (strcmp(request_path, root) == 0)
   {
     get_root(fd);
+    return;
+  }
+
+  if (strcmp(request_path, d20) == 0)
+  {
+    get_d20(fd);
     return;
   }
 
@@ -352,6 +376,9 @@ int main(void)
     fprintf(stderr, "webserver: fatal error getting listening socket\n");
     exit(1);
   }
+
+  /* randomize seed */
+  srand(time(NULL));
 
   printf("webserver: waiting for connections...\n");
 
