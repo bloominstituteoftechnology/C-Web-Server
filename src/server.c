@@ -234,7 +234,7 @@ void get_root(int fd)
   // !!!! IMPLEMENT ME
   char header[] = "HTTP/1.1 200 OK";
   char content_type[] = "text/html";
-  char body[] = "<h1>Hello World!</h1>";
+  char body[] = "<h1>Hello World!</h1>\n";
   send_response(fd, header, content_type, body);
 }
 
@@ -248,7 +248,7 @@ void get_d20(int fd)
   char content_type[] = "text/plain";
   char body[5];
   srand(time(NULL));
-  sprintf(body, "%d", (rand() % 21));
+  sprintf(body, "%d\n", (rand() % 21));
   send_response(fd, header, content_type, body);
 }
 
@@ -258,6 +258,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char header[] = "HTTP/1.1 200 OK";
+  char content_type[] = "text/plain";
+  char body[50];
+  time_t now = time(NULL);
+  struct tm *date = gmtime(&now);
+  sprintf(body, "%s", asctime(date));
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -321,11 +328,14 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   char root[] = "/";
   char d20[] = "/d20";
+  char date[] = "/date";
 
   if(strcmp(request_path, root) == 0) {
     get_root(fd);
-  } if(strcmp(request_path, d20) == 0) {
+  } else if(strcmp(request_path, d20) == 0) {
     get_d20(fd);
+  } else if(strcmp(request_path, date) == 0) {
+    get_date(fd);
   } else {
     resp_404(fd, request_path);
   }
