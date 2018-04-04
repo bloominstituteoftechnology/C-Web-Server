@@ -32,6 +32,8 @@
 #include <sys/file.h>
 #include <fcntl.h>
 
+#include "date.h"
+
 #define PORT "3490" // the port users will be connecting to
 
 #define BACKLOG 10 // how many pending connections queue will hold
@@ -278,6 +280,35 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+
+  time_t t = time(NULL);
+  struct tm tm = *gmtime(&t);
+
+  int y = tm.tm_year + 1900;
+  int m = tm.tm_mon + 1;
+  int d = tm.tm_mday;
+
+  int weekdayIndex;
+
+  /**
+   * Finding weekday
+   * https://www.geeksforgeeks.org/find-day-of-the-week-for-a-given-date/
+   */
+  static int t_tmp[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+  y -= m < 3;
+  weekdayIndex = (y + y / 4 - y / 100 + y / 400 + t_tmp[m - 1] + d) % 7;
+
+  char *month = months[m];
+  char *weekday = weekdays[weekdayIndex];
+
+  sprintf(response_body,
+          "%s, %s %d, %d, "
+          "%d:%d:%d GMT\n",
+          weekday, month, d, y,
+          tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -341,6 +372,9 @@ void handle_http_request(int fd)
   char *d20 = malloc(strlen("/d20"));
   strcpy(d20, "/d20");
 
+  char *date = malloc(strlen("/date"));
+  strcpy(date, "/date");
+
   if (strcmp(request_path, root) == 0)
   {
     get_root(fd);
@@ -350,6 +384,12 @@ void handle_http_request(int fd)
   if (strcmp(request_path, d20) == 0)
   {
     get_d20(fd);
+    return;
+  }
+
+  if (strcmp(request_path, date) == 0)
+  {
+    get_date(fd);
     return;
   }
 
