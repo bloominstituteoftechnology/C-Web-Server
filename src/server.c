@@ -189,6 +189,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
+
+
+
   int response_length;
 
   // !!!!  IMPLEMENT ME
@@ -223,6 +226,9 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, World!</h1></body></head></html>";
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -231,6 +237,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // README Goal #4 srand() time(NULL)
+  srand(time(NULL) + getpid());
+  
+  // response 8
+  char response_body[8];
 }
 
 /**
@@ -288,12 +299,40 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  
+  char *first_line = request;
 
+  p = strchr(first_line, '\n');
+  *p = '\0';
+  
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
-
-  // !!!! IMPLEMENT ME
+  
+  // first request line
+  sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
+  // print first request line
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+  
+  // if type "GET" path "/" else if "/d20", "/date", else 404
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    }
+    else {
+      resp_404(fd, request_path);
+    }
+  }
+  // !!!! ^^^ IMPLEMENT ME ^^^
   // call the appropriate handler functions, above, with the incoming data
+  
+  // stretch goal --> POST "/save"
+
 }
 
 /**
