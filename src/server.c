@@ -192,6 +192,20 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  time_t now;
+  time(&now);
+  struct tm *date = localtime(&now);
+  char connection[] = "closed";
+  int content_length = strlen(body);
+  // char fullDate[] = asctime(date);
+  // strftime(fullDate, 70, "%a %b", date);
+  // puts(fullDate);
+  // printf("full date %s", fullDate);
+
+  sprintf(response, "%s\nDate: %sConnection: %s\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, asctime(date),connection, content_length, content_type, body);
+  printf("Here is the response %s\n", response);
+
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -222,7 +236,10 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  char header[] = "HTTP/1.1 200 OK";
+  char content_type[] = "text/html";
+  char body[] = "<h1>Hello World!</h1>";
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -289,11 +306,24 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("request type %s\n", request_type);
+  printf("request path %s\n", request_path);
+  printf("request protocol %s\n", request_protocol);
+
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  char root[] = "/";
+
+  if(strcmp(request_path, root) == 0) {
+    get_root(fd);
+  } else {
+    resp_404(fd, request_path);
+  }
 }
 
 /**
