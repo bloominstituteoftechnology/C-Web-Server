@@ -242,6 +242,7 @@ void get_d20(int fd)
   
   // response 8
   char response_body[8];
+  // print string HTTP + status + text/plain + body
 }
 
 /**
@@ -250,6 +251,10 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  // README - hints time(NULL), gmtime()
+  // response body 128
+  // sprintf -> res_b, %s, asctime()
+  // send response
 }
 
 /**
