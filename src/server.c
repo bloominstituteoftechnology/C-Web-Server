@@ -197,10 +197,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
   struct tm *date = localtime(&now);
   char connection[] = "closed";
   int content_length = strlen(body);
-  // char fullDate[] = asctime(date);
-  // strftime(fullDate, 70, "%a %b", date);
-  // puts(fullDate);
-  // printf("full date %s", fullDate);
 
   sprintf(response, "%s\nDate: %sConnection: %s\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, asctime(date),connection, content_length, content_type, body);
   printf("Here is the response %s\n", response);
@@ -248,6 +244,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char header[] = "HTTP/1.1 200 OK";
+  char content_type[] = "text/plain";
+  char body[5];
+  srand(time(NULL));
+  sprintf(body, "%d", (rand() % 21));
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -318,9 +320,12 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
   char root[] = "/";
+  char d20[] = "/d20";
 
   if(strcmp(request_path, root) == 0) {
     get_root(fd);
+  } if(strcmp(request_path, d20) == 0) {
+    get_d20(fd);
   } else {
     resp_404(fd, request_path);
   }
