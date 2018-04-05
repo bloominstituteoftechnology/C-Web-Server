@@ -190,8 +190,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   
-  // DELETE THIS
-
   tim_t t1 = time(NULL);
   struct tm *ltime = localtime(&t1);
 
