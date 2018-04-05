@@ -256,6 +256,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  int min = 1;
+  int max = 20;
+
+  srand(time(0));
+  int random = min + rand() /(RAND_MAX / (max - min + 1) + 1);
+
+  sprintf(response_body, "%d", random);
+  printf("%s\n", response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -328,6 +338,10 @@ void handle_http_request(int fd)
     if (strcmp("/", request_path) == 0)
     {
       get_root(fd);
+    }
+    else if (strcmp("/d20", request_path) == 0)
+    {
+      get_d20(fd);
     }
     else
     {
