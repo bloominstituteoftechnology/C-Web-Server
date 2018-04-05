@@ -204,18 +204,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length;
 
-  // !!!!  IMPLEMENT ME
   int response_body_length = strlen(body);
 
-  response_length = sprintf(response,
-                            "%s\n"
-                            "Content-Length: %d\n"
-                            "Content-Type: %s\n\n"
-                            "%s\n",
-                            header,
-                            response_body_length,
-                            content_type,
-                            body);
+  response_length =
+      sprintf(response,
+              "%s\n"
+              "Content-Length: %d\n"
+              "Content-Type: %s\n\n"
+              "%s\n",
+              /* */
+              header,
+              response_body_length,
+              content_type,
+              body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -245,8 +246,6 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
   char response_body[1024];
 
   sprintf(response_body, "<h1>Hello, world!</h1>\n");
@@ -259,7 +258,6 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
   char *response_body = malloc(sizeof(int));
 
   int num;
@@ -279,7 +277,6 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
   char response_body[1024];
 
   time_t t = time(NULL);
@@ -356,16 +353,11 @@ void handle_http_request(int fd)
   // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
-  // Hint: sscanf()!
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
   char *root = malloc(strlen("/"));
   strcpy(root, "/");
 
