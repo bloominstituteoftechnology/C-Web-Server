@@ -31,6 +31,7 @@
 #include <time.h>
 #include <sys/file.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #define PORT "3490"  // the port users will be connecting to
 
@@ -273,6 +274,15 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  char header[] = "HTTP/1.1 200 OK";
+  char content_type[] = "application/json";
+  FILE *fp;
+    
+  fp = fopen("file.txt", "w");
+  fwrite(body, 1, sizeof(body), fp);
+  fclose(fp);
+
+  send_response(fd, header, content_type, body);
 
   // Save the body and send a response
 }
@@ -286,6 +296,24 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *body;
+
+  if (strstr(header, "\n\n")) {
+    body = strstr(header, "\n\n");
+    printf("body newline newline %s", body);
+  } else if (strstr(header, "\r\n\r\n")) {
+    body = strstr(header, "\r\n\r\n");
+    printf("body carriage newline %s", body);
+  } else {
+    body = strstr(header, "\r\r");
+    printf("body carriage carriage %s", body);
+  }
+
+  while(isspace(*body)) {
+    body++;
+  }
+
+  return body;
 }
 
 /**
@@ -299,6 +327,7 @@ void handle_http_request(int fd)
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
+  char *body;
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -329,6 +358,7 @@ void handle_http_request(int fd)
   char root[] = "/";
   char d20[] = "/d20";
   char date[] = "/date";
+  char save[] = "/save"; 
 
   if(strcmp(request_path, root) == 0) {
     get_root(fd);
@@ -336,6 +366,9 @@ void handle_http_request(int fd)
     get_d20(fd);
   } else if(strcmp(request_path, date) == 0) {
     get_date(fd);
+  } else if(strcmp(request_path, save) == 0) {
+    body = find_end_of_header(request);
+    post_save(fd, body);
   } else {
     resp_404(fd, request_path);
   }
