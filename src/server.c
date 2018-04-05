@@ -402,25 +402,29 @@ void handle_http_request(int fd)
     if (strcmp(request_path, "/save") == 0)
     {
       post_save(fd, p);
+      return;
     }
   }
 
-  if (strcmp(request_path, "/") == 0)
+  if (strcmp(request_type, "GET") == 0)
   {
-    get_root(fd);
-    return;
-  }
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+      return;
+    }
 
-  if (strcmp(request_path, "/d20") == 0)
-  {
-    get_d20(fd);
-    return;
-  }
+    if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+      return;
+    }
 
-  if (strcmp(request_path, "/date") == 0)
-  {
-    get_date(fd);
-    return;
+    if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+      return;
+    }
   }
 
   resp_404(fd, request_path);
@@ -480,7 +484,18 @@ int main(void)
 
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
+    // pid_t pid = fork();
 
+    // if (pid == 0) {
+    //   printf("CHILD\n");
+    //   handle_http_request(newfd);
+    //   exit(0);
+    // }
+    // else {
+    //   printf("PARENT (%d)\n", pid);
+    //   handle_http_request(newfd);
+    // }
+  
     handle_http_request(newfd);
 
     // Done with this
