@@ -192,7 +192,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  int content_length;
 
+  response_length = strlen(header) + strlen(body);
+  content_length = strlen(body);
+  sprintf(response, "%s\n%s\n%s\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, "Today's date", "Connection: close", content_length, content_type, body);
+  printf("%s\n", "*******response*******");
+  printf("%s\n", response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -224,7 +230,7 @@ void get_root(int fd)
   // !!!! IMPLEMENT ME
   //send_response(...
   char response_body[1024];
-  sprintf(response_body, "200: OK");
+  sprintf(response_body, "<html><head></head><body><h1>Hello world!</h1></body></html>");
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
@@ -292,7 +298,8 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   sscanf( request, "%s %s %s", request_type, request_path, request_protocol );
-
+  printf("request_type: %s\n", request_type);
+  printf("request_path: %s\n", request_path);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
@@ -300,7 +307,8 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   if (strcmp(request_type, "GET") == 0)
   {
-    if (strcmp(request_path, '/') == 0)
+    if (strcmp(request_path, "/") == 0)
+      printf("%s\n", "calling get_root");
       get_root(fd);
   }
 }
@@ -353,7 +361,6 @@ int main(void)
 
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
-
     handle_http_request(newfd);
 
     // Done with this
