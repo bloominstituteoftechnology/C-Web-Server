@@ -189,13 +189,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length;
+  
+  // DELETE THIS
 
-  respone_length = sprintf(respone, "%\nDate: Wed Dec 20\nConnection: close\nContent-Length: %lu\nContent-Type: %s\n\n%s", 
-                            header, 
-                            strlen(body), 
-                            content_type, 
-                            body);
+  tim_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  int content_length = strlen(body);
+
+  int response_length = sprintf(response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "\n"
+    "%s",
+    
+    header,
+    content_length,
+    content_type,
+    asctime(ltime),
+    body);
+
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -227,6 +243,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+
+  sprintf(respone_body, "<h1>Hello, World!</h1>");
+  printf("%s\n", response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -235,6 +256,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  int min = 1;
+  int max = 20;
+
+  srand(time(0));
+  int random = min + rand() /(RAND_MAX / (max - min + 1) + 1);
+
+  sprintf(response_body, "%d", random);
+  printf("%s\n", response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -243,6 +274,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  char *time_as_string;
+  time_t current_time = time(NULL);
+  time_as_string = ctime(&current_time);
+
+  sprintf(response_body, "%s", time_as_string);
+  printf("%s\n", respone_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -293,12 +332,34 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
+
+printf("%s %s %s\n", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-}
+  if (strcmp("GET", request_type) == 0)
+  {
+    printf("Request path is: %s\n", request_path);
+    if (strcmp("/", request_path) == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp("/d20", request_path) == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcpm("/date", request_path) == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd, request_path)
+    }
+  }
 
 /**
  * Main
