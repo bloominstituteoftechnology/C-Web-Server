@@ -248,7 +248,11 @@ void get_root(int fd)
 {
   char response_body[1024];
 
-  sprintf(response_body, "<h1>Hello, world!</h1>");
+  FILE *fp;
+
+  fp = fopen("root.txt", "r");
+  fread(response_body, 8, sizeof(response_body), fp);
+  fclose(fp);
 
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -313,13 +317,10 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME
-  printf("\nbody from post_save: \n-------------%s--------\n", body);
-
   // Save the body and send a response
   FILE *fp;
 
-  fp = fopen("write_to_me.txt", "w+");
+  fp = fopen("root.txt", "w+");
   fwrite(body, 8, sizeof(body), fp);
   fclose(fp);
 
@@ -338,232 +339,34 @@ void post_save(int fd, char *body)
  */
 char *find_end_of_header(char *header)
 {
-  // !!!! IMPLEMENT ME
-  // char curr = header[0];
-  // char next = header[1];
+  int newlines_len = 9;
+  char *newlines[9] = {
+      "\n\n",
+      "\n\r",
+      "\r\n",
+      "\r\r",
+      /* */
+      "\r\r\n",
+      "\n\r\n",
+      "\r\n\n",
+      "\r\n\r",
+      /* */
+      "\r\n\r\n"};
 
-  // while (*header != '\n' && *header++ != '\n')
-  // printf("\nheader: \n%s\n-------\n", header);
-  // printf("new pointer is at: %s\n", strstr(header, "\n\n"));
-
-  if (strstr(header, "\n\n"))
+  for (int i = 0; i < newlines_len; i++)
   {
-    printf("n n");
-    return strstr(header, "\n\n") + 2;
+    char *newline = newlines[i];
+    char *addr = strstr(header, newline);
+
+    if (addr)
+    {
+      return addr + strlen(newline) + 1; /* account for \0 */
+    }
   }
 
-  if (strstr(header, "\n\r"))
-  {
-    printf("n r");
-    printf("new pointer is at: %s", strstr(header, "\n\r") + sizeof("\n\r"));
-    return strstr(header, "\n\r") + sizeof("\n\r");
-  }
-
-  if (strstr(header, "\r\n"))
-  {
-    printf("r n");
-    return strstr(header, "\r\n") + 2;
-  }
-
-  if (strstr(header, "\r\r"))
-  {
-    printf("r r");
-    return strstr(header, "\r\r") + 2;
-  }
-
-  /* ******************************************************** */
-
-  if (strstr(header, "\r\r\n"))
-  {
-    printf("r r n");
-    return strstr(header, "\r\r\n") + 3;
-  }
-
-  if (strstr(header, "\n\r\n"))
-  {
-    printf("n r n");
-    return strstr(header, "\n\r\n") + 3;
-  }
-
-  if (strstr(header, "\r\n\n"))
-  {
-    printf("r n n");
-    return strstr(header, "\r\n\n") + 3;
-  }
-
-  if (strstr(header, "\r\n\r"))
-  {
-    printf("r n r");
-    return strstr(header, "\r\n\r") + 3;
-  }
-
-  /* ******************************************************** */
-
-  if (strstr(header, "\r\n\r\n"))
-  {
-    printf("r n r n");
-    return strstr(header, "\r\n\r\n") + 4;
-  }
-
+  /* unreachable code */
+  /* assuming correct header */
   return header;
-
-  // int header_length = strlen(header);
-
-  // for (int i = 0; i < header_length - 4; i++)
-  // {
-  //   char curr = header[i];
-  //   char next = header[i + 1];
-  //   char nextP2 = header[i + 2];
-  //   char nextP3 = header[i + 3];
-
-  //   int len_curr = strlen(&curr);
-  //   int len_next = strlen(&next);
-  //   int len_nextP2 = strlen(&nextP2);
-  //   int len_nextP3 = strlen(&nextP3);
-
-  //   printf("curr (%d): %c\n", len_curr, curr);
-  //   printf("next (%d): %c\n", len_next, next);
-  //   printf("nextP2 (%d): %c\n", len_nextP2, nextP2);
-  //   printf("nextP3 (%d): %c\n", len_nextP3, nextP3);
-
-  //   char *line = malloc(sizeof(curr) +
-  //                       sizeof(next) +
-  //                       sizeof(nextP2) +
-  //                       sizeof(nextP3));
-
-  //   if (curr == '\r' || curr == '\n')
-  //   {
-  //     strcpy(line, &curr);
-
-  //     if (next == '\r' || next == '\n')
-  //     {
-  //       strcat(line, &next);
-
-  //       if (nextP2 == '\r' || nextP2 == '\n')
-  //       {
-  //         strcat(line, &nextP2);
-
-  //         if (nextP3 == '\r' || nextP3 == '\n')
-  //         {
-  //           strcat(line, &nextP3);
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   int line_len = strlen(line);
-
-  //   printf("line (%d): %s\n-------------------\n", line_len, line);
-
-  //   if (line_len > 0) /* at least one 'newline' */
-  //   {
-  //     if (strcmp(line, "\n\n") == 0 ||
-  //         strcmp(line, "\n\r") == 0 ||
-  //         strcmp(line, "\r\n") == 0 ||
-  //         strcmp(line, "\r\r") == 0)
-  //     {
-  //       printf("first");
-  //       return &header[i + 2];
-  //     }
-
-  //     if (strcmp(line, "\r\n\n") == 0 ||
-  //         strcmp(line, "\r\n\r") == 0 ||
-  //         strcmp(line, "\r\r\n") == 0 ||
-  //         strcmp(line, "\n\r\n") == 0)
-  //     {
-  //       printf("second");
-  //       return &header[i + 3];
-  //     }
-
-  //     if (strcmp(line, "\r\n\r\n"))
-  //     {
-  //       printf("third");
-  //       return &header[i + 4];
-  //     }
-
-  //     printf("no strcmp passed");
-  //   }
-
-  /* THIS IS OLD UNDER HERE                                                                  */
-
-  // char *line1 = malloc(sizeof(curr) + sizeof(next));
-  // char *line2 = malloc(sizeof(nextP2) + sizeof(nextP3));
-
-  // strcpy(line1, curr);
-  // strcat(line1, next);
-
-  // strcpy(line2, nextP2);
-  // strcat(line2, nextP3);
-
-  /* \n\n
-       \n\r
-       \r\n
-       \r\r */
-  // if (strcmp(line1, '\n\n') ||
-  //     strcmp(line1, '\n\r') ||
-  //     strcmp(line1, '\r\n') ||
-  //     strcmp(line1, '\r\r'))
-  // {
-  //   return &header[i + 2];
-  // }
-
-  // /* \r\n \n
-  //    \r\n \r
-  //    -------
-  //    \r \r\n
-  //    \n \r\n */
-  // if (strcmp(line1, '\r\n\n') ||
-  //     strcmp(line))
-  // {
-  //   return &header[i + 3];
-  // }
-  // }
-
-  // if ((curr == '\n' || curr == '\r') && (next == '\n' || next == '\r'))
-  // {
-  //   /* the case when a new line is \r\n */
-  //   if (curr == '\r' && next == '\n')
-  //   {
-
-  //     if ((nextP2 == '\n' || nextP2 == '\r') && (nextLineP1 == '\n' || nextLineP1 == '\r'))
-  //     {
-  //       /* the case when next new line is \r\n */
-  //       if (nextP2 == '\r' && nextLineP1 == '\n')
-  //       {
-  //         /* return the pointer after the second \r\n */
-  //         return &header[i + 4]; /*                               \r\n and \r\n
-  //                                */
-  //       }
-  //       /* else return the pointer after the second new line
-  //          which can be \n or \r only
-  //       */
-  //       return &header[i + 3]; /*                             \r\n and \r or \n
-  //                              */
-  //     }
-  //     /* else return the pointer after the second new line
-  //        which can be \n or \r only
-  //     */
-  //     return &header[i + 2]; /*                           \r or \n and \r or \n
-  //                            */
-  //   }
-  // }
-
-  // while (((curr != '\n' && curr != '\r')) || (((next != '\n' && next != '\r'))))
-  // {
-  //   if (*header == '\0')
-  //     return header;
-
-  //   if (*header == '\n' || *header == '\r')
-  //   {
-  //   }
-  //   curr = *header;
-  //   next = *++header;
-  //   printf("current: %c\n", curr);
-  //   printf("next: %c\n\n", next);
-  // }
-  // printf("header bucket: %p\n", *header);
-  // printf("\nrest of header (body): \n%s\n", header);
-  // return header;
 }
 
 /**
