@@ -192,6 +192,24 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  time_t current_time = time(NULL);
+  struct tm *date_time = asctime (localtime (&current_time));
+  int body_length = strlen(body);
+
+  response_length = sprintf(response,
+    "%s\n"                     // header from helper function
+    "Date: %s"                 // date_time includes its own newline, intentionally omitted \n
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n\n"     // content type from helper function and 2nd newline per format spec
+    "%s",                      // body from helper function
+    
+    header,
+    date_time,
+    body_length,
+    content_type,
+    body);
+printf("response:\n%s\n", response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -209,6 +227,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd, char *path)
 {
+  printf("You're in resp_404!\n");
   char response_body[1024];
 
   sprintf(response_body, "404: %s not found", path);
@@ -223,6 +242,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("You're in get_root!\n");
 }
 
 /**
@@ -288,13 +308,18 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-}
+  if (strcmp(request_path, "/") == 0) {
+    get_root(fd);
+  } else {
+    resp_404(fd, request_path);
+  };
+};
 
 /**
  * Main
