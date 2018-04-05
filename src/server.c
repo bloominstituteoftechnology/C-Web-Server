@@ -192,7 +192,25 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
 
 
-  int response_length;
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  int content_length = strlen(body);
+
+  int response_length = sprintf(response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "\n" 
+    "%s",
+
+    header,
+    content_length,
+    content_type,
+    asctime(ltime),
+    body);
 
   // !!!!  IMPLEMENT ME
 
@@ -243,6 +261,10 @@ void get_d20(int fd)
   // response 8
   char response_body[8];
   // print string HTTP + status + text/plain + body
+  char response_body[8];
+  sprintf(response_body, "%d", (rand()%20)+1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -251,10 +273,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  // README - hints time(NULL), gmtime()
   // response body 128
+  char response_body[128];
+  // README - hints time(NULL), gmtime()
+  time_t t1 = time(NULL);
   // sprintf -> res_b, %s, asctime()
+  sprintf(response_body, "%s", asctime(gmtime));
   // send response
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -263,8 +289,20 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  char *status;
 
+  int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
   // Save the body and send a response
+  if (file_fd >= 0) {
+    write(file_fd, body, strlen(body));
+    close(file_fd);
+    status = "ok";
+  } else {
+    status = "fail";
+  }
+
+  sprintf(response_body, "{\"status\": \"%s\"}", status);
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -275,7 +313,21 @@ void post_save(int fd, char *body)
  */
 char *find_end_of_header(char *header)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME// (stretch goal)
+  // find_end_of_header()
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -305,14 +357,23 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   
+  // * for stretch problem
   char *first_line = request;
 
   p = strchr(first_line, '\n');
   *p = '\0';
   
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_end_of_header()
+  char *header = p + 1;
   
+  p = find_end_of_header(header);
+
+  if (p == NULL) {
+    printf("Could not find end of header\n");
+    exit(1);
+  }
+
+  char *body = p;
+
   // first request line
   sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
   // print first request line
@@ -333,12 +394,26 @@ void handle_http_request(int fd)
       resp_404(fd, request_path);
     }
   }
+  else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+      post_save(fd, body);
+
+    } else {
+      resp_404(fd, request_path);
+    }
+  }
+
+  else {
+    fprintf(stderr, "unknown request type \"%s\"\n", request_type);
+    return;
+  }
+}
   // !!!! ^^^ IMPLEMENT ME ^^^
   // call the appropriate handler functions, above, with the incoming data
   
   // stretch goal --> POST "/save"
 
-}
+
 
 /**
  * Main
