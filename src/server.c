@@ -200,9 +200,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length;
 
   // !!!!  IMPLEMENT ME
+
+  //amount of bytes in the body...
+  int content_length = strlen(body);
+
+  //should return current time in the header...
+  time_t t = time(NULL);
+  struct tm *currTime = localtime(&t);
+
+  int response_length = sprintf(response,
+                                "%s\n"
+                                "Date: %s\n"
+                                "Content-Length: %d\n"
+                                "Content-Type: %s\n"
+                                "\n" //end
+                                "%s\n",
+
+                                header,
+                                asctime(currTime),
+                                content_length,
+                                content_type,
+                                body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -233,8 +253,8 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  char response_body[1024];
-  sprintf(response_body, "200: OK");
+  char *response_body = "<html><head></head><body><h1> HELLO WORLD! </h1></body></html>";
+
   send_response(fd, "HTTP/1.1 200: OK", "text/html", response_body);
 }
 
@@ -301,11 +321,28 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
+  char *first_line = request;
+
+  p = strchr(first_line, '\n');
+  *p = '\0';
   // Hint: sscanf()!
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  printf("Type: ", "%s\n", request_type);
-  printf("Path: ", "%s\n", request_path);
-  printf("Protocol: ", "%s\n", request_protocol);
+
+  printf("Type: %s\n", request_type);
+  printf("Path: %s\n", request_path);
+  printf("Protocol: %s\n", request_protocol);
+
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
