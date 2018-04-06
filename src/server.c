@@ -318,17 +318,36 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // Save the body and send a response
-  FILE *fp;
-
-  fp = fopen("root.txt", "w+");
-  fwrite(body, 8, sizeof(body), fp);
-  fclose(fp);
-
   char response_body[1024];
 
-  sprintf(response_body, "{\"status\":\"ok\"}");
+  FILE *fp;
+  fp = fopen("root.txt", "w+");
 
-  send_response(fd, "HTTP/1.1 201 OK", "application/json", response_body);
+  // int isFlock = flock(fd, LOCK_EX);
+
+  // if (isFlock < 0) /* if -1 */
+  // {
+  //   fclose(fp);
+
+  //   printf("FILE IS LOCKED ERROR: %s\n", strerror(errno));
+  //   sprintf(response_body, "{\"status\":\"error (FILE LOCKED)\"}");
+  //   send_response(fd, "HTTP/1.1 500 ERROR", "application/json", response_body);
+  // } 
+  // else 
+  // {
+    fwrite(body, 8, sizeof(body), fp);
+
+    // printf("FILE FLOCK NUMBER IS: %d", isFlock);
+
+    // flock(fd, LOCK_UN);
+    
+    fclose(fp);
+
+    sprintf(response_body, "{\"status\":\"ok\"}");
+
+    send_response(fd, "HTTP/1.1 201 OK", "application/json", response_body);
+  // }
+  
 }
 
 /**
@@ -487,12 +506,13 @@ int main(void)
     // pid_t pid = fork();
 
     // if (pid == 0) {
-    //   printf("CHILD\n");
+    //   printf("CHILD\n--\n");
     //   handle_http_request(newfd);
     //   exit(0);
     // }
-    // else {
-    //   printf("PARENT (%d)\n", pid);
+    // else
+    // {
+    //   printf("PARENT (%d)\n--\n", pid);
     //   handle_http_request(newfd);
     // }
   
