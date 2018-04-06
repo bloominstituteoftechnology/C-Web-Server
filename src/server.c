@@ -277,6 +277,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  time_t nt = time(NULL);
+  struct tm *new_time = localtime(&nt);
+
+  sprintf(response_body, "%s", asctime(new_time));
+
+  send_response(fd, "HTTP/1.1 200: OK", "text/plain", response_body);
 }
 
 /**
@@ -346,6 +353,10 @@ void handle_http_request(int fd)
     else if (strcmp(request_path, "/d20") == 0)
     {
       get_d20(fd);
+    }
+    else if (strcmp(request_path, "/get_date") == 0)
+    {
+      get_date(fd);
     }
     else
     {
