@@ -80,7 +80,7 @@ each does.
 
 As the data leaves your LAN and heads out in the world, the Ethernet header will
 be stripped off, the IP header will be examined to see how the data should be
-router, and another header for potentially a different protocol will be put on
+routed, and another header for potentially a different protocol will be put on
 to send the traffic over DSL, a cable modem, or fiber.
 
 The Ethernet header is created and managed by the network drivers in the OS.
@@ -122,13 +122,13 @@ deals with routine, HTTP is concerned with `GET` and `POST` requests of web
 data.
 
 Like the other stages of networking, HTTP adds a header before the data it wants
-to send with the packet. Like IP and TCP, This header has a well-defined
+to send with the packet. Like IP and TCP, this header has a well-defined
 specification for exactly what needs to be sent.
 
-Though the specification is complex, a fortunately small amount of information
+Though the specification is complex, fortunately only a small amount of information
 is needed to implement a barebones version.
 
-For each _HTTP request_ from a client, the server, sends back an _HTTP
+For each _HTTP request_ from a client, the server sends back an _HTTP
 response_.
 
 Here is an example HTTP `GET` request and response using version 1.1 of the HTTP
@@ -215,7 +215,7 @@ Type `./server` to run the server.
 
 ### Main Goals
 
-_Read through all the main and stretch goals one time to get an overall view,
+_Read through all the main and stretch goals before writing any code to get an overall view,
 then come back to goal #1 and dig in._
 
 1. Examine `handle_http_request()` in the file `server.c`.
