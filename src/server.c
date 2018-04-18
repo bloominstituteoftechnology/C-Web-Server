@@ -192,6 +192,28 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  // get date of response
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  // get response body's content length
+  int content_length = strlen(body);
+  
+  //get response's length
+  response_length = sprintf(response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Date: %s" // asctime adds its own newline
+    "Connection: close\n"
+    "\n" // End of HTTP header
+    "%s",
+
+    header,
+    content_length,
+    content_type,
+    asctime(ltime),
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -222,7 +244,12 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  //send_response... int fd, char *header, char *content_type, char *body
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/html";
+  char *body = "<!DOCTYPE html><head></head><body><h1>Hello, World!</h1></body></html>\n\n";
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -231,6 +258,17 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+
+  char body[10];
+  char random_number = ((rand() % 20) + 1);
+
+  sprintf(body, "%d\n\n", random_number);
+
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/plain";
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -239,6 +277,16 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char body[27];
+  time_t current_date = time(NULL);
+  struct tm *gtime = gmtime(&current_date);
+
+  sprintf(body, "%s\n", asctime(gtime));
+
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/plain";
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -259,7 +307,19 @@ void post_save(int fd, char *body)
  */
 char *find_end_of_header(char *header)
 {
-  // !!!! IMPLEMENT ME
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -288,12 +348,45 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+    // parse the first line of the request
+    char *first_line = request;
+    // look for new line
+    p = strchr(first_line, '\n');
+    // remaining header
+    char *second_line = p + 1;
+    // look for two newlines marking the end of the header
+    p = find_end_of_header(second_line);
+    
+    if (p == NULL) {
+      printf("Could not find end of header\n");
+      exit(1);
+    }
+    // here is the body --> request body?
+    char *body = p;
+    // now that we've assessed the request we can take actions
+      // read the three components of the first request line
+      sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
+      printf("REQUEST: %s %s %s", request_type, request_path, request_protocol);
 
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_end_of_header()
-
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+      if (strcmp(request_type, "GET") == 0) {
+        // endpoint "/"
+        if (strcmp(request_path, "/") == 0) get_root(fd);
+        // endpoint "/d20"
+        else if (strcmp(request_path, "/d20") == 0) get_d20(fd);
+        // endpoint "/date"
+        else if (strcmp(request_path, "/date") == 0) get_date(fd);
+        // handle not found error
+        else resp_404(fd, request_path);
+      }
+      // endpoint "/save"     
+      else if (strcmp(request_type, "POST") == 0) {
+        if (strcmp(request_path, "/save") == 0) post_save(fd, body);
+        else resp_404(fd, request_path);
+      }
+      else {
+        fprintf(stderr, "Invalid request: %s", request_type);
+        return;
+      }
 }
 
 /**
@@ -355,4 +448,3 @@ int main(void)
 
   return 0;
 }
-
