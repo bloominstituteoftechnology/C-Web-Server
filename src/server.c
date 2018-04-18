@@ -190,8 +190,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
+  /* char *current_date = "abc"; */
 
   // !!!!  IMPLEMENT ME
+  /* time_t rawtime; */
+  /* struct tm *info; */
+  /* time(&rawtime); */
+  /* info = gmtime(&rawtime); */
+  /* sprintf(current_date, "%d: %d", (info->tm_hour-4)%24, info->tm_min); */
+  /* printf("%s", &current_date); */
+  response_length = strlen(response);
+
+  sprintf(response, "HTTP/1.1 %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, response_length, content_type, body);
+  printf("Response: %s\n", response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -223,6 +234,9 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+  sprintf(response_body, "<h1>Hello World!</h1>");
+  send_response(fd, "200 OK", "text/html", response_body);
 }
 
 /**
@@ -276,7 +290,6 @@ void handle_http_request(int fd)
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
-  printf("Entire Request: %s\n", request);
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -297,6 +310,18 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  char *get = "GET";
+  char *root = "/";
+  char *d20 = "/d20";
+  if (strcmp(request_type, get) == 0) {
+    if (strcmp(request_path, root) == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, d20) == 0) {
+      get_d20(fd);
+    } else {
+      resp_404(fd, request_path);
+    }
+  }
 }
 
 /**
