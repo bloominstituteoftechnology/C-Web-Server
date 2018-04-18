@@ -239,7 +239,6 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   char body[1024]; 
-  srand((unsigned) time(NULL));
   int d20 = rand() % 20;
 
   sprintf(body, "<!DOCTYPE html><HTML><HEAD><TITLE>C is Garbage</TITLE></HEAD></BODY><CENTER><H1>ALL</H1><H2>THIS</H2><H3>WORK</H3><H4>FOR...</H4><H1>%d</H1></CENTER></BODY></HTML>", d20);
@@ -258,8 +257,6 @@ void get_date(int fd)
   char* timeStr;
   currentTime = time(NULL);
   timeStr = ctime(&currentTime);
-
-  printf("DATE: %s", timeStr);
 
   sprintf(body, "<!DOCTYPE html><HTML><HEAD><TITLE>C is Garbage</TITLE></HEAD></BODY><CENTER><H1>%s</H1></CENTER></BODY></HTML>", timeStr);
 
