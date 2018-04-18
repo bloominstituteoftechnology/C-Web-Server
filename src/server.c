@@ -192,6 +192,18 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  int content_length = strlen(body);
+  response_length = sprintf(response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Connection: close\n"
+    "\n" // EO-HEADER
+    "%s",
+    header,
+    content_length,
+    content_type,
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -222,7 +234,7 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-	char *body = "<html><head></head><body><h1>Hello, World!</h1></body></html>";
+	char *body = "<html><head></head><body><h1>Hello, Moto!</h1></body></html>";
 	send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
 }
 
@@ -295,22 +307,29 @@ void handle_http_request(int fd)
 
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  printf("request::: %s \n", request);
+
 
 //  char *the_request = request;
    sscanf(request, "%s %s %s", request_type, request_path,request_protocol);
 
+
+
+
+   if (strcmp(request_type, "GET") == 0) {
+
+	   if (strcmp(request_path, "/") == 0) {
+		   printf("implement get_root: %s %s %s\n", request_type, request_path, request_protocol);
+		   get_root(fd);
+
+	   }
+   }
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  if (strcmp(request_type, "GET") == 0) {
 
-    if (strcmp(request_path, "/") == 0) {
-//      get_root(fd);
-	}
 }
 
 /**
