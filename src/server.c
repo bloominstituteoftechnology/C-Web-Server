@@ -187,11 +187,31 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
+  /* copied this from the solution so that I could work on everything else without being hardstuck */
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length;
 
-  // !!!!  IMPLEMENT ME
+  // Get current time for the HTTP header
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  // How many bytes in the body
+  int content_length = strlen(body);
+
+  int response_length = sprintf(response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Date: %s" // asctime adds its own newline
+    "Connection: close\n"
+    "\n" // End of HTTP header
+    "%s",
+
+    header,
+    content_length,
+    content_type,
+    asctime(ltime),
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -221,8 +241,11 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<!DOCTYPE html><html><head><title>Lambda School</title></head></html>");
+  printf("%s\n",response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -230,7 +253,16 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[1024];
+  int min = 1;
+  int max = 20;
+
+  srand(time(0));
+  int randomNumber = min + rand() / (RAND_MAX / (max - min + 1) + 1);
+
+  sprintf(response_body, "%d", randomNumber);
+  printf("%s\n",response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -238,7 +270,14 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[1024];
+  char *time_as_string;
+  time_t current_time = time(NULL);
+  time_as_string = ctime(&current_time);
+
+  sprintf(response_body, "%s", time_as_string);
+  printf("%s\n",response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -277,23 +316,48 @@ void handle_http_request(int fd)
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
-  if (bytes_recvd < 0) {
+  if (bytes_recvd < 0) 
+  {
     perror("recv");
     return;
   }
 
-   // NUL terminate request string
+  // NUL terminate request string
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
 
+  printf("%s %s %s\n", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp("GET", request_type) == 0)
+  {
+    printf("Request path is: %s\n", request_path);
+    if (strcmp("/", request_path) == 0) 
+    {
+      get_root(fd);
+    }
+    else if (strcmp("/d20", request_path) == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp("/date", request_path) == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd, request_path);
+    }
+
+  }
+  
 }
 
 /**
