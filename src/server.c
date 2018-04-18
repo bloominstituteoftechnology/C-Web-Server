@@ -274,6 +274,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+
 }
 
 /**
@@ -294,7 +295,19 @@ void post_save(int fd, char *body)
  */
 char *find_end_of_header(char *header)
 {
-  // !!!! IMPLEMENT ME
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
