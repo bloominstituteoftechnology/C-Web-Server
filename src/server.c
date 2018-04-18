@@ -230,7 +230,7 @@ void get_root(int fd)
   //send_response(...
   char response_body[1024];
 
-  sprintf(response_body, "<h1>Hello, world!</h1>"); //store hello world into response_body
+  sprintf(response_body, "<h1>Hello, world!</h1>\n"); //store hello world into res body
 
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -241,6 +241,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char *response_body = malloc(sizeof(int)); //allocate memory of res body
+  int num;
+
+  srand(time(NULL)) ; //to generate different random numbers
+
+  num = 1 + rand() % 20; //generate random number from 1 to 20
+
+  sprintf(response_body, num); //store random num into res body
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
