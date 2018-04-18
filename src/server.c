@@ -195,8 +195,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // !!!!  IMPLEMENT ME
   int content_length = strlen(body);
   response_length = sprintf(response, "%s\n"
-  "Content_length: %d\n"
-  "Content_type: %s\n"
+  "Content-Length: %d\n"
+  "Content-Type: %s\n"
   "Connection: close\n"
   "\n"
   "%s", header, content_length, content_type, body);
@@ -246,6 +246,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  int num = 1 + rand() % 20;
+  // printf("here is the number %d\n", num);
+
+  char response_body[20];
+
+  sprintf(response_body, "%d", num);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+
 }
 
 /**
@@ -312,15 +322,16 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  // printf("here is the path: %s", request_path);
   if (strcmp(request_type, "GET") == 0)
   {
     if (strcmp(request_path, "/") == 0)
     {
       get_root(fd);
     }
-    else if (request_path == "/d20")
+    else if (strcmp(request_path, "/d20") == 0)
     {
-
+      get_d20(fd);
     }
     else if (request_path == "/date")
     {
