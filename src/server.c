@@ -203,7 +203,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+int body_length = strlen(body);
 
+response_length = snprintf(
+  response,
+  max_response_size,
+  "%s \n"
+  "Connection: close \n"
+  "Content-Length: %d \n"
+  "Content-type: %s \n"
+  "\n"
+  "%s \n",
+  header, body_length, content_type, body
+);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -232,11 +244,11 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-  char response_body[1024];
+  // char response_length;
   // // !!!! IMPLEMENT ME
   // //send_response(...
-  sprintf(response_body, "Testing %d", 44);
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+  // sprintf(response_length, "Testing %d", 44);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "Testing!");
   // printf("Testing");
 }
 
@@ -307,7 +319,7 @@ void handle_http_request(int fd)
 
   // char read = sscanf(request, request_type[8], request_path[1024]);
   //sscanf(request_protocol, request_type[8], request_path[1024]);
-  
+
   // sscanf(fd, "%s", request_type[8]);
   // int compare = strcmp(request_type[8], request_path[1024]);
 
@@ -329,7 +341,7 @@ void handle_http_request(int fd)
   int d20;
   d20 = strcmp(request_path, "/d20");
 
-  int date; 
+  int date;
   date = strcmp(request_path, "/date");
 
   if (home == 0)
@@ -377,6 +389,7 @@ int main(void)
     exit(1);
   }
 
+  printf("Is it working? \n");
   printf("webserver: waiting for connections...\n");
 
   // This is the main loop that accepts incoming connections and
