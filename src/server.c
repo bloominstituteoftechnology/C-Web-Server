@@ -192,7 +192,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  // get date of response
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  // get response body's content length
+  int content_length = strlen(body);
   
+  //get response's length
+  int response_length = sprintf(response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Date: %s" // asctime adds its own newline
+    "Connection: close\n"
+    "\n" // End of HTTP header
+    "%s",
+
+    header,
+    content_length,
+    content_type,
+    asctime(ltime),
+    body);
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
