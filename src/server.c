@@ -192,12 +192,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
-	response_length = strlen(header) + strlen(body);
-	sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-length: %d\nContent-Type: %s\n\n %s", header, response_length, content_type, body);
+	response_length = sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-length: %ld\nContent-Type: %s\n\n%s", header, strlen(body), content_type, body);
 
-	printf("response length = %d\n", response_length);
-	printf("response = %s\n", response);
-	
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
