@@ -234,6 +234,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+	char response_body[1024];
+	time_t t;
+
+	srand((unsigned) time(&t));
+
+
+	sprintf(response_body, "<h1>Random number: %d</h1>", rand() % 20);
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -293,7 +301,6 @@ void handle_http_request(int fd)
   // Hint: sscanf()!
 	
 	sscanf(request, "%s\n %s\n %s\n\n", request_type, request_path, request_protocol);
-	printf("request = %s\n", request);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
@@ -302,6 +309,9 @@ void handle_http_request(int fd)
 	if (!strcmp(request_type, "GET")) {
 		if (!strcmp(request_path, "/")) {
 			get_root(fd); // line 222
+		}
+		if (!strcmp(request_path, "/d20/")) {
+			get_d20(fd);
 		}
 	}
 }
