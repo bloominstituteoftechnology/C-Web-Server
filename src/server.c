@@ -223,6 +223,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<p>This element is being served by a vanilla C server!</p>");
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -288,12 +293,21 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  printf(request);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf(request_type);
+  printf(request_path);
+  printf(request_protocol);
+  printf("Finished printing info about request");
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (!strcmp(request_path, "/")) {
+    get_root(fd);
+    printf("We called the handler for root path!");
+  }
 }
 
 /**
