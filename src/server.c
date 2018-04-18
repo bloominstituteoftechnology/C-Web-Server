@@ -192,7 +192,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+	response_length = strlen(header) + strlen(body);
+	sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-length: %d\nContent-Type: %s\n\n %s", header, response_length, content_type, body);
 
+	printf("response length = %d\n", response_length);
+	printf("response = %s\n", response);
+	
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -222,7 +227,9 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+	char response_body[1024];
+	sprintf(response_body, "<h1>\"Yo Dawg\"</h1>");
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -288,12 +295,19 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+	
+	sscanf(request, "%s\n %s\n %s\n\n", request_type, request_path, request_protocol);
+	printf("request = %s\n", request);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+	if (!strcmp(request_type, "GET")) {
+		if (!strcmp(request_path, "/")) {
+			get_root(fd); // line 222
+		}
+	}
 }
 
 /**
