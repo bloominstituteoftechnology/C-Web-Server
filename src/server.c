@@ -319,7 +319,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  char types[2][4] = {"GET","POST"};
+  char types[2][10] = {"GET","POST"};
   char paths[4][10] = {"/","/d20","/date","/save"};
   int restRes, postRes;
   char rest[10], path[10];
@@ -342,12 +342,9 @@ void handle_http_request(int fd)
       get_d20(fd);
     }
     else if (strcmp(path,paths[2]) == 0) { // if '/date'
-    printf("HOPEFULLY THIS IS HAPPENING\n\n\n");
       get_date(fd);
-      printf("BUT IS THIS?\n\n\n");
     }
     else { // none of the above
-      printf("THIS IS HAPPENING\n\n\n");
       resp_404(fd, path);
     }
   }
