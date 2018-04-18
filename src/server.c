@@ -224,6 +224,13 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("\nWe got here!\n");
+  char response_body[1024];
+
+  sprintf(response_body, "<!DOCTYPE html><html><body><h1>Hello world!</h1></body></html>");
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+
 }
 
 /**
@@ -289,12 +296,33 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf( request, "%s %s %s", request_type, request_path, request_protocol );
+  // printf("here is pointer type %s \nand path %s \nand protocol %s\n", request_type, request_path, request_protocol);
+  
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (request_path == "/d20")
+    {
+
+    }
+    else if (request_path == "/date")
+    {
+
+    }
+    else {
+      // resp_404(fd, request_path);
+    }
+  }
 }
 
 /**
