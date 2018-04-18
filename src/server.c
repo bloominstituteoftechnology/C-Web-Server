@@ -192,6 +192,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  sprintf(response, "%s\n Content-Type: %s\n\n %s\n", header, content_type, body);
+
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -324,13 +327,13 @@ void handle_http_request(int fd)
   // unsigned int reqpathDate = strcmp(reqpathDateM, request_path);
   // printf("%s %s %s", reqpathRoot, reqpathRand, reqpathDate);
 
-  if (strcmp(reqpathRootM, request_path) == 0) {
+  if (strcmp(request_path, reqpathRootM) == 0) {
     get_root(fd);
     return;
-  } else if (strcmp(reqpathRandM, request_path) == 0) {
+  } else if (strcmp(request_path, reqpathRandM) == 0) {
     get_d20(fd);
     return;
-  } else if (strcmp(reqpathDateM, request_path) == 0) {
+  } else if (strcmp(request_path, reqpathDateM) == 0) {
     get_date(fd);
     return;
   } else {
