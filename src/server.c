@@ -232,11 +232,12 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-  // char response_body[1024];
+  char response_body[1024];
   // // !!!! IMPLEMENT ME
   // //send_response(...
-  // send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
-  printf("Testing");
+  sprintf(response_body, "Testing %d", 44);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+  // printf("Testing");
 }
 
 /**
