@@ -190,9 +190,10 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
-
+	time_t t = time(NULL);
+	
   // !!!!  IMPLEMENT ME
-	response_length = sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-length: %ld\nContent-Type: %s\n\n%s", header, strlen(body), content_type, body);
+	response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-length: %ld\nContent-Type: %s\n\n%s", header, asctime(localtime(&t)), strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
