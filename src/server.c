@@ -191,7 +191,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length;
 
+  int content_length = strlen(body);
+
+  // sprintf(response, "%s\nConnection:%s\nContent-Length:%d\n", header, "close", content_length);
+
+
   // !!!!  IMPLEMENT ME
+ response_length = sprintf(response, "%s\nDate: %s\nConnection: %s\nContent-Length: %d\nContent-Type: %s\n \n%s", header, "Wed Dec 20 13:05:11 PST 2017", "close", content_length, content_type, body);
+
+  //response_length = strlen(response);
+
+  printf("RESPONSE%s\n", response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -225,7 +235,9 @@ void get_root(int fd)
   //send_response(...
   char response_body[1024];
 
-  sprintf(response_body, "Hello, welcome to the route!");
+  response_body = "<html><head></head><body><h1>Hellow world</h1></body></html>"
+
+  //sprintf(response_body, "<html><head></head><body><h1>Hellow world</h1></body></html>");
   
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -272,6 +284,7 @@ char *find_end_of_header(char *header)
  */
 void handle_http_request(int fd)
 {
+  printf("request\n");
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
@@ -310,11 +323,11 @@ void handle_http_request(int fd)
       // printf("%s", "DATE");
       get_date(fd);
     }
-    else {
+  }
+      else {
       // printf("%s", "NOT FOUND");
       resp_404(fd, request_path);
     }
-  }
 }
 
   // !!!! IMPLEMENT ME (stretch goal)
