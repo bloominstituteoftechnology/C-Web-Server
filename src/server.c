@@ -259,7 +259,7 @@ void get_date(int fd) {
 
   gtime = gmtime(&the_time);
 
-  sprintf(response_body, "%2d:%2d", gtime->tm_hour, gtime->tm_min);
+  sprintf(response_body, "%s \n", asctime(gtime));
   // sprintf(response_body, "%ld", gmtime(time(NULL)));
 
   // !!!! IMPLEMENT ME
