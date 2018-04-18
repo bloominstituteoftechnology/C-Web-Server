@@ -261,9 +261,10 @@ void get_d20(int fd)
   srand(time(NULL));
 
   char random_number = ((rand() % 20) + 1);
+  char body[8];
+  sprintf(body, "%d", random_number);
   char *header = "HTTP/1.1 200 OK";
   char *content_type = "text/plain";
-  char *body = random_number;
 
   send_response(fd, header, content_type, body);
 }
