@@ -192,7 +192,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
-
+  sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %i\nContent-Type: %s\n\n%s", header, strlen(body), content_type, body);
+  printf("Test: %s", response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -225,7 +226,7 @@ void get_root(int fd)
   //send_response(...
   char response_body[1024];
 
-  sprintf(response_body, "<p>This element is being served by a vanilla C server!</p>");
+  sprintf(response_body, "<p>Hello World!</p>");
 
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -295,10 +296,10 @@ void handle_http_request(int fd)
   // Hint: sscanf()!
   printf(request);
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  printf(request_type);
-  printf(request_path);
-  printf(request_protocol);
-  printf("Finished printing info about request");
+  //printf(request_type);
+  //printf(request_path);
+  //printf(request_protocol);
+  //printf("Finished printing info about request");
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
@@ -307,6 +308,17 @@ void handle_http_request(int fd)
   if (!strcmp(request_path, "/")) {
     get_root(fd);
     printf("We called the handler for root path!");
+  }
+  else if (!strcmp(request_path, "/d20")) {
+    get_d20(fd);
+    printf("We called the handler for the D20 path!");
+  }
+  else if (!strcmp(request_path, "/date")) {
+    get_date(fd);
+    printf("We called the handler for the Date path!");
+  } else {
+    resp_404(fd, request_path);
+    printf("You tried to get a path that doesn't exist!");
   }
 }
 
