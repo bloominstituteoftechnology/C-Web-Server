@@ -34,7 +34,7 @@
 
 #define PORT "3490"  // the port users will be connecting to
 
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10   // how many pending connections queue will hold
 
 /**
  * Handle SIGCHILD signal
@@ -234,13 +234,7 @@ void get_root(int fd)
   // !!!! IMPLEMENT ME
   char response_body[1024];
 
-<<<<<<< HEAD
-  //response_body = "<html><head></head><body><h1>Hellow world</h1></body></html>"
-
-  sprintf(response_body, "<html><head></head><body><h1>Hellow world</h1></body></html>");
-=======
   sprintf(response_body, "<!DOCTYPE html><html><head></head><body><h1>Hellow world</h1></body></html>");
->>>>>>> 51f37e496b44f044b4b304c0043b50bb46f0abb6
   
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -409,4 +403,3 @@ int main(void)
 
   return 0;
 }
-
