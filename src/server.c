@@ -232,10 +232,11 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-  char response_body[1024];
-  // !!!! IMPLEMENT ME
-  //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+  // char response_body[1024];
+  // // !!!! IMPLEMENT ME
+  // //send_response(...
+  // send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+  printf("Testing");
 }
 
 /**
@@ -319,8 +320,33 @@ void handle_http_request(int fd)
   // }
 
   sscanf(request, "%s %s %s", request_path, request_type, request_protocol);
-  printf();
+  printf("%s %s %s \n", request_path, request_type, request_protocol);
 
+  int home;
+  home = strcmp(request_path, "/");
+
+  int d20;
+  d20 = strcmp(request_path, "/d20");
+
+  int date; 
+  date = strcmp(request_path, "/date");
+
+  if (home == 0)
+  {
+    get_root(fd);
+  }
+  else if (d20 == 0)
+  {
+    get_root(fd);
+  }
+  else if (date == 0)
+  {
+    get_root(fd);
+  }
+  else
+  {
+    resp_404(fd, request_path);
+  }
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
