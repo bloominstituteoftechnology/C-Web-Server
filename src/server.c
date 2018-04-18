@@ -223,6 +223,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "Hello, welcome to the route!");
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
