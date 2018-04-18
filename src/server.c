@@ -258,6 +258,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+
+  char random_number = ((rand() % 20) + 1);
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/plain";
+  char *body = random_number;
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
