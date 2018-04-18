@@ -192,13 +192,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  char header_time[1024];
+  time_t current_time = time(NULL);
+  struct tm *local_time = localtime(&current_time);
+  strftime(header_time, 1024, "%A, %B %d %X %Z %Y", local_time);
+
   int content_length = strlen(body);
   response_length = sprintf(response, "%s\n"
   "Content_Length: %d\n"
   "Content-Type: %s\n"
+  "Date: %s\n"
   "Connection: close\n" 
   "\n"
-  "%s", header, content_length, content_type, body);
+  "%s", header, content_length, content_type, header_time, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
