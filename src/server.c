@@ -193,15 +193,15 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   int content_length = strlen(body);
 
-  // sprintf(response, "%s\nConnection:%s\nContent-Length:%d\n", header, "close", content_length);
-
-
+  time_t orig_format;
+  time(&orig_format);
   // !!!!  IMPLEMENT ME
- response_length = sprintf(response, "%s\nDate: %s\nConnection: %s\nContent-Length: %d\nContent-Type: %s\n \n%s", header, "Wed Dec 20 13:05:11 PST 2017", "close", content_length, content_type, body);
 
-  //response_length = strlen(response);
+  sprintf(response, "%s\nConnection: close\nDate: %s%d\n%s\n\n%s", header, asctime(gmtime(&orig_format)), content_length, content_type, body);
 
-  printf("RESPONSE%s\n", response);
+  response_length = strlen(response);
+
+  // printf("RESPONSE%s\n", response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -232,12 +232,9 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
   char response_body[1024];
 
-  response_body = "<html><head></head><body><h1>Hellow world</h1></body></html>"
-
-  //sprintf(response_body, "<html><head></head><body><h1>Hellow world</h1></body></html>");
+  sprintf(response_body, "<!DOCTYPE html><html><head></head><body><h1>Hellow world</h1></body></html>");
   
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -248,6 +245,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  int min_range = 1;
+  int max_range = 20;
+
+  srand(time(NULL));
+  int random = rand() % (max_range + 1 - min_range) + min_range;
+
+  sprintf(response_body, "%d", random);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -256,6 +263,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+
+  time_t orig_format;
+  time(&orig_format);
+
+  sprintf(response_body, "%s\n", asctime(gmtime(&orig_format)));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -284,7 +299,6 @@ char *find_end_of_header(char *header)
  */
 void handle_http_request(int fd)
 {
-  printf("request\n");
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
@@ -306,28 +320,22 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf( request, "%s %s %s", request_type, request_path, request_protocol );
-  // printf("%d", strcmp(request_type, "GET"));
-
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   if (strcmp(request_type, "GET") == 0) {
     if (strcmp(request_path, "/") == 0) {
-      // printf("%s", "HELLO, GET ROOT");
       get_root(fd);
     }
     if (strcmp(request_path, "/d20") == 0) {
-      // printf("%s", "GET20");
       get_d20(fd);
     }
     if (strcmp(request_path, "/date") == 0) {
-      // printf("%s", "DATE");
       get_date(fd);
     }
   }
-      else {
-      // printf("%s", "NOT FOUND");
-      resp_404(fd, request_path);
-    }
+    else {
+    resp_404(fd, request_path);
+  }
 }
 
   // !!!! IMPLEMENT ME (stretch goal)
