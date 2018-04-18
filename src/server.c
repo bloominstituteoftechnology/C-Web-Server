@@ -288,6 +288,14 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  char read = sscanf(request, request_type[8], request_path[1024]);
+  //sscanf(request_protocol, request_type[8], request_path[1024]);
+
+  if (read) {
+    
+  } else {
+    resp_404(fd, request_path[1024]);
+  }
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
