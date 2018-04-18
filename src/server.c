@@ -259,6 +259,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+
+  time_t ct = time(NULL); //prints out Epoch time in seconds
+  struct tm *date = gmtime(&ct); //convert to date and time
+
+  sprintf(response_body, "%s\n", asctime(date)); //store calendar time into res body
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -317,15 +325,19 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   char *root = malloc(strlen("/")); //memory allocation for root
   char *d20 = malloc(strlen("/d20")); //memory allocation for d20
+  char *date = malloc(strlen("/date")); //memory allocation for date
 
   strcpy(root, "/"); //copy str to root
   strcpy(d20, "/d20"); // copy str to d20
+  strcpy(date, "/date"); //copy str to date
 
   //if-else block to return the matched path or return 404
   if (strcmp(request_path, root) == 0) { 
     return get_root(fd);
   } else if (strcmp(request_path, d20) == 0) {
     return get_d20(fd);
+  } else if (strcmp(request_path, date) == 0) {
+    return get_date(fd);
   } else {
     resp_404(fd, request_path);
   }
