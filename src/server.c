@@ -193,6 +193,10 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  //store header, content type, body with text to response (maybe need to include thes content length?)
+  sprintf(response, "%s\n Content-Type: %s\n\n %s\n", header, content_type, body);
+
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -226,7 +230,7 @@ void get_root(int fd)
   //send_response(...
   char response_body[1024];
 
-  sprintf(response_body, "<h1>Hello, world!</h1>");
+  sprintf(response_body, "<h1>Hello, world!</h1>"); //store hello world into response_body
 
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
