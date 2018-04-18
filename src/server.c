@@ -222,7 +222,10 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  char response_body[1024];
+  // char *txt = "Hello World!";
+  sprintf(response_body, "<h1>Hello World!</h1>\n");
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -231,6 +234,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // char response_body[1024];
+  // int *rand = // random number generator;
+  // sprintf(response_body, "Random Number 1 - 20: %i", rand);
+  // send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
 }
 
 /**
@@ -239,6 +246,10 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  // char response_body[1024];
+  // char *date = // date generator;
+  // sprintf(response_body, "The date is %s", date);
+  // send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
 }
 
 /**
@@ -288,12 +299,44 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  // printf("%s", request);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  // unsigned int reqtype = strcmp("GET", request_type);
+  char *reqpathRootM = malloc(strlen("/"));
+  strcpy(reqpathRootM, "/");
+  // unsigned int reqpathRoot = strcmp(reqpathRootM, request_path);
+
+  // char reqpathRand = strcmp("/d20", request_path);
+  char *reqpathRandM = malloc(strlen("/"));
+  strcpy(reqpathRandM, "/");
+  // unsigned int reqpathRand = strcmp(reqpathRandM, request_path);
+
+  // char reqpathDate = strcmp("/date", request_path);
+  char *reqpathDateM = malloc(strlen("/"));
+  strcpy(reqpathDateM, "/");
+  // unsigned int reqpathDate = strcmp(reqpathDateM, request_path);
+  // printf("%s %s %s", reqpathRoot, reqpathRand, reqpathDate);
+
+  if (strcmp(reqpathRootM, request_path) == 0) {
+    get_root(fd);
+    return;
+  } else if (strcmp(reqpathRandM, request_path) == 0) {
+    get_d20(fd);
+    return;
+  } else if (strcmp(reqpathDateM, request_path) == 0) {
+    get_date(fd);
+    return;
+  } else {
+    resp_404(fd, request_path);
+    return;
+  }
 }
 
 /**
