@@ -224,6 +224,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<h1>Hello, world!</h1>");
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -289,12 +294,23 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol); //read three components
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  char *root = malloc(strlen("/")); //memory allocation for root pointer
+  strcpy(root, "/"); //copy str to root
+
+  //if-else block to return the matched path or return 404
+  if (strcmp(request_path, root) == 0) { 
+    return get_root(fd);
+  } else {
+    resp_404(fd, request_path);
+  }
+
 }
 
 /**
