@@ -264,6 +264,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t central = time(NULL);
+  struct tm *stored_date = gmtime(&central);
+
+  char response_body[50];
+
+  sprintf(response_body, "%s", asctime(stored_date));
+
+  send_response(fd,"HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -333,9 +341,9 @@ void handle_http_request(int fd)
     {
       get_d20(fd);
     }
-    else if (request_path == "/date")
+    else if (strcmp(request_path, "/date") == 0)
     {
-
+      get_date(fd);
     }
     else {
       // resp_404(fd, request_path);
