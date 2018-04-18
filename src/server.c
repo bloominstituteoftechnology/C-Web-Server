@@ -235,9 +235,9 @@ void get_root(int fd)
   //send_response(...
   char response_body[1024];
 
-  response_body = "<html><head></head><body><h1>Hellow world</h1></body></html>"
+  //response_body = "<html><head></head><body><h1>Hellow world</h1></body></html>"
 
-  //sprintf(response_body, "<html><head></head><body><h1>Hellow world</h1></body></html>");
+  sprintf(response_body, "<html><head></head><body><h1>Hellow world</h1></body></html>");
   
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
