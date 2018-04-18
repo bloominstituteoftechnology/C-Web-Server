@@ -247,7 +247,7 @@ void get_d20(int fd)
   time_t t;
   int random;
 
-  srand((int) time(&t));
+  srand((unsigned) time(&t));
   random = rand() & 20;
   sprintf(response_body, "<!DOCTYPE HTML><html><head><title>C Web Server</title></head><body><h1>%d</h1></body></html>", random);
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
