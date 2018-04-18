@@ -248,6 +248,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  int rando = rand() % 20;
+  // printf("hey this is rando %d\n", rando);
+  sprintf(response_body, "<h1>%d</h1>\n", rando);
+  send_response(fd, "200 OK", "text/html", response_body);
 }
 
 /**
@@ -256,6 +261,15 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  
+  sprintf(response_body, "<h1>%s</h1>\n", asctime(timeinfo));
+  send_response(fd, "200 OK", "text/html", response_body);
 }
 
 /**
@@ -316,11 +330,14 @@ void handle_http_request(int fd)
   char *get = "GET";
   char *root = "/";
   char *d20 = "/d20";
+  char *date = "/date";
   if (strcmp(request_type, get) == 0) {
     if (strcmp(request_path, root) == 0) {
       get_root(fd);
     } else if (strcmp(request_path, d20) == 0) {
       get_d20(fd);
+    }  else if (strcmp(request_path, date) == 0) {
+      get_date(fd);
     } else {
       resp_404(fd, request_path);
     }
