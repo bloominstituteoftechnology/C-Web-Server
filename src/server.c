@@ -256,6 +256,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t the_time = time(NULL);
+  struct tm *timenow = gmtime(&the_time);
+  sprintf(response_body,"%s", asctime(timenow));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
