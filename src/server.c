@@ -192,7 +192,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
-
+  
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -222,7 +222,7 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  //send_response...
 }
 
 /**
@@ -288,12 +288,45 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+    // parse the first line of the request
+    char *first_line = request;
+    // look for new line
+    p = strchr(first_line, '\n');
+    // remaining header
+    char *second_line = p + 1;
+    // look for two newlines marking the end of the header
+    p = find_end_of_header(second_line);
+    
+    if (p == NULL) {
+      printf("Could not find end of header\n");
+      exit(1);
+    }
+    // here is the body --> request body?
+    char *body = p;
+    // now that we've assessed the request we can take actions
+      // read the three components of the first request line
+      sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
+      printf("REQUEST: %s %s %s", request_type, request_path, request_protocol);
 
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_end_of_header()
-
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+      if (strcmp(request_type, "GET") == 0) {
+        // endpoint "/"
+        if (strcmp(request_path, "/" == 0)) get_root(fd);
+        // endpoint "/d20"
+        else if (strcmp(request_path, "/d20" == 0)) get_d20(fd);
+        // endpoint "/date"
+        else if (strcmp(request_path, "/date" == 0)) get_date(fd);
+        // handle not found error
+        else resp_404(fd, request_path);
+      }
+      // endpoint "/save"     
+      else if (strcmp(request_type, "POST") == 0) {
+        if (strcmp(request_path, "/save" == 0)) post_save(fd, body);
+        else resp_404(fd, request_path);
+      }
+      else {
+        fprintf(stderr, "Invalid request: %s", request_type);
+        return
+      }
 }
 
 /**
