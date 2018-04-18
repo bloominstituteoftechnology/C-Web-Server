@@ -250,6 +250,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+	time_t t;
+	char response_body[1024];
+	char buf[26];
+
+	time(&t);
+
+	sprintf(response_body, "<h1>%s</h1>", asctime(localtime(&t)));
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -310,9 +318,12 @@ void handle_http_request(int fd)
 		if (!strcmp(request_path, "/")) {
 			get_root(fd); // line 222
 		}
-		if (!strcmp(request_path, "/d20/")) {
+		if (!strcmp(request_path, "/d20")) {
 			get_d20(fd);
 		}
+		if (!strcmp(request_path, "/date")) {
+			get_date(fd);
+		} 
 	}
 }
 
