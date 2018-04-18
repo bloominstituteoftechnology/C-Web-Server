@@ -276,6 +276,7 @@ void handle_http_request(int fd)
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+  printf("Entire Request: %s\n", request);
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -288,6 +289,8 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
