@@ -190,21 +190,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
+  int content_length;
+  time_t now;
+  struct tm ts;
+  char date[80];
+  time(&now);
+  ts = *localtime(&now);
+  strftime(date, sizeof(date), "%a %Y-%m-%d %H:%M:%S %Z", &ts);
 
   // !!!!  IMPLEMENT ME
-  int content_length = strlen(body);
-  response_length = sprintf(response,
-    "%s\n"
-    "Content-Length: %d\n"
-    "Content-Type: %s\n"
-    "Connection: close\n"
-    "\n" // EO-HEADER
-    "%s",
-    header,
-    content_length,
-    content_type,
-    body);
+  content_length = strlen(body);
+  response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, date, content_length, content_type, body);
 
+  printf("%s\n", response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -223,7 +221,7 @@ void resp_404(int fd, char *path)
 {
   char response_body[1024];
 
-  sprintf(response_body, "404: %s not found", path);
+  sprintf(response_body, "044: %s not found", path);
 
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
 }
@@ -234,8 +232,9 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-	char *body = "<html><head></head><body><h1>Hello, Moto!</h1></body></html>";
-	send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
+  //send_response(...
+  char *response_body = "<!DOCTYPE HTML><html><head><title>C Web Server</title></head><body><h1>Hello World</h1></body></html>";
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -244,6 +243,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[2048];
+  time_t t;
+  int random;
+
+  srand((int) time(&t));
+  random = rand() & 20;
+  sprintf(response_body, "<!DOCTYPE HTML><html><head><title>C Web Server</title></head><body><h1>%d</h1></body></html>", random);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -252,6 +259,15 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t now;
+  struct tm ts;
+  char response_body[2048];
+  char date[80];
+  time(&now);
+  ts = *localtime(&now);
+  strftime(date, sizeof(date), "%a %Y-%m-%d %H:%M:%S %Z", &ts);
+  sprintf(response_body, "<!DOCTYPE HTML><html><head><title>C Web Server</title></head><body><h1>%s</h1></body></html>", date);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -298,49 +314,33 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-	// !!!! IMPLEMENT ME
-	//
-	//   GET /d20 HTTP/1.1
-	//   Host: localhost:3490
-	//   User-Agent: curl/7.51.0
-	//   Accept: */*
-
+  // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
-
-//  char *the_request = request;
-   sscanf(request, "%s %s %s", request_type, request_path,request_protocol);
-
-
-
-
-   if (strcmp(request_type, "GET") == 0) {
-
-	   if (strcmp(request_path, "/") == 0) {
-		   printf("implement get_root: %s %s %s\n", request_type, request_path, request_protocol);
-		   get_root(fd);
-	   }
-	   else if (strcmp(request_path, "/d20") == 0) {
-		   printf("implement get_d20: %s %s %s\n", request_type, request_path, request_protocol);
-           //get_d20(fd);
-       }
-	   else if (strcmp(request_path, "/date") == 0) {
-		   printf("implement get_date: %s %s %s\n", request_type, request_path, request_protocol);
-           //get_date(fd);
-       }
-	   else {
-		   printf("implement resp_404: %s %s %s\n", request_type, request_path, request_protocol);
-           //resp_404(fd, request_path);
-        }
-   }
+  sscanf(request,  "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  printf("type: |%s| \n", request_type);
+  printf("path: |%s| \n", request_path);
+  printf("protocol: |%s| \n", request_protocol);
 
+  if(strcmp(request_type, "GET") == 0) {
+    if(strcmp(request_path, "/") == 0) {
+      get_root(fd);
+
+    } else if(strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+
+    } else if(strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd, &request_path);
+    }
+  }
 }
 
 /**
