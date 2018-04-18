@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "curl": "^0.1.4"
+  }
+}
