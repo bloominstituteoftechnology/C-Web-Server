@@ -193,6 +193,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
 
+  response_length = strlen(body) + strlen(content_type) + strlen(header);
+
+  // printf("the length is: %d, %d, %d\n", strlen(body), strlen(header), response_length);
+  sprintf(response, "%s%s%s", header, content_type, body);
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -221,8 +226,11 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  char response_body[2048];
+
+  sprintf(response_body, "<!DOCTYPE html><html><body><h1>Hello World!</h1><p class=\"invalid\">More stuff</p></body></html>");
+
+  send_response(fd, "HTTP/1.1 200 OK\n", "text/html\n\n", response_body);
 }
 
 /**
@@ -231,6 +239,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+    char response_body[2048];
+
+  sprintf(response_body, "<!DOCTYPE html><html><body><h1>Hello World!</h1><p class=\"invalid\">More stuff</p></body></html>");
+
+  // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK\n", "text/html\n\n", response_body);
 }
 
 /**
@@ -296,7 +310,12 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  
+  if(strcmp(request_path, "/") == 0) {
+    get_root(fd);
+  }
+  else {
+    resp_404(fd, request_path);
+  }
 }
 
 /**
