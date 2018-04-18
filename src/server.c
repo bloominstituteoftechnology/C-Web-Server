@@ -192,6 +192,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
 
   // !!!!  IMPLEMENT ME
+  time_t current_time = time(NULL); // Gets time
+  struct tm *time_date = asctime(localtime(&current_time)); //stores time
+  int body_length = strlen(body); // turns into integer
+
+
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -288,12 +293,17 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  sscanf(request, "%s%s%s", request_type, request_path, request_protocol); //
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if(strcmp(request_path, '/') == 0) {
+    get_root(fd);
+  }
+
+
 }
 
 /**
