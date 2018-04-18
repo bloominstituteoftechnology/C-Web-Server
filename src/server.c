@@ -192,16 +192,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length;
   /* char *current_date = "abc"; */
 
-  // !!!!  IMPLEMENT ME
-  /* time_t rawtime; */
-  /* struct tm *info; */
-  /* time(&rawtime); */
-  /* info = gmtime(&rawtime); */
-  /* sprintf(current_date, "%d: %d", (info->tm_hour-4)%24, info->tm_min); */
-  /* printf("%s", &current_date); */
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  // printf ( "Date: %s", asctime (timeinfo) );
+
+  
+  int content_length = strlen(body);
   response_length = strlen(response);
 
-  sprintf(response, "HTTP/1.1 %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, response_length, content_type, body);
+
+  sprintf(response, "HTTP/1.1 %s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime (timeinfo), content_length, content_type, body);
   printf("Response: %s\n", response);
 
   // Send it all!
