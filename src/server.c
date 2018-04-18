@@ -240,8 +240,9 @@ void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
     char response_body[2048];
-
-  sprintf(response_body, "<!DOCTYPE html><html><body><h1>Hello World!</h1><p class=\"invalid\">More stuff</p></body></html>");
+  srand(time(NULL));
+  int random = (rand() %20 +1);
+  sprintf(response_body, "<!DOCTYPE html><html><body><h1>Hello World!</h1><p>%d</p></body></html>", random);
 
   // !!!! IMPLEMENT ME
   send_response(fd, "HTTP/1.1 200 OK\n", "text/html\n\n", response_body);
@@ -312,6 +313,9 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   if(strcmp(request_path, "/") == 0) {
     get_root(fd);
+  }
+  else if (strcmp(request_path, "/d20") ==0){
+    get_d20(fd);
   }
   else {
     resp_404(fd, request_path);
