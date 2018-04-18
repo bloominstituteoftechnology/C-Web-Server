@@ -260,9 +260,11 @@ void get_d20(int fd)
   // !!!! IMPLEMENT ME
   srand(time(NULL));
 
-  char random_number = ((rand() % 20) + 1);
   char body[8];
+  char random_number = ((rand() % 20) + 1);
+
   sprintf(body, "%d", random_number);
+
   char *header = "HTTP/1.1 200 OK";
   char *content_type = "text/plain";
 
@@ -275,7 +277,16 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char body[128];
+  time_t current_date = time(NULL);
+  struct tm *gtime = gmtime(&current_date);
 
+  sprintf(body, "%s", asctime(gtime));
+
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/plain";
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
