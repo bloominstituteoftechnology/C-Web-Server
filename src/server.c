@@ -200,7 +200,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int content_length = strlen(body);
   
   //get response's length
-  int response_length = sprintf(response,
+  response_length = sprintf(response,
     "%s\n"
     "Content-Length: %d\n"
     "Content-Type: %s\n"
@@ -247,7 +247,7 @@ void get_root(int fd)
   //send_response... int fd, char *header, char *content_type, char *body
   char *header = "HTTP/1.1 200 OK";
   char *content_type = "text/html";
-  char *body = "<!DOCTYPE html><head></head><body><h1>Hello, World!</h1></body></html>";
+  char *body = "<!DOCTYPE html><head></head><body><h1>Hello, World!</h1></body></html>\n\n";
 
   send_response(fd, header, content_type, body);
 }
@@ -260,10 +260,10 @@ void get_d20(int fd)
   // !!!! IMPLEMENT ME
   srand(time(NULL));
 
-  char body[8];
+  char body[10];
   char random_number = ((rand() % 20) + 1);
 
-  sprintf(body, "%d", random_number);
+  sprintf(body, "%d\n\n", random_number);
 
   char *header = "HTTP/1.1 200 OK";
   char *content_type = "text/plain";
@@ -277,11 +277,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  char body[128];
+  char body[27];
   time_t current_date = time(NULL);
   struct tm *gtime = gmtime(&current_date);
 
-  sprintf(body, "%s", asctime(gtime));
+  sprintf(body, "%s\n", asctime(gtime));
 
   char *header = "HTTP/1.1 200 OK";
   char *content_type = "text/plain";
@@ -370,22 +370,22 @@ void handle_http_request(int fd)
 
       if (strcmp(request_type, "GET") == 0) {
         // endpoint "/"
-        if (strcmp(request_path, "/" == 0)) get_root(fd);
+        if (strcmp(request_path, "/") == 0) get_root(fd);
         // endpoint "/d20"
-        else if (strcmp(request_path, "/d20" == 0)) get_d20(fd);
+        else if (strcmp(request_path, "/d20") == 0) get_d20(fd);
         // endpoint "/date"
-        else if (strcmp(request_path, "/date" == 0)) get_date(fd);
+        else if (strcmp(request_path, "/date") == 0) get_date(fd);
         // handle not found error
         else resp_404(fd, request_path);
       }
       // endpoint "/save"     
       else if (strcmp(request_type, "POST") == 0) {
-        if (strcmp(request_path, "/save" == 0)) post_save(fd, body);
+        if (strcmp(request_path, "/save") == 0) post_save(fd, body);
         else resp_404(fd, request_path);
       }
       else {
         fprintf(stderr, "Invalid request: %s", request_type);
-        return
+        return;
       }
 }
 
