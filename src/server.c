@@ -248,7 +248,7 @@ void get_d20(int fd)
 
   num = 1 + rand() % 20; //generate random number from 1 to 20
 
-  sprintf(response_body, num); //store random num into res body
+  sprintf(response_body, "%d\n", num); //store random num into res body
 
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
@@ -315,12 +315,17 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  char *root = malloc(strlen("/")); //memory allocation for root pointer
+  char *root = malloc(strlen("/")); //memory allocation for root
+  char *d20 = malloc(strlen("/d20")); //memory allocation for d20
+
   strcpy(root, "/"); //copy str to root
+  strcpy(d20, "/d20"); // copy str to d20
 
   //if-else block to return the matched path or return 404
   if (strcmp(request_path, root) == 0) { 
     return get_root(fd);
+  } else if (strcmp(request_path, d20) == 0) {
+    return get_d20(fd);
   } else {
     resp_404(fd, request_path);
   }
