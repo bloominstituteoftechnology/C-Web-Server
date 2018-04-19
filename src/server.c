@@ -31,6 +31,7 @@
 #include <time.h>
 #include <sys/file.h>
 #include <fcntl.h>
+// #include <math.h>
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -249,16 +250,22 @@ void get_root(int fd)
   // // !!!! IMPLEMENT ME
   // //send_response(...
   // sprintf(response_length, "Testing %d", 44);
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", 
-  "<!DOCTYPE html><html><head><title>Lambda School</title></head><body><h1>Hello World!</h1></body></html>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>Lambda School</title></head><body><h1>Hello World!</h1></body></html>");
 }
 
 /**
  * Send a /d20 endpoint response
  */
+int getRandomNumber(int min, int max) {
+  srand(time(NULL));
+  int randomNumber = rand();
+}
+
 void get_d20(int fd)
 {
+
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK")
 }
 
 /**
