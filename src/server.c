@@ -200,22 +200,51 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length;
+
+  // int response_length;
 
   // !!!!  IMPLEMENT ME
-int body_length = strlen(body);
 
-response_length = snprintf(
-  response,
-  max_response_size,
-  "%s \n"
-  "Connection: close \n"
-  "Content-Length: %d \n"
-  "Content-type: %s \n"
-  "\n"
-  "%s \n",
-  header, body_length, content_type, body
-);
+  //Solution
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  int content_length = strlen(body);
+
+  int response_length = sprintf(response,
+                                "%s \n"
+                                "Content length: %d \n"
+                                "Content-Type: %s \n"
+                                "Date: %s \n"
+                                "Connection: close \n"
+                                "\n"
+                                "%s",
+
+                                header,
+                                content_length,
+                                content_type,
+                                asctime(ltime),
+                                body);
+
+  //Could have added more from lecture
+
+  //End of Solution
+
+  // My solution
+
+  // int body_length = strlen(body);
+
+  // response_length = snprintf(
+  //   response,
+  //   max_response_size,
+  //   "%s \n"
+  //   "Connection: close \n"
+  //   "Content-Length: %d \n"
+  //   "Content-type: %s \n"
+  //   "\n"
+  //   "%s \n",
+  //   header, body_length, content_type, body
+  // );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -255,32 +284,47 @@ void get_root(int fd)
 /**
  * Send a /d20 endpoint response
  */
-int getRandomNumber(int min, int max) 
-{
-  int result = 0, low = 0, high = 0;
 
-  if (min < max) 
-  {
-    low = min;
-    high = max + 1;
-  }
-  else 
-  {
-    low = max + 1;
-    high = min;
-  }
-  srand(time(NULL));
-  result = (rand() % (high - low)) + low;
-  return result;
-}
+// My solution
+
+// int getRandomNumber(int min, int max)
+// {
+//   int result = 0, low = 0, high = 0;
+
+//   if (min < max)
+//   {
+//     low = min;
+//     high = max + 1;
+//   }
+//   else
+//   {
+//     low = max + 1;
+//     high = min;
+//   }
+//   srand(time(NULL));
+//   result = (rand() % (high - low)) + low;
+//   return result;
+// }
 
 void get_d20(int fd)
 {
-  int random = getRandomNumber(1, 20);
-  char stringNumber[3];
-  sprintf(stringNumber, "%d", random);
-  // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", stringNumber);
+
+  //Solution
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d", (rand() % 20) + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+
+  //End
+
+  //My Solution
+
+  // int random = getRandomNumber(1, 20);
+  // char stringNumber[3];
+  // sprintf(stringNumber, "%d", random);
+  // // !!!! IMPLEMENT ME
+  // send_response(fd, "HTTP/1.1 200 OK", "text/plain", stringNumber);
 }
 
 /**
@@ -288,9 +332,20 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
+
+  //Solution
+  char response_body[128];
+  time_t t1 = time(NULL);
+  struct tm *gtime = gmtime(&t1);
+
+  sprintf(response_body, "%s", asctime(gtime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+  //End
   // !!!! IMPLEMENT ME
-  time_t t = time(NULL);
-  struct tm *tm = gmtime(&t);
+
+  // time_t t = time(NULL);
+  // struct tm *tm = gmtime(&t);
 }
 
 /**
@@ -299,8 +354,32 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
-
+  char *status;
   // Save the body and send a response
+  // int file_fd = fopen("data.txt", O_CREAT|O_WRONLY, 0644);
+  int file_fd = fopen("data.txt", "ab+");
+
+  if (file_fd > 0)
+  {
+    //initialize a file lock
+    flock(file_fd, LOCK_EX);
+
+    write(file_fd, body, strlen(body));
+
+    close(file_fd);
+
+    status = "ok";
+  }
+  else
+  {
+    status = "fail";
+  }
+
+  char response_body[128];
+
+  sprintf(response_body, "{\"status\": \"%s\"}", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -312,6 +391,22 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL)
+    return p;
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL)
+    return p;
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -342,25 +437,91 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
-  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  printf(">> %s %s %s \n", request_type, request_path, request_protocol);
+  //Solution
+  char *first_line = request;
 
-  if (strcmp(request_path, "/") == 0)
-  {
-    get_root(fd);
+  //Loook for newline
+  p = strchr(first_line, '\n');
+  *p = '\0';
+
+  char *header = p + 1;
+
+  p = find_end_of_header(header);
+  //call handler functions
+
+  if (p == NULL) {
+    printf("Could not find of header \n");
+    exit(1);
   }
-  else if (strcmp(request_path, "/d20") == 0)
+
+
+ //Here is the body
+  char *body = p;
+
+  sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("REQUEST: %s %s %s \n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0)
   {
-    get_d20(fd);
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd, request_path);
+    }
   }
-  else if (strcmp(request_path, "/date") == 0)
+  else if (strcmp(request_type, "POST") == 0)
   {
-    get_date(fd);
+    if (strcmp(request_path, "/save") == 0)
+    {
+      //More later
+      post_save(fd, body);
+    } else {
+      resp_404(fd, request_path);
+    }
   }
-  
+
+  else {
+    fprintf(stderr, "unknown request type \"%s\"\n", request_type);
+  }
+
+  //End Solution
+
+  // sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  // printf(">> %s %s %s \n", request_type, request_path, request_protocol);
+
+  // if (strcmp(request_path, "/") == 0)
+  // {
+  //   get_root(fd);
+  // }
+  // else if (strcmp(request_path, "/d20") == 0)
+  // {
+  //   get_d20(fd);
+  // }
+  // else if (strcmp(request_path, "/date") == 0)
+  // {
+  //   get_date(fd);
+  // }
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
+
+  // p = find_end_of_header();
+
+  // if (p == NULL)
+  // {
+  // }
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
