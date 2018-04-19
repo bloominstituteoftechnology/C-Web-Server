@@ -275,8 +275,27 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  char *status;
 
+  FILE *fp;
+
+  fp = fopen("data.txt", "w");
+
+  if (fp) {
+    fwrite(body, 1, sizeof(body), fp);
+
+    fclose(fp);
+
+    status = "ok";
+  } else {
+    status = "error";
+  }
+ 
   // Save the body and send a response
+  sprintf(response_body, "{\"status\":\"%s\"}", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -336,10 +355,14 @@ void handle_http_request(int fd)
   char *root = malloc(strlen("/")); //memory allocation for root
   char *d20 = malloc(strlen("/d20")); //memory allocation for d20
   char *date = malloc(strlen("/date")); //memory allocation for date
+  char *save = malloc(strlen("/save"));
+
+  p = find_end_of_header(request); //find beginning of body
 
   strcpy(root, "/"); //copy str to root
   strcpy(d20, "/d20"); // copy str to d20
   strcpy(date, "/date"); //copy str to date
+  strcpy(save, "/save");
 
   //if-else block to return the matched path or return 404
   if (strcmp(request_path, root) == 0) { 
@@ -351,10 +374,17 @@ void handle_http_request(int fd)
   } else if (strcmp(request_path, date) == 0) {
     get_date(fd);
     return;
+  } else if (strcmp(request_path, save) == 0) {
+    post_save(fd, p);
+    return;
   } else {
     resp_404(fd, request_path);
   }
 
+  // free(root);
+  // free(d20);
+  // free(date);
+  // free(save);
 }
 
 /**
