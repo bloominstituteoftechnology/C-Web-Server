@@ -356,8 +356,8 @@ void post_save(int fd, char *body)
   // !!!! IMPLEMENT ME
   char *status;
   // Save the body and send a response
-  // int file_fd = fopen("data.txt", O_CREAT|O_WRONLY, 0644);
-  int file_fd = fopen("data.txt", "ab+");
+  int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
+  // int file_fd = fopen("data.txt", "ab+");
 
   if (file_fd > 0)
   {
