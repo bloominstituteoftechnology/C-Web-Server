@@ -237,10 +237,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  // char response_body[1024];
-  // int *rand = // random number generator;
-  // sprintf(response_body, "Random Number 1 - 20: %i", rand);
-  // send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
+  // Hint: srand() with time(NULL), rand()
+  time_t t;
+  srand((unsigned) time(&t));
+  char response_body[1024];
+  sprintf(response_body, "Random Number 1 - 20: %i\n", rand() % 20);
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
 }
 
 /**
@@ -249,10 +251,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  // char response_body[1024];
-  // char *date = // date generator;
-  // sprintf(response_body, "The date is %s", date);
-  // send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
+  // Hint: time(NULL), gmtime()
+
+  time_t current_time = time(NULL);
+  struct tm* gmt = gmtime(&current_time);
+
+  char response_body[1024];
+  sprintf(response_body, "Current date and time: %s\n", ctime(&current_time));
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
 }
 
 /**
@@ -317,13 +323,13 @@ void handle_http_request(int fd)
   // unsigned int reqpathRoot = strcmp(reqpathRootM, request_path);
 
   // char reqpathRand = strcmp("/d20", request_path);
-  char *reqpathRandM = malloc(strlen("/"));
-  strcpy(reqpathRandM, "/");
+  char *reqpathRandM = malloc(strlen("/d20"));
+  strcpy(reqpathRandM, "/d20");
   // unsigned int reqpathRand = strcmp(reqpathRandM, request_path);
 
   // char reqpathDate = strcmp("/date", request_path);
-  char *reqpathDateM = malloc(strlen("/"));
-  strcpy(reqpathDateM, "/");
+  char *reqpathDateM = malloc(strlen("/date"));
+  strcpy(reqpathDateM, "/date");
   // unsigned int reqpathDate = strcmp(reqpathDateM, request_path);
   // printf("%s %s %s", reqpathRoot, reqpathRand, reqpathDate);
 
