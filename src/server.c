@@ -205,7 +205,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
 
   sprintf(response, "HTTP/1.1 %s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime (timeinfo), content_length, content_type, body);
-  printf("Response: %s\n", response);
   // char *test;
   // test = find_end_of_header(&response);
   // printf("final test \n%s\n", test);
@@ -282,6 +281,12 @@ void post_save(int fd, char *body)
 {
   printf("we're in the post_save: %s\n", body);
   // !!!! IMPLEMENT ME
+  FILE *file = fopen("save.txt", "ab+");
+
+  fwrite(body, strlen(body), 1, file );
+
+  fclose(file);
+
 
   // Save the body and send a response
 }
