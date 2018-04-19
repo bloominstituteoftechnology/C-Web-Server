@@ -288,6 +288,16 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *nl;
+
+  if (strstr(header, "\n\n") != NULL) {
+    nl = (strstr(header, "\n\n");
+  } else if (strstr(header, "\r\r") != NULL) {
+    nl = (strstr(header, "\r\r");
+  } else if (strstr(header, "\r\n\r\n") != NULL) {
+    nl = (strstr(header, "\r\n\r\n");
+  }
+  return nl;
 }
 
 /**
@@ -333,11 +343,14 @@ void handle_http_request(int fd)
 
   //if-else block to return the matched path or return 404
   if (strcmp(request_path, root) == 0) { 
-    return get_root(fd);
+    get_root(fd);
+    return;
   } else if (strcmp(request_path, d20) == 0) {
-    return get_d20(fd);
+    get_d20(fd);
+    return;
   } else if (strcmp(request_path, date) == 0) {
-    return get_date(fd);
+    get_date(fd);
+    return;
   } else {
     resp_404(fd, request_path);
   }
