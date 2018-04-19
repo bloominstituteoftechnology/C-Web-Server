@@ -262,7 +262,14 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  int size = 64;
+  char *response_body = (char *) malloc(size);
+  time_t current_time = time(NULL);
+  struct tm *local_time = localtime(&current_time);
+  
+  strftime(response_body, size, "%A, %B %d, %X %Z %Y", local_time);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+  free(response_body);
 }
 
 /**
