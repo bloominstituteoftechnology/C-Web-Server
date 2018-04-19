@@ -193,6 +193,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
 
+  response_length = strlen(body) + strlen(content_type) + strlen(header);
+  sprintf(response, "%s%s%s", header, content_type, body);
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -253,7 +256,14 @@ void get_date(int fd)
   // !!!! IMPLEMENT ME
   char response_body[1024];
 
-  sprintf(response_body, "%ld", gmtime(time(NULL)));
+  time_t the_time;
+  time(&the_time);
+
+  struct tm *gtime;
+
+  gtime = gmtime(&the_time);
+
+  sprintf(response_body, "%s \n", asctime(gtime));
 
   send_response(fd, "HTTP/1.1 200 OK\n", "text/plain\n\n", response_body);
 
@@ -313,7 +323,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  if (strcmp(request_path, "/")) {
+  if (strcmp(request_path, "/") == 0) {
     get_root(fd);
   }
   else if (strcmp(request_path, "/d20") == 0)
