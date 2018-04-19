@@ -205,8 +205,10 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
 
   sprintf(response, "HTTP/1.1 %s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime (timeinfo), content_length, content_type, body);
-  // printf("Response: %s\n", response);
-  
+  printf("Response: %s\n", response);
+  // char *test;
+  // test = find_end_of_header(&response);
+  // printf("final test \n%s\n", test);
   
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -278,6 +280,7 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
+  printf("we're in the post_save: %s\n", body);
   // !!!! IMPLEMENT ME
 
   // Save the body and send a response
@@ -292,10 +295,10 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
-  char searchTerm = 'd';
+  char searchTerm = '\n\n';
   char *body_start;
   body_start = strchr(header, searchTerm);
-  printf("found newline %s\n", body_start);
+  // printf("found newline %s\n", body_start);
   return body_start;
 }
 
@@ -331,17 +334,19 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   request_body = find_end_of_header(&request);
-  printf("this is the request body \n%s\n:", request_body);
-  printf("this is the full request \n%s\n:", request);
+  // printf("this is the request body \n%s\n:", request_body);
+  // printf("this is the full request \n%s\n:", request);
 
   
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
   char *get = "GET";
+  char *post = "POST";
   char *root = "/";
   char *d20 = "/d20";
   char *date = "/date";
+  char *save = "/save";
   if (strcmp(request_type, get) == 0) {
     if (strcmp(request_path, root) == 0) {
       get_root(fd);
@@ -351,6 +356,11 @@ void handle_http_request(int fd)
       get_date(fd);
     } else {
       resp_404(fd, request_path);
+    }
+  } else if (strcmp(request_type, post) == 0)
+  {
+    if (strcmp(request_path, save) == 0) {
+      post_save(fd, request_body);
     }
   }
 }
