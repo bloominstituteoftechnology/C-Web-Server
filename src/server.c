@@ -6,6 +6,7 @@
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
+ *    curl -D - http://localhost:3490/save
  * 
  * 
  * You can also test the above URLs in your browser! They should work!
@@ -436,8 +437,14 @@ int main(void)
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
-    handle_http_request(newfd);
+    // handle_http_request(newfd);
 
+    if (fork() == 0) { //if 0, fork returns a new child process
+      handle_http_request(newfd);
+
+      exit(0); //close child process successfully
+    }
+    
     // Done with this
     close(newfd);
   }
