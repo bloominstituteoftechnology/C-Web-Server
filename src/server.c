@@ -223,6 +223,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<h1>Hello World</h1>");
+
+  send_response(fd, "HTTP/1.1 200 OK\n", "text/html\n", response_body);
 }
 
 /**
@@ -231,6 +236,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[2048];
+
+  sprintf(response_body, "<h1>Hello world, d20");
+
+  send_response(fd, "HTTP/1.1 200 OK\n", "text/html\n", response_body);
 }
 
 /**
@@ -288,12 +298,19 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_path, "/")) {
+    get_root(fd);
+  }
+  else {
+    resp_404(fd, request_path);
+  }
 }
 
 /**
