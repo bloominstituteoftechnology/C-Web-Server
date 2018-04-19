@@ -192,10 +192,20 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
+  int content_length = strlen(body);
+  time_t ct = time(NULL);
+  struct tm *date = localtime(&ct);
 
   // !!!!  IMPLEMENT ME
   //store header, content type, body with text to response (maybe need to include thes content length?)
-  sprintf(response, "%s\n Content-Type: %s\n\n %s\n", header, content_type, body);
+  sprintf(response, 
+    "%s\n Date: %s Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s\n", 
+    header, 
+    asctime(date),
+    content_length, 
+    content_type, 
+    body
+  );
 
   response_length = strlen(response);
 
@@ -355,6 +365,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
+  p = find_end_of_header(request); //find beginning of body
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -363,28 +374,32 @@ void handle_http_request(int fd)
   char *date = malloc(strlen("/date")); //memory allocation for date
   char *save = malloc(strlen("/save"));
 
-  p = find_end_of_header(request); //find beginning of body
-
   strcpy(root, "/"); //copy str to root
   strcpy(d20, "/d20"); // copy str to d20
   strcpy(date, "/date"); //copy str to date
   strcpy(save, "/save");
 
   //if-else block to return the matched path or return 404
-  if (strcmp(request_path, root) == 0) { 
-    get_root(fd);
-    return;
-  } else if (strcmp(request_path, d20) == 0) {
-    get_d20(fd);
-    return;
-  } else if (strcmp(request_path, date) == 0) {
-    get_date(fd);
-    return;
-  } else if (strcmp(request_path, save) == 0) {
-    post_save(fd, p);
-    return;
-  } else {
-    resp_404(fd, request_path);
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, root) == 0) { 
+      get_root(fd);
+      return;
+    } else if (strcmp(request_path, d20) == 0) {
+      get_d20(fd);
+      return;
+    } else if (strcmp(request_path, date) == 0) {
+      get_date(fd);
+      return;
+    } else {
+      resp_404(fd, request_path);
+    }
+  } else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, save) == 0) {
+      post_save(fd, p);
+      return;
+    } else {
+      resp_404(fd, request_path);
+    }
   }
 
   // free(root);
