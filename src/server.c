@@ -31,7 +31,6 @@
 #include <time.h>
 #include <sys/file.h>
 #include <fcntl.h>
-// #include <math.h>
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -256,16 +255,32 @@ void get_root(int fd)
 /**
  * Send a /d20 endpoint response
  */
-int getRandomNumber(int min, int max) {
+int getRandomNumber(int min, int max) 
+{
+  int result = 0, low = 0, high = 0;
+
+  if (min < max) 
+  {
+    low = min;
+    high = max + 1;
+  }
+  else 
+  {
+    low = max + 1;
+    high = min;
+  }
   srand(time(NULL));
-  int randomNumber = rand();
+  result = (rand() % (high - low)) + low;
+  return result;
 }
 
 void get_d20(int fd)
 {
-
+  int random = getRandomNumber(1, 20);
+  char stringNumber[3];
+  sprintf(stringNumber, "%d", random);
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK")
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", stringNumber);
 }
 
 /**
