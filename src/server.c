@@ -247,15 +247,14 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  srand(time(NULL));
-
-  // char response_body[16];
-  // sprintf(response_body, "You rolled: %d", (rand() % 20 + 1));
   int size = 16;
   char *response_body = (char *) malloc(size);
-  snprintf(response_body, size, "You rolled: %d", (rand() % 20 + 1));
 
+  srand(time(NULL));
+
+  snprintf(response_body, size, "You rolled: %d", (rand() % 20 + 1));
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+  free(response_body);
 }
 
 /**
