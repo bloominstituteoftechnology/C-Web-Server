@@ -216,6 +216,7 @@ response_length = snprintf(
   "%s \n",
   header, body_length, content_type, body
 );
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -333,16 +334,13 @@ void handle_http_request(int fd)
   // }
 
   sscanf(request, "%s %s %s", request_path, request_type, request_protocol);
-  printf("%s %s %s \n", request_path, request_type, request_protocol);
+  printf(">> %s %s %s \n", request_path, request_type, request_protocol);
 
-  int home;
-  home = strcmp(request_path, "/");
+  int home = strcmp(request_path, "/");
 
-  int d20;
-  d20 = strcmp(request_path, "/d20");
+  int d20 = strcmp(request_path, "/d20");
 
-  int date;
-  date = strcmp(request_path, "/date");
+  int date = strcmp(request_path, "/date");
 
   if (home == 0)
   {
@@ -350,16 +348,16 @@ void handle_http_request(int fd)
   }
   else if (d20 == 0)
   {
-    get_root(fd);
+    get_d20(fd);
   }
   else if (date == 0)
   {
-    get_root(fd);
+    get_date(fd);
   }
-  else
-  {
-    resp_404(fd, request_path);
-  }
+  // else
+  // {
+  //   resp_404(fd, request_path);
+  // }
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
