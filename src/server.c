@@ -205,8 +205,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
 
   sprintf(response, "HTTP/1.1 %s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime (timeinfo), content_length, content_type, body);
-  printf("Response: %s\n", response);
-
+  // printf("Response: %s\n", response);
+  
+  
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -291,9 +292,14 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+  char searchTerm = 'd';
+  char *body_start;
+  body_start = strchr(header, searchTerm);
+  printf("found newline %s\n", body_start);
+  return body_start;
 }
 
-/**
+/*
  * Handle HTTP request and send response
  */
 void handle_http_request(int fd)
@@ -304,6 +310,7 @@ void handle_http_request(int fd)
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
+  char *request_body;
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -323,7 +330,11 @@ void handle_http_request(int fd)
 
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_end_of_header()
+  request_body = find_end_of_header(&request);
+  printf("this is the request body \n%s\n:", request_body);
+  printf("this is the full request \n%s\n:", request);
+
+  
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -349,6 +360,8 @@ void handle_http_request(int fd)
  */
 int main(void)
 {
+  
+
   int newfd;  // listen on sock_fd, new connection on newfd
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
