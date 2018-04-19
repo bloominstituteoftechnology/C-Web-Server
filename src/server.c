@@ -271,6 +271,7 @@ void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
 
+
   // Save the body and send a response
 }
 
@@ -283,6 +284,16 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *p;
+  p = strstr(header, "\n\n");
+
+  if (p != NULL) return p;
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL) return p;
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -319,7 +330,8 @@ void handle_http_request(int fd)
 
     if (p == NULL)
     {
-      printf()
+      printf("Could not find end of header\n");
+      exit(1); 
     }
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
@@ -328,6 +340,27 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
 }
 
+  char method[16];
+  char path[1024];
+
+  sscanf(request, ("%s %s", method, path));
+
+  printf(..."Method: %s\n, method");
+  printf("Path: %s\n", path);
+
+   if (strcmp(method, "GET") == 0) {
+      if (strcmp(path, "/") == 0) {
+        get_root(fd);
+        } else if (strcmp(path, "/d20") == 0) {
+          srand(time(NULL));
+          get_d20(fd);
+          } else if (strcmp(path, "/date") == 0) {
+            get_date(fd);
+            } else {
+              resp_404(fd, path);
+              }
+            }
+          }
 /**
  * Main
  */
