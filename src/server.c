@@ -230,8 +230,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   //End of Solution
 
-  // My solution
-
   // int body_length = strlen(body);
 
   // response_length = snprintf(
@@ -278,6 +276,7 @@ void get_root(int fd)
   // // !!!! IMPLEMENT ME
   // //send_response(...
   // sprintf(response_length, "Testing %d", 44);
+
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>Lambda School</title></head><body><h1>Hello World!</h1></body></html>");
 }
 
@@ -285,7 +284,6 @@ void get_root(int fd)
  * Send a /d20 endpoint response
  */
 
-// My solution
 
 // int getRandomNumber(int min, int max)
 // {
@@ -318,8 +316,6 @@ void get_d20(int fd)
 
   //End
 
-  //My Solution
-
   // int random = getRandomNumber(1, 20);
   // char stringNumber[3];
   // sprintf(stringNumber, "%d", random);
@@ -342,6 +338,7 @@ void get_date(int fd)
 
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
   //End
+  
   // !!!! IMPLEMENT ME
 
   // time_t t = time(NULL);
