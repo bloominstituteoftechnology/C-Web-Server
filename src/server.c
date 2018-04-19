@@ -249,7 +249,8 @@ void get_root(int fd)
   // // !!!! IMPLEMENT ME
   // //send_response(...
   // sprintf(response_length, "Testing %d", 44);
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "Testing!");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", 
+  "<!DOCTYPE html><html><head><title>Lambda School</title></head><body><h1>Hello World!</h1></body></html>");
   // printf("Testing");
 }
 
@@ -333,24 +334,24 @@ void handle_http_request(int fd)
   //   resp_404(fd, request_path[1024]);
   // }
 
-  sscanf(request, "%s %s %s", request_path, request_type, request_protocol);
-  printf(">> %s %s %s \n", request_path, request_type, request_protocol);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf(">> %s %s %s \n", request_type, request_path, request_protocol);
 
-  int home = strcmp(request_path, "/");
+  // int home = strcmp(request_path, "/");
 
-  int d20 = strcmp(request_path, "/d20");
+  // int d20 = strcmp(request_path, "/d20");
 
-  int date = strcmp(request_path, "/date");
+  // int date = strcmp(request_path, "/date");
 
-  if (home == 0)
+  if (strcmp(request_path, "/") == 0)
   {
     get_root(fd);
   }
-  else if (d20 == 0)
+  else if (strcmp(request_path, "/d20") == 0)
   {
     get_d20(fd);
   }
-  else if (date == 0)
+  else if (strcmp(request_path, "/date") == 0)
   {
     get_date(fd);
   }
