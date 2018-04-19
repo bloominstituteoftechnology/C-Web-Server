@@ -280,6 +280,20 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+	/* int eoh = 0;
+	for (unsigned long i = 0; i < strlen(header); i++) {
+		char *char1 = &header[i];
+		char *char2 = &header[i + 1];
+		char *test_str = strcat(char1, char2);
+		if (strncmp(test_str, "\n\n", 2)) {
+			eoh = 1;
+		}
+	}
+	if (eoh == 1) {
+		return "eoh";
+	}
+	return "\0";
+	*/
 }
 
 /**
@@ -311,7 +325,7 @@ void handle_http_request(int fd)
 	
 	sscanf(request, "%s\n %s\n %s\n\n", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_end_of_header()
+  // find_end_of_header(request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -320,8 +334,7 @@ void handle_http_request(int fd)
 			get_root(fd); // line 222
 		}
 		if (!strcmp(request_path, "/d20")) {
-			get_d20(fd);
-		}
+			get_d20(fd); }
 		if (!strcmp(request_path, "/date")) {
 			get_date(fd);
 		} 
