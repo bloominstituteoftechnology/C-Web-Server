@@ -279,14 +279,19 @@ void post_save(int fd, char *body)
   char response_body[1024];
   char *status;
 
-  FILE *fp;
+  // FILE *fp;
 
-  fp = fopen("data.txt", "w");
+  // fp = fopen("data.txt", "w");
+  int fp = open("data.text", O_CREAT|O_WRONLY, 0644); //using Sean's solution
 
   if (fp) {
-    fwrite(body, 1, sizeof(body), fp);
+    flock(fp, LOCK_EX); //lock file after opened, macro LOCK_EX imported from fcntl.h
+    // fwrite(body, 1, sizeof(body), fp);
+    write(fp, body, strlen(body)); //using Sean's solution
 
-    fclose(fp);
+    // fclose(fp);
+    close(fp);
+    flock(fp, LOCK_UN); //unlock file after closed, macro LOCK_UN imported from fcntl.h
 
     status = "ok";
   } else {
@@ -444,7 +449,7 @@ int main(void)
 
       exit(0); //close child process successfully
     }
-    
+
     // Done with this
     close(newfd);
   }
