@@ -290,12 +290,12 @@ char *find_end_of_header(char *header)
   // !!!! IMPLEMENT ME
   char *nl;
 
-  if (strstr(header, "\n\n") != NULL) {
-    nl = (strstr(header, "\n\n");
-  } else if (strstr(header, "\r\r") != NULL) {
-    nl = (strstr(header, "\r\r");
-  } else if (strstr(header, "\r\n\r\n") != NULL) {
-    nl = (strstr(header, "\r\n\r\n");
+  if (strstr(header, "\n\n")) {
+    nl = strstr(header, "\n\n");
+  } else if (strstr(header, "\r\r")) {
+    nl = strstr(header, "\r\r");
+  } else {
+    nl = strstr(header, "\r\n\r\n");
   }
   return nl;
 }
