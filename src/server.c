@@ -187,20 +187,31 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  const int max_response_size = 65536;
-  char response[max_response_size];
-  int response_length;
+  char response[65536];
+  int content_length = strlen(body);
 
-  // !!!!  IMPLEMENT ME
+  char formatted_time[1024];
+  time_t current_time = time(NULL);
+  struct tm *p = localtime(&current_time);
+  strftime(formatted_time, 1024, "%A, %B %d %X %Z %Y", p);
+  
+  int response_length = sprintf(response,
+    "%s\n"
+    "Date: %s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header, formatted_time, content_length, content_type, body
+    );
 
-  // Send it all!
-  int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length, 0);
 
-  if (rv < 0) {
-    perror("send");
-  }
+    if (rv < 0)
+        perror("send");
 
-  return rv;
+    return rv;
 }
 
 
@@ -221,6 +232,8 @@ void resp_404(int fd, char *path)
  */
 void get_root(int fd)
 {
+  char *response_body = "<html><head></head><h1><Hello World!></h1></body></html>\n";
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
   // !!!! IMPLEMENT ME
   //send_response(...
 }
@@ -230,6 +243,9 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  char response_body[8];
+  sprintf(response_body, "%d\n", rand() % 20 + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
   // !!!! IMPLEMENT ME
 }
 
@@ -238,6 +254,13 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
+  char response_body[1024];
+
+  time_t current_time = time(NULL);
+  struct tm *p = localtime(&current_time);
+  strftime(response_body, 1024, "%A, %B %d %X %Z %Y\n", p);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
   // !!!! IMPLEMENT ME
 }
 
@@ -288,7 +311,16 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+    char *first_line = request;
+    p = strchr(first_line, '\n');
+    *p = '\0';
+    chr *header = p +1;
+    p = find_end_of_header(header);
 
+    if (p == NULL)
+    {
+      printf()
+    }
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
