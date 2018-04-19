@@ -289,6 +289,8 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t t = time(NULL);
+  struct tm *tm = gmtime(&t);
 }
 
 /**
@@ -340,29 +342,8 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
-  // char read = sscanf(request, request_type[8], request_path[1024]);
-  //sscanf(request_protocol, request_type[8], request_path[1024]);
-
-  // sscanf(fd, "%s", request_type[8]);
-  // int compare = strcmp(request_type[8], request_path[1024]);
-
-  // if (compare == 0)
-  // {
-  //   get_root(fd);
-  // }
-  // else
-  // {
-  //   resp_404(fd, request_path[1024]);
-  // }
-
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   printf(">> %s %s %s \n", request_type, request_path, request_protocol);
-
-  // int home = strcmp(request_path, "/");
-
-  // int d20 = strcmp(request_path, "/d20");
-
-  // int date = strcmp(request_path, "/date");
 
   if (strcmp(request_path, "/") == 0)
   {
@@ -376,10 +357,7 @@ void handle_http_request(int fd)
   {
     get_date(fd);
   }
-  // else
-  // {
-  //   resp_404(fd, request_path);
-  // }
+  
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
