@@ -251,7 +251,6 @@ void get_root(int fd)
   // sprintf(response_length, "Testing %d", 44);
   send_response(fd, "HTTP/1.1 200 OK", "text/html", 
   "<!DOCTYPE html><html><head><title>Lambda School</title></head><body><h1>Hello World!</h1></body></html>");
-  // printf("Testing");
 }
 
 /**
@@ -388,7 +387,6 @@ int main(void)
     exit(1);
   }
 
-  printf("Is it working? \n");
   printf("webserver: waiting for connections...\n");
 
   // This is the main loop that accepts incoming connections and
