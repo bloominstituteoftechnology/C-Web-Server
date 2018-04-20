@@ -271,7 +271,7 @@ void get_date(int fd)
   timeinfo = localtime ( &rawtime );
   
   sprintf(response_body, "<h1>%s</h1>\n", asctime(timeinfo));
-  send_response(fd, "200 OK", "text/html", response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -279,6 +279,7 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
+  char response_body[1024];
   printf("|-- we're in the post_save --|\n%s\n", body);
   // !!!! IMPLEMENT ME
   FILE *file = fopen("save.txt", "ab+");
@@ -286,7 +287,10 @@ void post_save(int fd, char *body)
   fwrite(body, strlen(body), 1, file );
 
   fclose(file);
-  // Save the body and send a response
+
+  sprintf(response_body, "{\"status\": \"ok\"}");
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
