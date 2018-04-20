@@ -295,8 +295,8 @@ Post a file:
    (and start of the body).
 
 2. Implement the `post_save()` handler. Modify the main loop to pass the body
-   into it. Have this handler write the file to disk. Hint: `fopen()`,
-   `fwrite()`, `fclose()`.
+   into it. Have this handler write the file to disk. Hint: `open()`,
+   `write()`, `close()`. `fopen()`, `fwrite()`, and `fclose()` variants can also be used, but the former three functions will be slightly more straightforward to use in this case.
 
    The response from `post_save()` should be of type `application/json` and
    should be `{"status":"ok"}`.
