@@ -280,8 +280,11 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
-
+  FILE *superawesomefile = fopen("data.txt", "a+");
+  fwrite(body, 1, strlen(body), superawesomefile);
+  fclose(superawesomefile);
   // Save the body and send a response
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\": \"ok\"}");
 }
 
 /**
@@ -293,6 +296,19 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+  char test[5];
+  while (strcmp(test, "\r\n\r\n") != 0) 
+  {
+    strncpy(test, header, 4);
+    test[4] = '\0';
+    // printf("test: %s \n", test);
+    // printf("%c", *header);
+    header++;
+  }
+
+  header = header + 3;
+  printf("Here is the body: %s \n", header);
+  return header;
 }
 
 /**
@@ -327,7 +343,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
-
+  p = find_end_of_header(request);
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
   // printf("here is the path: %s", request_path);
@@ -346,8 +362,16 @@ void handle_http_request(int fd)
       get_date(fd);
     }
     else {
-      // resp_404(fd, request_path);
+      resp_404(fd, request_path);
     }
+  }
+
+  if (strcmp(request_type, "POST") == 0){
+    if (strcmp(request_path, "/save") == 0){
+      post_save(fd, p);
+    }
+  } else {
+    resp_404(fd, request_path);
   }
 }
 
