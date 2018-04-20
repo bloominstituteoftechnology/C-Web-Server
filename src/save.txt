@@ -29,3 +29,36 @@ Connection: keep-alive
 "username": "bob2@bob.com",
 "password": "bob2"
 }
+cache-control: no-cache
+Postman-Token: dab03606-6f94-40f6-8b0b-25bac4c6a40c
+Content-Type: text/plain
+User-Agent: PostmanRuntime/7.1.1
+Accept: */*
+Host: localhost:3490
+cookie: connect.sid=s%3Aq2amK_WXbQD2DH9HTXH1LT5TXhVTEoyt.6VtAWEyP4X3HZ6%2B4PRBG%2FvFM6qCfRXd9MFWGF3KBStg
+accept-encoding: gzip, deflate
+content-length: 18
+Connection: keep-alive
+
+"TESTTTTIIINNNGGG"
+Host: localhost:3490
+User-Agent: curl/7.54.0
+Accept: */*
+Content-Type: text/plain
+Content-Length: 19
+
+Hello, sample data!
+cache-control: no-cache
+Postman-Token: 39d45c33-9d7d-4021-8aa5-0fab410fbde9
+Content-Type: text/plain
+User-Agent: PostmanRuntime/7.1.1
+Accept: */*
+Host: localhost:3490
+cookie: connect.sid=s%3Aq2amK_WXbQD2DH9HTXH1LT5TXhVTEoyt.6VtAWEyP4X3HZ6%2B4PRBG%2FvFM6qCfRXd9MFWGF3KBStg
+accept-encoding: gzip, deflate
+content-length: 18
+Connection: keep-alive
+
+"TESTTTTIIINNNGGG"
+
+"ANOTHER TESTTTT"

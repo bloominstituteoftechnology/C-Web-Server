@@ -279,15 +279,13 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  printf("we're in the post_save: %s\n", body);
+  printf("|-- we're in the post_save --|\n%s\n", body);
   // !!!! IMPLEMENT ME
   FILE *file = fopen("save.txt", "ab+");
 
   fwrite(body, strlen(body), 1, file );
 
   fclose(file);
-
-
   // Save the body and send a response
 }
 
@@ -300,11 +298,15 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
-  char searchTerm = '\n\n';
   char *body_start;
-  body_start = strchr(header, searchTerm);
-  // printf("found newline %s\n", body_start);
-  return body_start;
+  body_start = strstr(header, "\n\n");
+  if (body_start != NULL) return body_start;
+
+  body_start = strstr(header, "\r\r");
+  if (body_start != NULL) return body_start;
+
+  body_start = strstr(header, "\r\n\r\n");
+  if (body_start != NULL) return body_start;
 }
 
 /*
@@ -365,6 +367,10 @@ void handle_http_request(int fd)
   } else if (strcmp(request_type, post) == 0)
   {
     if (strcmp(request_path, save) == 0) {
+      if (request_body == NULL) {
+        printf("Body is Null!\n");
+        exit(1);
+      }
       post_save(fd, request_body);
     }
   }
