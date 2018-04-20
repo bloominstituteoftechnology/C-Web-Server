@@ -6,7 +6,6 @@
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
- *    curl -D - http://localhost:3490/save
  * 
  * 
  * You can also test the above URLs in your browser! They should work!
@@ -300,8 +299,9 @@ void post_save(int fd, char *body)
     write(fp, body, strlen(body)); //using Sean's solution
 
     // fclose(fp);
+    flock(fp, LOCK_UN); //unlock file before close, macro LOCK_UN imported from fcntl.h
+    
     close(fp);
-    flock(fp, LOCK_UN); //unlock file after closed, macro LOCK_UN imported from fcntl.h
 
     status = "ok";
   } else {
@@ -393,7 +393,8 @@ void handle_http_request(int fd)
     } else {
       resp_404(fd, request_path);
     }
-  } else if (strcmp(request_type, "POST") == 0) {
+  } 
+  else if (strcmp(request_type, "POST") == 0) {
     if (strcmp(request_path, save) == 0) {
       post_save(fd, p);
       return;
@@ -402,10 +403,10 @@ void handle_http_request(int fd)
     }
   }
 
-  // free(root);
-  // free(d20);
-  // free(date);
-  // free(save);
+  free(root);
+  free(d20);
+  free(date);
+  free(save);
 }
 
 /**
