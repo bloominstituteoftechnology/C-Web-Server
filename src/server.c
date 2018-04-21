@@ -7,6 +7,7 @@
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
  * 
+ * 
  * You can also test the above URLs in your browser! They should work!
  * 
  * Posting Data:
@@ -190,8 +191,22 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
+  int content_length = strlen(body);
+  time_t ct = time(NULL);
+  struct tm *date = localtime(&ct);
 
   // !!!!  IMPLEMENT ME
+  //store header, content type, body with text to response (maybe need to include thes content length?)
+  sprintf(response, 
+    "%s\n Date: %s Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s\n", 
+    header, 
+    asctime(date),
+    content_length, 
+    content_type, 
+    body
+  );
+
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -223,6 +238,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<h1>Hello, world!</h1>\n"); //store hello world into res body
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -231,6 +251,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char *response_body = malloc(sizeof(int)); //allocate memory of res body
+  int num;
+
+  srand(time(NULL)) ; //to generate different random numbers
+
+  num = 1 + rand() % 20; //generate random number from 1 to 20
+
+  sprintf(response_body, "%d\n", num); //store random num into res body
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -239,6 +269,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+
+  time_t ct = time(NULL); //prints out Epoch time in seconds
+  struct tm *date = gmtime(&ct); //convert to date and time
+
+  sprintf(response_body, "%s\n", asctime(date)); //store calendar time into res body
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -247,8 +285,33 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  char *status;
 
+  // FILE *fp;
+
+  // fp = fopen("data.txt", "w");
+  int fp = open("data.text", O_CREAT|O_WRONLY, 0644); //using Sean's solution
+
+  if (fp) {
+    flock(fp, LOCK_EX); //lock file after opened, macro LOCK_EX imported from fcntl.h
+    // fwrite(body, 1, sizeof(body), fp);
+    write(fp, body, strlen(body)); //using Sean's solution
+
+    // fclose(fp);
+    flock(fp, LOCK_UN); //unlock file before close, macro LOCK_UN imported from fcntl.h
+    
+    close(fp);
+
+    status = "ok";
+  } else {
+    status = "error";
+  }
+ 
   // Save the body and send a response
+  sprintf(response_body, "{\"status\":\"%s\"}", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -260,6 +323,16 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *nl;
+
+  if (strstr(header, "\n\n")) {
+    nl = strstr(header, "\n\n");
+  } else if (strstr(header, "\r\r")) {
+    nl = strstr(header, "\r\r");
+  } else {
+    nl = strstr(header, "\r\n\r\n");
+  }
+  return nl;
 }
 
 /**
@@ -288,12 +361,52 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol); //read three components
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
+  p = find_end_of_header(request); //find beginning of body
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  char *root = malloc(strlen("/")); //memory allocation for root
+  char *d20 = malloc(strlen("/d20")); //memory allocation for d20
+  char *date = malloc(strlen("/date")); //memory allocation for date
+  char *save = malloc(strlen("/save"));
+
+  strcpy(root, "/"); //copy str to root
+  strcpy(d20, "/d20"); // copy str to d20
+  strcpy(date, "/date"); //copy str to date
+  strcpy(save, "/save");
+
+  //if-else block to return the matched path or return 404
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, root) == 0) { 
+      get_root(fd);
+      return;
+    } else if (strcmp(request_path, d20) == 0) {
+      get_d20(fd);
+      return;
+    } else if (strcmp(request_path, date) == 0) {
+      get_date(fd);
+      return;
+    } else {
+      resp_404(fd, request_path);
+    }
+  } 
+  else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, save) == 0) {
+      post_save(fd, p);
+      return;
+    } else {
+      resp_404(fd, request_path);
+    }
+  }
+
+  free(root);
+  free(d20);
+  free(date);
+  free(save);
 }
 
 /**
@@ -345,7 +458,13 @@ int main(void)
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
-    handle_http_request(newfd);
+    // handle_http_request(newfd);
+
+    if (fork() == 0) { //if 0, fork returns a new child process
+      handle_http_request(newfd);
+
+      exit(0); //close child process successfully
+    }
 
     // Done with this
     close(newfd);
