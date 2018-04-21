@@ -190,9 +190,25 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
+  /* char *current_date = "abc"; */
 
-  // !!!!  IMPLEMENT ME
+  time_t rawtime;
+  struct tm * timeinfo;
 
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  // printf ( "Date: %s", asctime (timeinfo) );
+
+  
+  int content_length = strlen(body);
+  response_length = strlen(response);
+
+
+  sprintf(response, "HTTP/1.1 %s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime (timeinfo), content_length, content_type, body);
+  // char *test;
+  // test = find_end_of_header(&response);
+  // printf("final test \n%s\n", test);
+  
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -223,6 +239,9 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+  sprintf(response_body, "<h1>Hello World!</h1>");
+  send_response(fd, "200 OK", "text/html", response_body);
 }
 
 /**
@@ -231,6 +250,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  int rando = rand() % 20;
+  // printf("hey this is rando %d\n", rando);
+  sprintf(response_body, "<h1>%d</h1>\n", rando);
+  send_response(fd, "200 OK", "text/html", response_body);
 }
 
 /**
@@ -239,6 +263,15 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  
+  sprintf(response_body, "<h1>%s</h1>\n", asctime(timeinfo));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -246,9 +279,18 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
+  char response_body[1024];
+  printf("|-- we're in the post_save --|\n%s\n", body);
   // !!!! IMPLEMENT ME
+  FILE *file = fopen("save.txt", "ab+");
 
-  // Save the body and send a response
+  fwrite(body, strlen(body), 1, file );
+
+  fclose(file);
+
+  sprintf(response_body, "{\"status\": \"ok\"}");
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -260,9 +302,18 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *body_start;
+  body_start = strstr(header, "\n\n");
+  if (body_start != NULL) return body_start;
+
+  body_start = strstr(header, "\r\r");
+  if (body_start != NULL) return body_start;
+
+  body_start = strstr(header, "\r\n\r\n");
+  if (body_start != NULL) return body_start;
 }
 
-/**
+/*
  * Handle HTTP request and send response
  */
 void handle_http_request(int fd)
@@ -273,6 +324,7 @@ void handle_http_request(int fd)
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
+  char *request_body;
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -288,12 +340,44 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_end_of_header()
+  request_body = find_end_of_header(&request);
+  // printf("this is the request body \n%s\n:", request_body);
+  // printf("this is the full request \n%s\n:", request);
+
+  
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  char *get = "GET";
+  char *post = "POST";
+  char *root = "/";
+  char *d20 = "/d20";
+  char *date = "/date";
+  char *save = "/save";
+  if (strcmp(request_type, get) == 0) {
+    if (strcmp(request_path, root) == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, d20) == 0) {
+      get_d20(fd);
+    }  else if (strcmp(request_path, date) == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd, request_path);
+    }
+  } else if (strcmp(request_type, post) == 0)
+  {
+    if (strcmp(request_path, save) == 0) {
+      if (request_body == NULL) {
+        printf("Body is Null!\n");
+        exit(1);
+      }
+      post_save(fd, request_body);
+    }
+  }
 }
 
 /**
@@ -301,6 +385,8 @@ void handle_http_request(int fd)
  */
 int main(void)
 {
+  
+
   int newfd;  // listen on sock_fd, new connection on newfd
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
