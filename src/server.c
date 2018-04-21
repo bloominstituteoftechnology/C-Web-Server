@@ -190,8 +190,10 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
-
+	time_t t = time(NULL);
+	
   // !!!!  IMPLEMENT ME
+	response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-length: %ld\nContent-Type: %s\n\n%s", header, asctime(localtime(&t)), strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -222,7 +224,9 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+	char response_body[1024];
+	sprintf(response_body, "<h1>\"Yo Dawg\"</h1>");
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -231,6 +235,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+	char response_body[1024];
+	time_t t;
+
+	srand((unsigned) time(&t));
+
+
+	sprintf(response_body, "<h1>Random number: %d</h1>", rand() % 20);
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -239,6 +251,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+	time_t t;
+	char response_body[1024];
+	char buf[26];
+
+	time(&t);
+
+	sprintf(response_body, "<h1>%s</h1>", asctime(localtime(&t)));
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -260,6 +280,20 @@ void post_save(int fd, char *body)
 char *find_end_of_header(char *header)
 {
   // !!!! IMPLEMENT ME
+	/* int eoh = 0;
+	for (unsigned long i = 0; i < strlen(header); i++) {
+		char *char1 = &header[i];
+		char *char2 = &header[i + 1];
+		char *test_str = strcat(char1, char2);
+		if (strncmp(test_str, "\n\n", 2)) {
+			eoh = 1;
+		}
+	}
+	if (eoh == 1) {
+		return "eoh";
+	}
+	return "\0";
+	*/
 }
 
 /**
@@ -288,12 +322,23 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+	
+	sscanf(request, "%s\n %s\n %s\n\n", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_end_of_header()
+  // find_end_of_header(request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+	if (!strcmp(request_type, "GET")) {
+		if (!strcmp(request_path, "/")) {
+			get_root(fd); // line 222
+		}
+		if (!strcmp(request_path, "/d20")) {
+			get_d20(fd); }
+		if (!strcmp(request_path, "/date")) {
+			get_date(fd);
+		} 
+	}
 }
 
 /**
