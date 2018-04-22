@@ -1,0 +1,8 @@
+{
+ "name": "curl",
+ "version": "0.1.4",
+ "description": "client url library, high level request functions",
+ "tags": ["request","util","http"],
+ "authors": "Ian Jørgensen <jorgensen.ian@gmail.com>",
+ "dependencies": {"request":">=0.1.0", "router":">=0.3.0"}
+}
