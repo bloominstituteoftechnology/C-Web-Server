@@ -1,18 +1,18 @@
 /**
  * webserver.c -- A webserver written in C
- * 
+ *
  * Test with curl (if you don't have it, install it):
- * 
+ *
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
- * 
+ *
  * You can also test the above URLs in your browser! They should work!
- * 
+ *
  * Posting Data:
- * 
+ *
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
- * 
+ *
  * (Posting data is harder to test from a browser.)
  */
 
@@ -63,7 +63,7 @@ void sigchld_handler(int s) {
  *
  * Whenever a child process dies, the parent process gets signal
  * SIGCHLD; the handler sigchld_handler() takes care of wait()ing.
- * 
+ *
  * This is only necessary if we've implemented a multiprocessed version with
  * fork().
  */
@@ -182,7 +182,7 @@ int get_listener_socket(char *port)
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
- * 
+ *
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, char *body)
@@ -190,9 +190,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length;
+  int content_length;
+  time_t now;
+  struct tm ts;
+  char date[80];
+  time(&now);
+  ts = *localtime(&now);
+  strftime(date, sizeof(date), "%a %Y-%m-%d %H:%M:%S %Z", &ts);
 
   // !!!!  IMPLEMENT ME
+  content_length = strlen(body);
+  response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, date, content_length, content_type, body);
 
+  printf("%s\n", response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -211,7 +221,7 @@ void resp_404(int fd, char *path)
 {
   char response_body[1024];
 
-  sprintf(response_body, "404: %s not found", path);
+  sprintf(response_body, "044: %s not found", path);
 
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
 }
@@ -223,6 +233,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char *response_body = "<!DOCTYPE HTML><html><head><title>C Web Server</title></head><body><h1>Hello World</h1></body></html>";
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -231,6 +243,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[2048];
+  time_t t;
+  int random;
+
+  srand((unsigned) time(&t));
+  random = rand() & 20;
+  sprintf(response_body, "<!DOCTYPE HTML><html><head><title>C Web Server</title></head><body><h1>%d</h1></body></html>", random);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -239,6 +259,15 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t now;
+  struct tm ts;
+  char response_body[2048];
+  char date[80];
+  time(&now);
+  ts = *localtime(&now);
+  strftime(date, sizeof(date), "%a %Y-%m-%d %H:%M:%S %Z", &ts);
+  sprintf(response_body, "<!DOCTYPE HTML><html><head><title>C Web Server</title></head><body><h1>%s</h1></body></html>", date);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -253,7 +282,7 @@ void post_save(int fd, char *body)
 
 /**
  * Search for the end of the HTTP header
- * 
+ *
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
@@ -288,12 +317,30 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request,  "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  printf("type: |%s| \n", request_type);
+  printf("path: |%s| \n", request_path);
+  printf("protocol: |%s| \n", request_protocol);
+
+  if(strcmp(request_type, "GET") == 0) {
+    if(strcmp(request_path, "/") == 0) {
+      get_root(fd);
+
+    } else if(strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+
+    } else if(strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd, &request_path);
+    }
+  }
 }
 
 /**
@@ -321,7 +368,7 @@ int main(void)
   // This is the main loop that accepts incoming connections and
   // fork()s a handler process to take care of it. The main parent
   // process then goes back to waiting for new connections.
-  
+
   while(1) {
     socklen_t sin_size = sizeof their_addr;
 
@@ -338,7 +385,7 @@ int main(void)
       get_in_addr((struct sockaddr *)&their_addr),
       s, sizeof s);
     printf("server: got connection from %s\n", s);
-    
+
     // newfd is a new socket descriptor for the new connection.
     // listenfd is still listening for new connections.
 
