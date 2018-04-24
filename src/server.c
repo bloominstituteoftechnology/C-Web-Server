@@ -248,12 +248,15 @@ void post_save(int fd, char *body)
 }
 
 /**
- * Search for the end of the HTTP header
- * 
+ * Search for the start of the HTTP body.
+ *
+ * The body is after the header, separated from it by a blank line (two newlines
+ * in a row).
+ *
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_end_of_header(char *header)
+char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
 }
@@ -286,7 +289,7 @@ void handle_http_request(int fd)
   // Hint: sscanf()!
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_end_of_header()
+  // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
