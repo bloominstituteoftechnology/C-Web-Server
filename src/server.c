@@ -189,7 +189,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length;
+  int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
 
@@ -207,13 +207,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd, char *path)
+void resp_404(int fd)
 {
-  char response_body[1024];
-
-  sprintf(response_body, "404: %s not found", path);
-
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
 }
 
 /**

@@ -267,7 +267,7 @@ then come back to goal #1 and dig in._
    This needs to build a complete HTTP response with the given parameters. It
    should write the response to the string in the `response` variable.
    
-   The total length of the header and body should be stored in the
+   The total length of the header **and** body should be stored in the
    `response_length` variable so that the `send()` call knows how many bytes to
    send out over the wire.
 
