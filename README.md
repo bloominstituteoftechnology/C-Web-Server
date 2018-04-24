@@ -17,7 +17,8 @@ What you need to write:
 What you don't need to write:
 
 * Any system calls, including `send()` and `recv()`
-* Any new functions from scratch--there's a skeleton for all functions you'll need
+* Any new functions from scratch--there's a skeleton for all functions you'll
+  need
 
 ## What is a Web Server?
 
@@ -291,12 +292,14 @@ then come back to goal #1 and dig in._
 
 Post a file:
 
-1. Implement `find_end_of_header()` to locate the end of the HTTP request header
-   (and start of the body).
+1. Implement `find_start_of_body()` to locate the start of the HTTP request body
+   (just after the header).
 
 2. Implement the `post_save()` handler. Modify the main loop to pass the body
-   into it. Have this handler write the file to disk. Hint: `open()`,
-   `write()`, `close()`. `fopen()`, `fwrite()`, and `fclose()` variants can also be used, but the former three functions will be slightly more straightforward to use in this case.
+   into it. Have this handler write the file to disk. Hint: `open()`, `write()`,
+   `close()`. `fopen()`, `fwrite()`, and `fclose()` variants can also be used,
+   but the former three functions will be slightly more straightforward to use
+   in this case.
 
    The response from `post_save()` should be of type `application/json` and
    should be `{"status":"ok"}`.
