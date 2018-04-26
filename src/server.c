@@ -103,7 +103,7 @@ int get_listener_socket(char *port)
 {
   int sockfd;
   struct addrinfo hints, *servinfo, *p;
-  int yes=1;
+  int yes = 1;
   int rv;
 
   // This block of code looks at the local network interfaces and
@@ -124,7 +124,7 @@ int get_listener_socket(char *port)
   // Once we have a list of potential interfaces, loop through them
   // and try to set up a socket on each. Quit looping the first time
   // we have success.
-  for(p = servinfo; p != NULL; p = p->ai_next) {
+  for (p = servinfo; p != NULL; p = p->ai_next) {
 
     // Try to make a socket based on this candidate interface
     if ((sockfd = socket(p->ai_family, p->ai_socktype,
@@ -218,7 +218,8 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+	char *response_body = "<html><head></head><body><h1>Hello world!</h1></body></html>\n";
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -226,7 +227,9 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[8];
+	sprintf(response_body, "%d\n", rand() % 20 + 1);
+	send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -234,9 +237,47 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[1024];
+	time_t current_time = time(NULL);
+	struct tm *p = localtime(&current_time);
+	strftime(response_body, 1024, "%A, %B %d %X %Z %Y\n", p);
+
+	send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
+/**
+ * Save POST data to server_data.txt
+ */  
+ void save_data(char *s)
+ {
+    FILE *fp;
+
+		fp = fopen("server_data.txt", "w");
+		fputs(s, fp);
+		fclose(fp);
+}
+
+/**
+ *  Reads POST data in server_data.txt
+
+ char *read_data(char *buffer, size_t size)
+ {
+   FILE *fp;
+	 
+	 fp = fopen("server_data.txt", "r");
+   
+	 if (!fp)
+	   return NULL;
+	
+	 int num_bytes = fread(buffer, sizeof(char), size - 1, fp);
+	 buffer[num_bytes] = '\0';
+	 fclose(fp);
+
+	 return buffer;
+	
+	}
+
+ */
 /**
  * Post /save endpoint data
  */
