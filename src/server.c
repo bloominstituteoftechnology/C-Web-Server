@@ -192,6 +192,23 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  time_t current_time = time(NULL);
+  struct tm *date_time = asctime (localtime (&current_time));
+  int body_length = strlen(body);
+
+  response_length = sprintf(response,
+    "%s\n"                     // header from helper function
+    "Date: %s"                 // date_time includes its own newline, intentionally omitted \n
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n\n"     // content type from helper function and 2nd newline per format spec
+    "%s",                      // body from helper function
+    
+    header,
+    date_time,
+    body_length,
+    content_type,
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +236,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<h1>Hello, world!</h1>");
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -227,6 +249,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t current_time;
+  srand((unsigned) time(&current_time));
+
+  char response_body[1024];
+
+  sprintf(response_body, "%d", rand() % 20 + 1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +265,69 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t current_time = time(NULL);
+  struct tm *date_time = asctime (gmtime (&current_time));
+
+  char weekday[16];
+  char newday[8];
+  char month[8];
+  char day[8];
+  char day_time[64];
+  char year[12];
+
+  char response[128];
+
+  sscanf(date_time, "%s" "%s" "%s" "%s" "%s", weekday, month, day, day_time, year);
+
+  // convert shortened weekday name to full name
+  if (strcmp(weekday, "Sun") == 0) {
+    strcpy(weekday, "Sunday");
+  } else if (strcmp(weekday, "Mon") == 0) {
+    strcpy(weekday, "Monday");
+  } else if (strcmp(weekday, "Tue") == 0) {
+    strcpy(weekday, "Tuesday");
+  } else if (strcmp(weekday, "Wed") == 0) {
+    strcpy(weekday, "Wednesday");
+  } else if (strcmp(weekday, "Thu") == 0) {
+    strcpy(weekday, "Thursday");
+  } else if (strcmp(weekday, "Fri") == 0) {
+    strcpy(weekday, "Friday");
+  } else if (strcmp(weekday, "Sat") == 0) {
+    strcpy(weekday, "Saturday");
+  }
+
+  // convert shortened month name to full name
+  if (strcmp(month, "Jan") == 0) {
+    strcpy(month, "January");
+  } else if (strcmp(month, "Feb") == 0) {
+    strcpy(month, "February");
+  } else if (strcmp(month, "Mar") == 0) {
+    strcpy(month, "March");
+  } else if (strcmp(month, "Apr") == 0) {
+    strcpy(month, "April");
+  // skipping May as no conversion is needed
+  } else if (strcmp(month, "Jun") == 0) {
+    strcpy(month, "June");
+  } else if (strcmp(month, "Jul") == 0) {
+    strcpy(month, "July");
+  } else if (strcmp(month, "Aug") == 0) {
+    strcpy(month, "August");
+  } else if (strcmp(month, "Sep") == 0) {
+    strcpy(month, "September");
+  } else if (strcmp(month, "Oct") == 0) {
+    strcpy(month, "October");
+  } else if (strcmp(month, "Nov") == 0) {
+    strcpy(month, "November");
+  } else if (strcmp(month, "Dec") == 0) {
+    strcpy(month, "December");
+  }
+
+  sprintf(response, "%s; %s %s, %s; %s GMT", weekday, month, day, year, day_time);
+  char response_body[1024];
+
+  sprintf(response_body, "%s", response);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -287,13 +380,22 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-}
+  if (strcmp(request_path, "/") == 0) {
+    get_root(fd);
+  } else if (strcmp(request_path, "/d20") == 0) {
+    get_d20(fd);
+  } else if (strcmp(request_path, "/date") == 0) {
+    get_date(fd);
+  } else {
+    resp_404(fd, request_path);
+  };
+};
 
 /**
  * Main
