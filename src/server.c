@@ -190,8 +190,14 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
-  // !!!!  IMPLEMENT ME
+  //IMPLEMENT ME
+  response_length = strlen(header) + strlen(body);
+  sprintf(response, "%s\n", header)
+  sprintf(response, "close\n")
+  sprintf(response, "%i\n", response_length)
+  sprintf(response, "%s\n", content_type)
+  sprintf(response, "\n\n")
+  sprintf(response, "%s\n", body)
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +224,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Embrace our robot overlords</h1>");
 }
 
 /**
@@ -227,6 +233,8 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand((unsigned) time(NULL));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand() % 20);
 }
 
 /**
@@ -235,6 +243,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", gmmtime(time(NULL));
 }
 
 /**
@@ -287,7 +296,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf(request, %s, %s request_type, request_path);
+  sscanf(request, %s, %s, %s, request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -298,11 +307,14 @@ void handle_http_request(int fd)
   char post_check[] = 'POST';
   char root_check[] = '/';
   char d20_check[] = '/d20';
+  char date_check[] = '/date';
   if ((strcmp(request_type, get_check) == 0) && (strcmp(root_check, request_path) == 0))
-    get_root();
+    get_root(fd);
   else if ((strcmp(request_type, get_check) == 0) && (strcmp(d20_check, request_path) == 0))
-    get_d20();
-  else resp_404();
+    get_d20(fd);
+  else if ((strcmp(request_type, get_check) == 0) && (strcmp(date_check, request_path) == 0))
+    get_d20(fd);
+  else resp_404(fd);
 }
 
 /**
