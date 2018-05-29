@@ -203,13 +203,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  HTTP / 1.1 200 OK
-              Date : Tue May 29 04 : 07 : 11 EST 2018 Connection : close
-                                                                       Content -
-      Length : 65536 Content - Type : text / html
 
-                                      // Send it all!
-                                      int rv = send(fd, response, response_length, 0);
+  response_length = sprintf(fd, "Date: %s\n", "Connection: close\n", "Content-Type: %s\n", "\n", header, content_type, body);
+
+  // Send it all!
+  int rv = send(fd, response, response_length, 0);
 
   if (rv < 0)
   {
@@ -234,9 +232,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  GET / HTTP / 1.1 Content - Type : text / html Content - Length : 65536
 
-      send_response(fd, "GET / HTTP/1.1 Hello World", "text,html", "<h1>Hello World</h1>");
+  send_response(fd, "GET / HTTP/1.1 Hello World", "text,html", "<h1>Hello World</h1>");
 }
 
 /**
@@ -245,9 +242,8 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  GET / d20 / HTTP / 1.1 Content - Type : text / plain Content - Length : 20
 
-      send_response(fd, "HTTP/1.1 200 OK", "text/plain");
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain");
 }
 
 /**
