@@ -193,6 +193,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
 
+  response_length = strlen(body) + strlen(content_type) + strlen(header);
+  sprintf(response, "%s%s%s", header, content_type, body);
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -219,6 +222,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<h1>Hello World</h1>");
+
+  send_response(fd, "HTTP/1.1 200 OK\n", "text/html\n", response_body);
 }
 
 /**
@@ -227,6 +235,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[2048];
+
+  srand(time(NULL));
+
+  int random = (rand() % 20 + 1);
+
+  sprintf(response_body, "<!DOCTYPE html><html><body><h1>Hello World!</h1><p>%d</p></body></html>", random);
 }
 
 /**
@@ -235,6 +250,19 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+
+  time_t the_time;
+  time(&the_time);
+
+  struct tm *gtime;
+
+  gtime = gmtime(&the_time);
+
+  sprintf(response_body, "%s \n", asctime(gtime));
+
+  send_response(fd, "HTTP/1.1 200 OK\n", "text/plain\n\n", response_body);
+
 }
 
 /**
@@ -287,12 +315,28 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_path, "/") == 0) {
+    get_root(fd);
+  }
+  else if (strcmp(request_path, "/d20") == 0)
+  {
+    get_d20(fd);
+  }
+  else if (strcmp(request_path, "/date") == 0)
+  {
+    get_date(fd);
+  }
+  else
+  {
+    resp_404(fd, request_path);
+  }
 }
 
 /**
