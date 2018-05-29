@@ -192,6 +192,26 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  // How many bytes in the body
+  int content_length = strlen(body);
+
+  response_length = sprintf(response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Date: %s" // asctime adds its own newline
+    "Connection: close\n"
+    "\n" // End of HTTP header
+    "%s",
+
+    header,
+    content_length,
+    content_type,
+    asctime(ltime),
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +239,9 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char *res = "<html><head></head><body><h1>Greetings from C!</h1></body></html>";
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", res);
 }
 
 /**
