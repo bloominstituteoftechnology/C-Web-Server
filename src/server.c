@@ -189,10 +189,25 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  time_t currTime = time(NULL);
+  struct tm *timeCurr = localtime(&currTime);
 
+  int content_length = strlen(body);
+  int response_length = sprintf(response, 
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "\n"
+    "%s",
+    header,
+    content_length,
+    content_type,
+    asctime(timeCurr),
+    body); // Total length of header plus body
+ 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -219,6 +234,9 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, World!</h1></body></html>";
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -227,6 +245,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d", (rand()% 20)+ 1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +259,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t currTime =  time(NULL);
+  struct tm *GMTtime = gmtime(&currTime);
+
+  sprintf(response_body, "%s", asctime(GMTtime));
+
+  send_response(fd,  "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -287,12 +318,27 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+   printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) {
+
+    // Endpoint "/"
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }  else if(strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+    resp_404(fd);
+  }
+  }
 }
 
 /**
