@@ -200,9 +200,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  int response_length = strlen(response); // Total length of header plus body
+  time_t t = time(NULL);
+  char date = printf("%s", gmtime(localtime(&t)));
 
   // !!!!  IMPLEMENT ME
+  char buffer[response_length];
+  sprintf(buffer, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, date, response_length, content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
