@@ -236,7 +236,7 @@ void get_root(int fd)
   //send_response(...
   GET / HTTP / 1.1 Content - Type : text / html Content - Length : 65536
 
-      send_response(fd, "GET / HTTP/1.1 Welcome Homepage", "text,html", "<h1>Welcome</h1>");
+      send_response(fd, "GET / HTTP/1.1 Hello World", "text,html", "<h1>Hello World</h1>");
 }
 
 /**
@@ -245,6 +245,9 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  GET / d20 / HTTP / 1.1 Content - Type : text / plain Content - Length : 20
+
+      send_response(fd, "HTTP/1.1 200 OK", "text/plain");
 }
 
 /**
