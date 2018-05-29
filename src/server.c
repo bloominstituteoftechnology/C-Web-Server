@@ -239,6 +239,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d", (rand()% 20)+ 1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -299,7 +305,8 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-   sscanf(request, "%s %s %s", request_type, request_path,request_protocol);
+   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+   printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -310,8 +317,10 @@ void handle_http_request(int fd)
 
     // Endpoint "/"
     if (strcmp(request_path, "/") == 0) {
-      printf("get_root: %s %s %s\n", request_type, request_path, request_protocol);
       get_root(fd);
+    }
+    if(strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
     }
   }
 }
