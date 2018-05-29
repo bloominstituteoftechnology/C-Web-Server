@@ -287,12 +287,22 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, %s, %s request_type, request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  char get_check[] = 'GET';
+  char post_check[] = 'POST';
+  char root_check[] = '/';
+  char d20_check[] = '/d20';
+  if ((strcmp(request_type, get_check) == 0) && (strcmp(root_check, request_path) == 0))
+    get_root();
+  else if ((strcmp(request_type, get_check) == 0) && (strcmp(d20_check, request_path) == 0))
+    get_d20();
+  else resp_404();
 }
 
 /**
