@@ -204,7 +204,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
   HTTP / 1.1 200 OK
-              Date : Wed Dec 20 13 : 05 : 11 PST 2017 Connection : close
+              Date : Tue May 29 04 : 07 : 11 EST 2018 Connection : close
                                                                        Content -
       Length : 65536 Content - Type : text / html
 
@@ -234,6 +234,9 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  GET / HTTP / 1.1 Content - Type : text / html Content - Length : 65536
+
+      send_response(fd, "GET / HTTP/1.1 Welcome Homepage", "text,html", "<h1>Welcome</h1>");
 }
 
 /**
