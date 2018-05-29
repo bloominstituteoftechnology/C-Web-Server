@@ -135,15 +135,14 @@ response_.
 Here is an example HTTP `GET` request and response using version 1.1 of the HTTP
 protocol getting the page `http://lambdaschool.com/example`:
 
-```
+```C
 GET /example HTTP/1.1
 Host: lambdaschool.com
-
 ```
 
 And here is a sample HTTP response:
 
-```
+```C
 HTTP/1.1 200 OK
 Date: Wed Dec 20 13:05:11 PST 2017
 Connection: close
@@ -159,7 +158,7 @@ The end of the header on both the request and response is marked by a blank line
 If the file is not found, a `404` response is generated and returned by the
 server:
 
-```
+```C
 HTTP/1.1 404 NOT FOUND
 Date: Wed Dec 20 13:05:11 PST 2017
 Connection: close
@@ -219,108 +218,108 @@ Type `./server` to run the server.
 _Read through all the main and stretch goals before writing any code to get an overall view,
 then come back to goal #1 and dig in._
 
-1. Examine `handle_http_request()` in the file `server.c`.
+1.  Examine `handle_http_request()` in the file `server.c`.
 
-   You'll want to parse the first line of the HTTP request header to see if this
-   is a `GET` or `POST` request, and to see what the path is. You'll use this
-   information to decide which handler function to call.
+    You'll want to parse the first line of the HTTP request header to see if this
+    is a `GET` or `POST` request, and to see what the path is. You'll use this
+    information to decide which handler function to call.
 
-   The variable `request` in `handle_http_request()` holds the entire HTTP
-   request once the `recv()` call returns.
+    The variable `request` in `handle_http_request()` holds the entire HTTP
+    request once the `recv()` call returns.
 
-   Read the three components from the first line of the HTTP header. Hint:
-   `sscanf()`.
+    Read the three components from the first line of the HTTP header. Hint:
+    `sscanf()`.
 
-   Right after that, call the appropriate handler based on the request type
-   (`GET`, `POST`) and the path (`/`, `/d20`, etc.) You can start by just
-   checking for `/` and add the others later as you get to them.
+    Right after that, call the appropriate handler based on the request type
+    (`GET`, `POST`) and the path (`/`, `/d20`, etc.) You can start by just
+    checking for `/` and add the others later as you get to them.
 
-   The handler for `GET /` is `get_root()` (search for the skeleton code). The
-   handler for `GET /d20` is `get_d20()`, etc.
-   
-   Hint: `strcmp()` for matching the request method and path. Another hint:
-   `strcmp()` returns `0` if the strings are the _same_!
+    The handler for `GET /` is `get_root()` (search for the skeleton code). The
+    handler for `GET /d20` is `get_d20()`, etc.
 
-   > Note: you can't `switch()` on strings in C since it will compare the string
-   > pointer values instead of the string contents. You have to use an
-   > `if`-`else` block with `strcmp()` to get the job done.
+    Hint: `strcmp()` for matching the request method and path. Another hint:
+    `strcmp()` returns `0` if the strings are the _same_!
 
-   If you can't find an appropriate handler, call `resp_404()` instead to give
-   them a "404 Not Found" response.
+    > Note: you can't `switch()` on strings in C since it will compare the string
+    > pointer values instead of the string contents. You have to use an
+    > `if`-`else` block with `strcmp()` to get the job done.
 
-2. Implement the `get_root()` handler. This will call `send_response()`.
+    If you can't find an appropriate handler, call `resp_404()` instead to give
+    them a "404 Not Found" response.
 
-   See above at the beginning of the assignment for what `get_root()` should
-   pass to `send_response()`.
+2.  Implement the `get_root()` handler. This will call `send_response()`.
 
-   If you need a hint as to what the `send_response()` call should look like,
-   check out the usage of it in `resp_404()`, just above there.
+    See above at the beginning of the assignment for what `get_root()` should
+    pass to `send_response()`.
 
-   > The `fd` variable that is passed widely around to all the functions holds a
-   > _file descriptor_. It's just a number use to represent an open
-   > communications path. Usually they point to regular files on disk, but in
-   > the case it points to an open _socket_ network connection. All of the code
-   > to create and use `fd` has been written already, but we still need to pass
-   > it around to the points it is used.
+    If you need a hint as to what the `send_response()` call should look like,
+    check out the usage of it in `resp_404()`, just above there.
 
-3. Implement `send_response()`.
+    > The `fd` variable that is passed widely around to all the functions holds a
+    > _file descriptor_. It's just a number use to represent an open
+    > communications path. Usually they point to regular files on disk, but in
+    > the case it points to an open _socket_ network connection. All of the code
+    > to create and use `fd` has been written already, but we still need to pass
+    > it around to the points it is used.
 
-   This needs to build a complete HTTP response with the given parameters. It
-   should write the response to the string in the `response` variable.
-   
-   The total length of the header **and** body should be stored in the
-   `response_length` variable so that the `send()` call knows how many bytes to
-   send out over the wire.
+3.  Implement `send_response()`.
 
-   See the [HTTP](#http) section above for an example of an HTTP response and
-   use that to build your own.
+    This needs to build a complete HTTP response with the given parameters. It
+    should write the response to the string in the `response` variable.
 
-   Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
-   content length. `sprintf()` also returns the total number of bytes in the
-   result string, which might be helpful.
+    The total length of the header **and** body should be stored in the
+    `response_length` variable so that the `send()` call knows how many bytes to
+    send out over the wire.
 
-   > The HTTP `Content-Length` header only includes the length of the body, not
-   > the header. But the `response_length` variable used by `send()` is the
-   > total length of both header and body.
+    See the [HTTP](#http) section above for an example of an HTTP response and
+    use that to build your own.
 
-4. Implement the `get_d20()` handler. Hint: `srand()` with `time(NULL)`,
-   `rand()`.
+    Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
+    content length. `sprintf()` also returns the total number of bytes in the
+    result string, which might be helpful.
 
-5. Implement the `get_date()` handler. Hint: `time(NULL)`, `gmtime()`.
+    > The HTTP `Content-Length` header only includes the length of the body, not
+    > the header. But the `response_length` variable used by `send()` is the
+    > total length of both header and body.
+
+4.  Implement the `get_d20()` handler. Hint: `srand()` with `time(NULL)`,
+    `rand()`.
+
+5.  Implement the `get_date()` handler. Hint: `time(NULL)`, `gmtime()`.
 
 ### Stretch Goals
 
 Post a file:
 
-1. Implement `find_start_of_body()` to locate the start of the HTTP request body
-   (just after the header).
+1.  Implement `find_start_of_body()` to locate the start of the HTTP request body
+    (just after the header).
 
-2. Implement the `post_save()` handler. Modify the main loop to pass the body
-   into it. Have this handler write the file to disk. Hint: `open()`, `write()`,
-   `close()`. `fopen()`, `fwrite()`, and `fclose()` variants can also be used,
-   but the former three functions will be slightly more straightforward to use
-   in this case.
+2.  Implement the `post_save()` handler. Modify the main loop to pass the body
+    into it. Have this handler write the file to disk. Hint: `open()`, `write()`,
+    `close()`. `fopen()`, `fwrite()`, and `fclose()` variants can also be used,
+    but the former three functions will be slightly more straightforward to use
+    in this case.
 
-   The response from `post_save()` should be of type `application/json` and
-   should be `{"status":"ok"}`.
+    The response from `post_save()` should be of type `application/json` and
+    should be `{"status":"ok"}`.
 
 Concurrency:
 
 Convert the web server to be multiprocessed by using the `fork()` system call.
 
-1. Examine and understand the signal handler on `SIGCHLD` that watches for when
-   child processes exit. (This is already written for you.)
+1.  Examine and understand the signal handler on `SIGCHLD` that watches for when
+    child processes exit. (This is already written for you.)
 
-2. Modify the main `while` loop to `fork()` a new child process to handle each
-   request.
+2.  Modify the main `while` loop to `fork()` a new child process to handle each
+    request.
 
-   _Be careful not to fork-bomb your system to its knees!_
+    _Be careful not to fork-bomb your system to its knees!_
 
-   _Your child process **must** call `exit()` or you will risk having piles of
-   extra processes at work!_
+    _Your child process **must** call `exit()` or you will risk having piles of
+    extra processes at work!_
 
-3. Modify the `post_save()` function to get an exclusive lock on the file using
-   `flock()`. The lock should be unlocked once the file has been written.
+3.  Modify the `post_save()` function to get an exclusive lock on the file using
+    `flock()`. The lock should be unlocked once the file has been written.
 
-   What happens if multiple processes try to write to the POSTed file at the
-   same time without locking the file?
+    What happens if multiple processes try to write to the POSTed file at the
+    same time without locking the file?
