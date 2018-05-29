@@ -190,8 +190,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
-  // !!!!  IMPLEMENT ME
+  int content_length;
+  time_t current_time;
+  char* date;
+  
+  // obtain current time
+  current_time = time(NULL);
+  date = ctime(&current_time);
+  
+  content_length = strlen(body);
+  
+  response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, date, content_length, content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -209,7 +218,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>\n");
 }
 
 /**
@@ -217,8 +226,7 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>\n");
 }
 
 /**
@@ -226,7 +234,16 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  time_t t;
+  int num = 0;
+  char random_num[3];
+
+  srand((unsigned) time(&t));
+  num = rand() % 20;
+  
+  sprintf(random_num, "%d\n", num);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_num);
 }
 
 /**
@@ -235,6 +252,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t current_time;
+  char* date;
+
+  current_time = time(NULL);
+  date = ctime(&current_time);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
@@ -258,7 +282,21 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  int end = 0;
+
+  while (header != 0)
+  {
+    ++end;
+  }
+
+  if (*(header + end + 1) == '\n' || *(header + end + 1) == '\r') 
+  {
+    if (*(header + end + 2) == '\n' || *(header + end + 2) == '\r')
+    {
+      return header + end + 3;
+    }
+  }
+
 }
 
 /**
@@ -288,11 +326,46 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
+
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  if (strcmp(request_type, "GET") == 0)
+  {
+    
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    
+    else
+    {
+      // invalid path
+      resp_404(fd);
+    }
+  
+  }
+  
+  else {
+    // invalid request type
+    resp_404(fd);
+  }
+
 }
 
 /**
