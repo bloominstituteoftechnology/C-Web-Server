@@ -207,9 +207,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+ char response_body[1024];
+ sprintf(response_body, "404: %s not found",
+ path);
+ send_response(fd, "HTTP/1.1 404 NOT FOUND","text/html", response_body);
 }
 
 /**
@@ -217,7 +220,11 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[1024];
+  sprintf(response_body, "200: "<h1>\"Hello World\"</h1>");
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body):
+
+    // !!!! IMPLEMENT ME
   //send_response(...
 }
 
@@ -226,7 +233,13 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+ char response_body[1024];
+ time_t t;
+
+ srand((unsigned) time(&t));
+
+ sprintf(response_body, "<h1> Random Number: %d</h1>", rand( % 20);
+ send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
