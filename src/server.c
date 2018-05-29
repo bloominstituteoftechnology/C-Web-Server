@@ -192,6 +192,21 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(response,
+  "%s\n"
+  "Content-Length: %d\n"
+  "Content-Types: %s\n"
+  "Date: %s\n"
+  "Connection: close\n"
+  "\n"
+  "%s",
+
+  header,
+  content_length,
+  content_type,
+  timestamp,
+  body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
