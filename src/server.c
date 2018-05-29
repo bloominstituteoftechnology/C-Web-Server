@@ -192,6 +192,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  response_length = strlen(header) + strlen(body);
+  sprintf(response, "%s %s", header, body);
+  printf("Response:%s", response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +222,10 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("I'm in get_root\n");
+  char response_body[1024];
+  sprintf(response_body, "<h1>Hello World!</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -227,6 +234,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  char response_body[10];
+  sprintf(response_body, "%d\n",rand()%20 + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -235,6 +246,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t now;
+  time(&now);
+  struct tm* now_tm;
+  now_tm = localtime(&now);
+  char response_body[1024];
+  strftime (response_body, 1024, "%Y-%m-%d %H:%M:%S.", now_tm);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -287,12 +305,21 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);  
+  printf("Request: %s %s %s\n", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  
+  if (strcmp(request_path,"/") == 0) {
+  	get_root(fd);
+	printf("out of get root");
+  }
+  else if (strcmp(request_path,"/d20") == 0) get_d20(fd);
+  else if (strcmp(request_path,"/date") == 0) get_date(fd);
+  else resp_404(fd);
 }
 
 /**
@@ -354,4 +381,3 @@ int main(void)
 
   return 0;
 }
-
