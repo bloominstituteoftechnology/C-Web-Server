@@ -191,7 +191,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  // !!!!  IMPLEMENT ME TODO:
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -226,7 +226,7 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME TODO:
 }
 
 /**
@@ -234,7 +234,7 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME TODO:
 }
 
 /**
@@ -244,7 +244,7 @@ void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
 
-  // Save the body and send a response
+  // Save the body and send a response TODO:
 }
 
 /**
@@ -258,7 +258,7 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME TODO:
 }
 
 /**
@@ -284,14 +284,16 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME TODO:
   // Get the request type and path from the first line
   // Hint: sscanf()!
+
+  sscanf(request, '%s %s %s', request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME TODO:
   // call the appropriate handler functions, above, with the incoming data
 }
 
