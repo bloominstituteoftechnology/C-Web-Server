@@ -210,6 +210,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   sprintf(response, "%s\n Date: %s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s\n",
           header, asctime(date), content_length, content_type, body);
 
+  response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -251,7 +252,7 @@ void get_d20(int fd)
   char response_body[8];
   int randNum;
 
-  srand(time(NULL));
+  srand(time(NULL) + getpid());
 
   randNum = (rand() % 20) + 1;
   sprintf(response_body, "%d\n", randNum);
