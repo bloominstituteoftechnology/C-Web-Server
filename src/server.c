@@ -192,7 +192,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  char date[1000];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(date, sizeof date, "%a %b %d %H:%M:%S %Z %Y", &tm);
 
+  response_length = snprintf(response, sizeof response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, date, strlen(body), content_type, body);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -219,6 +224,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Root Found</h1>");
 }
 
 /**
@@ -227,6 +233,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(0));
+  int number = rand() % 20;
+  char html[1000];
+  printf("%d\n", number);
+  snprintf(html, sizeof html, "<h1>%d</h1>", number); 
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", html);
 }
 
 /**
@@ -235,6 +247,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  printf("HERE");
+  char buf[1000];
+  char html[1000];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(buf, sizeof buf, "%a, %d %b %Y %Z", &tm);
+  snprintf(html, sizeof html, "<h1>%s</h1>", buf); 
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", html);
 }
 
 /**
@@ -266,6 +286,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd)
 {
+ 
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
@@ -283,16 +304,35 @@ void handle_http_request(int fd)
 
    // NUL terminate request string
   request[bytes_recvd] = '\0';
+  char firstLine[20];
+  char *r = strchr(request, '\n');
+  int length = r - request;
+  for (int i = 0; i < length; i++) {
+    firstLine[i] = request[i];
+  }
+  firstLine[length] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  sscanf(firstLine, "%s %s %s", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
-
+  printf("%s\n%s\n%s\n", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if(strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0)
+      get_root(fd);
+    else if (strcmp(request_path, "/d20") == 0)
+      get_d20(fd);
+    else if (strcmp(request_path, "/date") == 0)
+      get_date(fd);
+    else 
+      perror("Unknown endpoint");
+  } else {
+    printf("not a [GET] request");
+  }
 }
 
 /**
