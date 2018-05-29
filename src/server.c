@@ -219,6 +219,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("GET '/'\n");
 }
 
 /**
@@ -243,6 +244,7 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  printf("POST '/'\n");
 
   // Save the body and send a response
 }
@@ -287,12 +289,30 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    }
+    else  {
+      resp_404(fd);
+    }
+  } 
+  // else if (strcmp(request_type, "POST") == 0 && strcmp(request_path, "/") == 0) {
+  //   post_save(fd, request_body);
+  // }
 }
 
 /**
