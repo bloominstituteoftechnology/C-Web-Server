@@ -207,10 +207,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
   time_t timer = time(NULL);
   struct tm *date = localtime(&timer);
 
-  sprintf(response, "%s\n Date: %s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s\n",
-          header, asctime(date), content_length, content_type, body);
+  response_length = sprintf(response, "%s\n Date: %s Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s\n",
+                            header, asctime(date), content_length, content_type, body);
 
-  response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
