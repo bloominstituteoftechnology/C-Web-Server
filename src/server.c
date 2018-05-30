@@ -188,14 +188,12 @@ int get_listener_socket(char *port)
 int send_response(int fd, char *header, char *content_type, char *body)
 {
 
-  printf("TESTING \n");
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
 
-  printf("TESTING %s\n",body);
   sprintf(response,"%s\n%s\n\n%s",header,content_type,body);
   response_length = strlen(response);
   printf("%s\n",response);
@@ -246,6 +244,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  struct tm *info;
+  time_t now;
+  now = time(NULL);
+  info = localtime(&now);
+  char output[200];
+  sprintf(output,"year: %d\nmonth: %d\nday: %d\nhour: %d\nminute: %d\nsecond: %2d\n",info->tm_year + 1900,info->tm_mon,info->tm_mday,info->tm_hour,info->tm_min,info->tm_sec);
+  send_response(fd,"HTTP/1.1 200 OK", "text/html",output);
 }
 
 /**
