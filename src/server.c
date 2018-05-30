@@ -202,7 +202,14 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
+  int content_length = strlen(body);
+
+  time_t timer = time(NULL);
+  struct tm *ltime = localtime(&timer);
+  char *timestamp = asctime(ltime);
   // !!!!  IMPLEMENT ME
+  //response_length = sprintf(response, "%s \n Content-Length: %d \n Content-Type: %s \n Connection: close \n \n %s", header, content_length, content_type, timestamp, body);
+  response_length = sprintf(response, "%s \n Content-Length: %d \n Content-Type: %s \n Connection: close \n \n %s", header, content_length, content_type, timestamp, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,9 +225,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  char response_body[1024];
+
+  sprintf(response_body, "404: %s not found", path);
+
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
 }
 
 /**
