@@ -6,6 +6,8 @@
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
+ *    
+ *    the "-D" (--dump-header) allows one to record cookies by recording the request headers
  * 
  * You can also test the above URLs in your browser! They should work!
  * 
@@ -192,6 +194,28 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  struct tm *newtime;
+  time_t ltime;
+  time(&ltime);   // get the time in seconds
+  newtime = localtime(&ltime);   // convert it to the structure of tm
+  char *timestamp = asctime(newtime);
+  
+  //body
+  response_length = sprintf(response,
+    "%s\n"
+    "Date: %s\n"    // the time struct inserts the newline for you ???
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+
+    header,
+    response_length,
+    content_type,
+    timestamp,
+    body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -214,15 +238,17 @@ void resp_404(int fd)
 
 /**
  * Send a / endpoint response
+ * Should contain some HTML
  */
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world! Hopefully this works! :)</h1>");
 }
 
 /**
  * Send a /d20 endpoint response
+ * Return a random num 1-20 inclusive as `text/plain` data
  */
 void get_d20(int fd)
 {
@@ -231,10 +257,17 @@ void get_d20(int fd)
 
 /**
  * Send a /date endpoint response
+ * print the current date and time in GMT as `text/plain` data
  */
-void get_date(int fd)
+void get_date(int fd)   // asctime() — Convert Time to Character String via IBM
 {
   // !!!! IMPLEMENT ME
+  struct tm *newtime;
+  time_t ltime;
+  time(&ltime);   // get the time in seconds
+  newtime = localtime(&ltime);   // convert it to the structure of tm
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", asctime(newtime));
 }
 
 /**
@@ -287,12 +320,16 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s", request_type, request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_path, "/") == 0) {
+    get_root(fd);
+  }
 }
 
 /**
