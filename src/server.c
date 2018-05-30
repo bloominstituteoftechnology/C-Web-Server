@@ -248,9 +248,11 @@ void get_date(int fd)
   time_t now;
   time(&now);
   struct tm* now_tm;
-  now_tm = localtime(&now);
+//  now_tm = localtime(&now);
+  now_tm = gmtime(&now);
   char response_body[1024];
-  strftime (response_body, 1024, "%Y-%m-%d %H:%M:%S.", now_tm);
+  //strftime (response_body, 1024, "%Y-%m-%d %H:%M:%S.", now_tm);
+  sprintf (response_body,"%s", asctime(now_tm));
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
