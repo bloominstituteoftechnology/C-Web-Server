@@ -187,11 +187,15 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
+
+  printf("TESTING \n");
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+
+  printf("TESTING %s\n",body);
   sprintf(response,"%s\n%s\n\n%s",header,content_type,body);
   response_length = strlen(response);
   printf("%s\n",response);
@@ -221,7 +225,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>Hello world!</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello world!</h1>");
 }
 
 /**
@@ -229,7 +233,11 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  char str[100];
+  srand(time(0));
+  sprintf(str,"%d",(rand() % 20) + 1);
   // !!!! IMPLEMENT ME
+  send_response(fd,"HTTP/1.1 200 OK", "text/html", str);
 }
 
 /**
