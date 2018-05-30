@@ -203,6 +203,36 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  // get date of response
+  time_t seconds = time(NULL);
+  struct tm *ltime = localtime(&seconds);
+  char *timestamp = asctime(ltime); //turns output of time_t into a string
+  // get response body's content length
+  int content_length = strlen(body);
+
+  // Solution Code:
+  // This is the format you want (from README):
+  // HTTP 1.1 status code verb
+  // Content-Length:
+  // Date:
+  // Connection: close
+
+  // body
+  // sprintf defines correct format ^^
+  response_length = sprintf(response,
+                            "%s\n" // HTTP/1.1
+                            "Content-Length: %d\n"
+                            "Content-Type: %s\n"
+                            "Date: %s" // Doesn't need new line b/c time stuct already does it
+                            "Connection: close\n"
+                            "\n" // End of HTTP header
+                            "%s",
+
+                            header,
+                            content_length,
+                            content_type,
+                            timestamp,
+                            body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -229,7 +259,11 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/html";
+  char *body = "<!DOCTYPE html><head></head><body><h1>Hello, World!</h1></body></html>";
+  printf("I am now inside get_root\n");
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -238,6 +272,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+
+  srand(time(NULL));
+  char random_number = ((rand() % 20) + 1);
+  char body[8];
+  sprintf(body, "%d", random_number);
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/plain";
+  printf("I am now inside get_d20\n");
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -246,6 +290,28 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char body[27];
+  // Converts time_t rawtime - in seconds, to actual date using gmtime(),
+  // then converts that to a string using asctime()
+  time_t rawtime = time(NULL);
+  printf("\nFrom rawtime: %ld in seconds\n", rawtime);
+  // #QUESTION: Why is a struct necessary here?
+  // #QUESTION: What is the apersand(&) doing here? Error tells you to put it in...?
+  // // Answer: This is the standard declaration of gmtime: `struct tm *gmtime(const time_t *timer)`
+  // // You can see the actual tm struct in the documentation for gmtime()
+  struct tm *gtime = gmtime(&rawtime);
+
+  printf("To London Time: %2d:%02d\n", (gtime->tm_hour + 1) % 24, gtime->tm_min);
+  printf("And China Time: %2d:%02d\n", (gtime->tm_hour + 8) % 24, gtime->tm_min);
+  printf("And Time Here...where ever here is: %2d:%02d\n", (gtime->tm_hour) % 24, gtime->tm_min);
+
+  sprintf(body, "%s\n", asctime(gtime));
+
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/plain";
+  printf("I am now inside get_date\n");
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -303,7 +369,7 @@ void handle_http_request(int fd)
   // Just scans for each of these sub-strings...
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
-  printf("request is: %s\n", request);
+  printf("\nrequest is: %s\n", request);
   // Then prints them out:
   printf("request_type: %s\n", request_type);
   printf("request_path: %s\n", request_path);
@@ -321,16 +387,23 @@ void handle_http_request(int fd)
   {
     if (strcmp(request_path, "/") == 0)
     {
-      printf("\nHandler for root called\n");
       get_root(fd); // if req = 'GET /...', call get_root
+      printf("\nHandler for root called\n");
     }
     else if (strcmp(request_path, "/d20") == 0)
     {
       printf("\nHandler for /d20 called\n");
       get_d20(fd); // if req = 'GET /d20...', call get_d20
     }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      printf("\nHandler for /date called\n");
+      get_date(fd); // if req = 'GET /d20...', call get_d20
+    }
     else
+    {
       resp_404(fd);
+    }
   }
   else
   {
