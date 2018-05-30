@@ -187,11 +187,16 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
+
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+
+  sprintf(response,"%s\n%s\n\n%s",header,content_type,body);
+  response_length = strlen(response);
+  printf("%s\n",response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +223,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello world!</h1>");
 }
 
 /**
@@ -226,7 +231,11 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  char str[100];
+  srand(time(0));
+  sprintf(str,"%d",(rand() % 20) + 1);
   // !!!! IMPLEMENT ME
+  send_response(fd,"HTTP/1.1 200 OK", "text/html", str);
 }
 
 /**
@@ -235,6 +244,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  struct tm *info;
+  time_t now;
+  now = time(NULL);
+  info = localtime(&now);
+  char output[200];
+  sprintf(output,"year: %d\nmonth: %d\nday: %d\nhour: %d\nminute: %d\nsecond: %2d\n",info->tm_year + 1900,info->tm_mon,info->tm_mday,info->tm_hour,info->tm_min,info->tm_sec);
+  send_response(fd,"HTTP/1.1 200 OK", "text/html",output);
 }
 
 /**
@@ -287,12 +303,30 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  //sscanf(request,"%3s",request_type);
+  sscanf(request,"%s%s%s",request_type,request_path,request_protocol);
+
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  printf("%s\n",request_path);
+  if(strcmp("/",request_path) == 0){
+    get_root(fd);
+
+  }
+  else if(strcmp("/d20",request_path) == 0){
+    get_d20(fd);
+  }
+  else if(strcmp("/date",request_path) == 0){
+    get_date(fd);
+  }
+  else{
+    resp_404(fd);
+  }
+
 }
 
 /**
