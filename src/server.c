@@ -205,7 +205,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // char *date = gmtime(time(NULL));
   // printf("Date is :  %s", date);
   // !!!!  IMPLEMENT ME
-  sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, gmtime(time(NULL)), response_length, content_type, body);
+  int content_length = strlen(body);
+  time_t t = time(NULL);
+  struct tm *t1 = gmtime(&t);
+  char *timestamp = asctime(t1);
+
+  response_length = sprintf(response,
+                            "%s\n"
+                            "Date: %s"
+                            "Connection: close\n"
+                            "Content-Length: %d\n"
+                            "Content-Type: %s\n\n"
+                            "%s",
+                            header, timestamp, content_length, content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -233,6 +245,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("inside get_root \n");
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World!</h1>");
 }
 
@@ -314,10 +327,10 @@ void handle_http_request(int fd)
   printf("Request Path: %s\n", request_path);
   printf("Request Prot: %s\n", request_protocol);
 
-  if (strncmp(request_path, "/", 1) == 0)
+  if (strcmp(request_path, "/") == 0)
   {
-    printf("Inside / if");
-    // get_root(fd);
+    printf("Inside / if\n");
+    get_root(fd);
   }
 }
 
