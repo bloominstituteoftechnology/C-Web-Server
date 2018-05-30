@@ -191,14 +191,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
   //IMPLEMENT ME
-  response_length = strlen(header) + strlen(body);
-  sprintf(response, "%s\n", header)
-  sprintf(response, "close\n")
-  sprintf(response, "%i\n", response_length)
-  sprintf(response, "%s\n", content_type)
-  sprintf(response, "\n\n")
-  sprintf(response, "%s\n", body)
-
+  int content_length;
+  content_length = strlen(body);
+  sprintf(response, 
+  "%s\n"
+  "Content-Length: %d\n"
+  "Content-Type: %s\n"
+  "Connection: close\n"
+  "\n"
+  "%s"
+  , header, content_length, content_type, body);
+  response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -233,8 +236,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  srand((unsigned) time(NULL));
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand() % 20);
+  int d20;
+  char num[3];
+  srand(time(NULL));
+  d20 = rand() % 20;
+  sprintf(num, "%d\n", d20);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", num);
 }
 
 /**
@@ -242,8 +249,12 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
+  time_t current_time;
+  char* date;
+  current_time = time(NULL);
+  date = gmtime(&current_time);
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", gmmtime(time(NULL));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
@@ -296,18 +307,17 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf(request, %s, %s, %s, request_type, request_path, request_protocol);
-
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  char get_check[] = 'GET';
-  char post_check[] = 'POST';
-  char root_check[] = '/';
-  char d20_check[] = '/d20';
-  char date_check[] = '/date';
+  char get_check[] = "GET";
+  char post_check[] = "POST";
+  char root_check[] = "/";
+  char d20_check[] = "/d20";
+  char date_check[] = "/date";
   if ((strcmp(request_type, get_check) == 0) && (strcmp(root_check, request_path) == 0))
     get_root(fd);
   else if ((strcmp(request_type, get_check) == 0) && (strcmp(d20_check, request_path) == 0))
