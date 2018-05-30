@@ -190,22 +190,27 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+  int content_length = strlen(body);
+  time_t rawtime;
+  struct tm * timeinfo;
+  
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  
   // !!!!  IMPLEMENT ME
-  response_length = sprintf(response,
-  "%s\n"
-  "Content-Length: %d\n"
-  "Content-Types: %s\n"
-  "Date: %s\n"
-  "Connection: close\n"
-  "\n"
-  "%s",
+  response_length = sprintf(
+    response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Types: %s\n"
+    "Date: %s\n"
+    "%s",
 
-  header,
-  content_length,
-  content_type,
-  timestamp,
-  body
+    header,
+    content_length,
+    content_type,
+    asctime(timeinfo),
+    body
   );
 
   // Send it all!
@@ -224,7 +229,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(
+  fd, 
+  "HTTP/1.1 404 NOT FOUND", 
+  "text/html", 
+  "<html><body><h1>404 Page Not Found</h1></body></html>"
+  );
 }
 
 /**
@@ -235,6 +245,10 @@ void get_root(int fd)
   // !!!! IMPLEMENT ME
   //send_response(...
   printf("GET '/'\n");
+  char header[] = "HTTP/1.1 200 OK";
+  char content_type[] = "text/html";
+  char body[] = "<html><body><h1>Hello world!</h1></body></html>";
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -304,7 +318,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf(request, "%s %s %s %s", request_type, request_path, request_protocol);
+  sscanf(request, "%s %s %s",  request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
