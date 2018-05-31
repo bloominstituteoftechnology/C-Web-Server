@@ -209,7 +209,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char *timestamp = asctime(ltime);
   // !!!!  IMPLEMENT ME
   //response_length = sprintf(response, "%s \n Content-Length: %d \n Content-Type: %s \n Connection: close \n \n %s", header, content_length, content_type, timestamp, body);
-  response_length = sprintf(response, "%s \n Content-Length: %d \n Content-Type: %s \n Connection: close \n \n %s", header, content_length, content_type, timestamp, body);
+  response_length = sprintf(response,
+                            "%s \n"
+                            "Content-Length: %d \n"
+                            "Content-Type: %s \n"
+                            "Connection: close \n"
+                            "%s",
+
+                            header,
+                            content_length,
+                            content_type,
+                            timestamp, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -229,7 +239,7 @@ void resp_404(int fd, char *path)
 {
   char response_body[1024];
 
-  sprintf(response_body, "404: %s not found", path);
+  sprintf(response_body, "<html><head><title>404</title></head><body><h1>404: %s not found</h1></body></html>", path);
 
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
 }
@@ -240,8 +250,10 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
+  char *response_body = "<html><head><title>Home</title></head><body><h1>Hello World</h1></body></html>";
+
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK!", "text/html", "<h1>Hello, world!</h1>");
+  send_response(fd, "HTTP/1.1 200 OK!", "text/html", response_body);
 }
 
 /**
@@ -250,9 +262,15 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  // temp num for now
-  int temp = 10;
-  send_response(fd, "HTTP/1.1 200 OK!", "text/plain", "10");
+  char response_body[8];
+
+  // seed the rand function
+  srand(time(NULL) * getpid());
+
+  // generate a random num between 1 - 20
+  sprintf(response_body, "%d", (rand() * 20) + 1);
+
+  send_response(fd, "HTTP/1.1 200 OK!", "text/plain", response_body);
 }
 
 /**
@@ -261,8 +279,18 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  int temp[] = {06, 29, 2018};
-  send_response(fd, "HTTP/1.1 200 OK!", "text/plain", "June 29th 2018");
+  char response_body[128];
+
+  // use time function
+  time_t t1 = time(NULL);
+
+  // use GMT
+  struct tm *gtime = gmtime(&t1);
+
+  // populate the response_body
+  sprintf(response_body, "%s", asctime(gtime));
+
+  send_response(fd, "HTTP/1.1 200 OK!", "text/plain", response_body);
 }
 
 /**
@@ -276,6 +304,7 @@ void post_save(int fd, char *body)
 }
 
 /**
+ * same as find the end of header
  * Search for the start of the HTTP body.
  *
  * The body is after the header, separated from it by a blank line (two newlines
@@ -287,6 +316,33 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+}
+
+/**
+ * same as find_start_of_body
+ * Search for the end of the HTTP header.
+ *
+ * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
+ * (newline) or \r (carriage return).
+ */
+char *find_end_of_header(char *header)
+{
+  // !!!! IMPLEMENT ME
+  char *p;
+
+  p = strstr(header, "\n\n");
+  // found it
+  if (p != NULL)
+    return p;
+
+  p = strstr(header, "r\r");
+  // found it
+  if (p != NULL)
+    return p;
+
+  p = strstr(header, "\r\n");
+  // found the last p or not
+  return p;
 }
 
 /**
@@ -316,9 +372,56 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  char *first_line = request;
+
+  // find new line and move pointer, and then truncate
+  p = strchr(first_line, '\n');
+  *p = '\0';
+
+  // handle the remaining header
+  char *header = p + 1; // increment by one to get the rest of the header
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  // find_start_of_body() or find_end_of_header()
+  // look for the two newLines making the end of the header
+  p = find_end_of_header(header);
+
+  // do some checks
+  if (p == NULL)
+  {
+    fprintf(stderr, "Could not find end of header\n");
+    exit(1);
+  }
+
+  // assign p to the body
+  char *body = p;
+
+  // Read the three components of the first request line
+  sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
+  // mirror the request back
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  // check which route to use
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
+  // !!!! IMPLEMENT ME (stretch goal)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
