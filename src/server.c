@@ -190,8 +190,28 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+  int content_length = strlen(body);
+  time_t rawtime;
+  struct tm * timeinfo;
+  
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(
+    response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Types: %s\n"
+    "Date: %s\n"
+    "%s",
+
+    header,
+    content_length,
+    content_type,
+    asctime(timeinfo),
+    body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -209,7 +229,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(
+  fd, 
+  "HTTP/1.1 404 NOT FOUND", 
+  "text/html", 
+  "<html><body><h1>404 Page Not Found</h1></body></html>"
+  );
 }
 
 /**
@@ -219,6 +244,11 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("GET '/'\n");
+  char header[] = "HTTP/1.1 200 OK";
+  char content_type[] = "text/html";
+  char body[] = "<html><body><h1>Hello world!</h1></body></html>";
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -243,6 +273,7 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  printf("POST '/'\n");
 
   // Save the body and send a response
 }
@@ -287,12 +318,30 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s",  request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    }
+    else  {
+      resp_404(fd);
+    }
+  } 
+  // else if (strcmp(request_type, "POST") == 0 && strcmp(request_path, "/") == 0) {
+  //   post_save(fd, request_body);
+  // }
 }
 
 /**
