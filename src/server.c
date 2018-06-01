@@ -32,9 +32,9 @@
 #include <sys/file.h>
 #include <fcntl.h>
 
-#define PORT "3490"  // the port users will be connecting to
+#define PORT "3490" // the port users will be connecting to
 
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10 // how many pending connections queue will hold
 
 /**
  * Handle SIGCHILD signal
@@ -45,14 +45,16 @@
  * This is only necessary if we've implemented a multiprocessed version with
  * fork().
  */
-void sigchld_handler(int s) {
+void sigchld_handler(int s)
+{
   (void)s; // quiet unused variable warning
 
   // waitpid() might overwrite errno, so we save and restore it:
   int saved_errno = errno;
 
   // Wait for all children that have died, discard the exit status
-  while(waitpid(-1, NULL, WNOHANG) > 0);
+  while (waitpid(-1, NULL, WNOHANG) > 0)
+    ;
 
   errno = saved_errno;
 }
@@ -74,7 +76,8 @@ void start_reaper(void)
   sa.sa_handler = sigchld_handler; // Reap all dead processes
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_RESTART; // Restart signal handler if interrupted
-  if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+  if (sigaction(SIGCHLD, &sa, NULL) == -1)
+  {
     perror("sigaction");
     exit(1);
   }
@@ -87,11 +90,12 @@ void start_reaper(void)
  */
 void *get_in_addr(struct sockaddr *sa)
 {
-  if (sa->sa_family == AF_INET) {
-    return &(((struct sockaddr_in*)sa)->sin_addr);
+  if (sa->sa_family == AF_INET)
+  {
+    return &(((struct sockaddr_in *)sa)->sin_addr);
   }
 
-  return &(((struct sockaddr_in6*)sa)->sin6_addr);
+  return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
 /**
@@ -103,7 +107,7 @@ int get_listener_socket(char *port)
 {
   int sockfd;
   struct addrinfo hints, *servinfo, *p;
-  int yes=1;
+  int yes = 1;
   int rv;
 
   // This block of code looks at the local network interfaces and
@@ -116,7 +120,8 @@ int get_listener_socket(char *port)
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_PASSIVE; // use my IP
 
-  if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
+  if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0)
+  {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     return -1;
   }
@@ -124,11 +129,13 @@ int get_listener_socket(char *port)
   // Once we have a list of potential interfaces, loop through them
   // and try to set up a socket on each. Quit looping the first time
   // we have success.
-  for(p = servinfo; p != NULL; p = p->ai_next) {
+  for (p = servinfo; p != NULL; p = p->ai_next)
+  {
 
     // Try to make a socket based on this candidate interface
     if ((sockfd = socket(p->ai_family, p->ai_socktype,
-        p->ai_protocol)) == -1) {
+                         p->ai_protocol)) == -1)
+    {
       //perror("server: socket");
       continue;
     }
@@ -136,7 +143,8 @@ int get_listener_socket(char *port)
     // SO_REUSEADDR prevents the "address already in use" errors
     // that commonly come up when testing servers.
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-        sizeof(int)) == -1) {
+                   sizeof(int)) == -1)
+    {
       perror("setsockopt");
       close(sockfd);
       freeaddrinfo(servinfo); // all done with this structure
@@ -146,7 +154,8 @@ int get_listener_socket(char *port)
     // See if we can bind this socket to this local IP address. This
     // associates the file descriptor (the socket descriptor) that
     // we will read and write on with a specific IP address.
-    if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+    if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+    {
       close(sockfd);
       //perror("server: bind");
       continue;
@@ -160,14 +169,16 @@ int get_listener_socket(char *port)
 
   // If p is NULL, it means we didn't break out of the loop, above,
   // and we don't have a good socket.
-  if (p == NULL)  {
+  if (p == NULL)
+  {
     fprintf(stderr, "webserver: failed to find local address\n");
     return -3;
   }
 
   // Start listening. This is what allows remote computers to connect
   // to this socket/IP.
-  if (listen(sockfd, BACKLOG) == -1) {
+  if (listen(sockfd, BACKLOG) == -1)
+  {
     //perror("listen");
     close(sockfd);
     return -4;
@@ -192,17 +203,47 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  // get date of response
+  time_t seconds = time(NULL);
+  struct tm *ltime = localtime(&seconds);
+  char *timestamp = asctime(ltime); //turns output of time_t into a string
+  // get response body's content length
+  int content_length = strlen(body);
+
+  // Solution Code:
+  // This is the format you want (from README):
+  // HTTP 1.1 status code verb
+  // Content-Length:
+  // Date:
+  // Connection: close
+
+  // body
+  // sprintf defines correct format ^^
+  response_length = sprintf(response,
+                            "%s\n" // HTTP/1.1
+                            "Content-Length: %d\n"
+                            "Content-Type: %s\n"
+                            "Date: %s" // Doesn't need new line b/c time stuct already does it
+                            "Connection: close\n"
+                            "\n" // End of HTTP header
+                            "%s",
+
+                            header,
+                            content_length,
+                            content_type,
+                            timestamp,
+                            body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
-  if (rv < 0) {
+  if (rv < 0)
+  {
     perror("send");
   }
 
   return rv;
 }
-
 
 /**
  * Send a 404 response
@@ -218,7 +259,11 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/html";
+  char *body = "<!DOCTYPE html><head></head><body><h1>Hello, World!</h1></body></html>";
+  printf("I am now inside get_root\n");
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -227,6 +272,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+
+  srand(time(NULL));
+  char random_number = ((rand() % 20) + 1);
+  char body[8];
+  sprintf(body, "%d", random_number);
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/plain";
+  printf("I am now inside get_d20\n");
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -235,6 +290,28 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char body[27];
+  // Converts time_t rawtime - in seconds, to actual date using gmtime(),
+  // then converts that to a string using asctime()
+  time_t rawtime = time(NULL);
+  printf("\nFrom rawtime: %ld in seconds\n", rawtime);
+  // #QUESTION: Why is a struct necessary here?
+  // #QUESTION: What is the apersand(&) doing here? Error tells you to put it in...?
+  // // Answer: This is the standard declaration of gmtime: `struct tm *gmtime(const time_t *timer)`
+  // // You can see the actual tm struct in the documentation for gmtime()
+  struct tm *gtime = gmtime(&rawtime);
+
+  printf("To London Time: %2d:%02d\n", (gtime->tm_hour + 1) % 24, gtime->tm_min);
+  printf("And China Time: %2d:%02d\n", (gtime->tm_hour + 8) % 24, gtime->tm_min);
+  printf("And Time Here...where ever here is: %2d:%02d\n", (gtime->tm_hour) % 24, gtime->tm_min);
+
+  sprintf(body, "%s\n", asctime(gtime));
+
+  char *header = "HTTP/1.1 200 OK";
+  char *content_type = "text/plain";
+  printf("I am now inside get_date\n");
+
+  send_response(fd, header, content_type, body);
 }
 
 /**
@@ -269,30 +346,70 @@ void handle_http_request(int fd)
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
-  char request_type[8]; // GET or POST
-  char request_path[1024]; // /info etc.
+  char request_type[8];       // GET or POST
+  char request_path[1024];    // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
-  if (bytes_recvd < 0) {
+  if (bytes_recvd < 0)
+  {
     perror("recv");
     return;
   }
 
-   // NUL terminate request string
+  // NUL terminate request string
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+  // Just scans for each of these sub-strings...
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("\nrequest is: %s\n", request);
+  // Then prints them out:
+  printf("request_type: %s\n", request_type);
+  printf("request_path: %s\n", request_path);
+  printf("request_protocol: %s\n", request_protocol);
+  printf("\nEnd\n");
+
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  // find_end_of_header()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  // Read up on strcmp => 0 means the two strings are equal
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd); // if req = 'GET /...', call get_root
+      printf("\nHandler for root called\n");
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      printf("\nHandler for /d20 called\n");
+      get_d20(fd); // if req = 'GET /d20...', call get_d20
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      printf("\nHandler for /date called\n");
+      get_date(fd); // if req = 'GET /d20...', call get_d20
+    }
+    else
+    {
+      resp_404(fd);
+    }
+  }
+  else
+  {
+    fprintf(stderr, "Invalid request: %s", request_type);
+    return;
+  }
 }
 
 /**
@@ -300,7 +417,7 @@ void handle_http_request(int fd)
  */
 int main(void)
 {
-  int newfd;  // listen on sock_fd, new connection on newfd
+  int newfd;                          // listen on sock_fd, new connection on newfd
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
 
@@ -310,7 +427,8 @@ int main(void)
   // Get a listening socket
   int listenfd = get_listener_socket(PORT);
 
-  if (listenfd < 0) {
+  if (listenfd < 0)
+  {
     fprintf(stderr, "webserver: fatal error getting listening socket\n");
     exit(1);
   }
@@ -320,24 +438,26 @@ int main(void)
   // This is the main loop that accepts incoming connections and
   // fork()s a handler process to take care of it. The main parent
   // process then goes back to waiting for new connections.
-  
-  while(1) {
+
+  while (1)
+  {
     socklen_t sin_size = sizeof their_addr;
 
     // Parent process will block on the accept() call until someone
     // makes a new connection:
     newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
-    if (newfd == -1) {
+    if (newfd == -1)
+    {
       perror("accept");
       continue;
     }
 
     // Print out a message that we got the connection
     inet_ntop(their_addr.ss_family,
-      get_in_addr((struct sockaddr *)&their_addr),
-      s, sizeof s);
+              get_in_addr((struct sockaddr *)&their_addr),
+              s, sizeof s);
     printf("server: got connection from %s\n", s);
-    
+
     // newfd is a new socket descriptor for the new connection.
     // listenfd is still listening for new connections.
 
@@ -354,4 +474,3 @@ int main(void)
 
   return 0;
 }
-
