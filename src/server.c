@@ -189,7 +189,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  int content_length = strlen(body);
+  int response_length = sprintf(response,
+  "%s\n"
+  "Content-Length: %d\n"
+  "Content-Type: %s\n"
+  "Connection: close\n"
+  "\n"
+  "%s",
+  
+  header,
+  content_length,
+  content_type,
+  body); //Total length of header plus body
 
   // !!!!  IMPLEMENT ME
 
@@ -219,6 +231,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, World!</h1></body></html>";
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -287,12 +301,24 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type,
+  request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  if(strcmp(request_type, "GET") == 0) {
+
+    //Endpoint "/"
+    if(strcmp(request_path, "/") == 0) {
+      printf("get_root: %s %s %s\n", request_type, request_path,
+      request_protocol);
+      get_root(fd);
+    }
+  }
 }
 
 /**
