@@ -192,6 +192,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+ int content_length;
+  content_length = strlen(body);
+  sprintf(response, 
+  "%s\n"
+  "Content-Length: %d\n"
+  "Content-Type: %s\n"
+  "Connection: close\n"
+  "\n"
+  "%s"
+  , header, content_length, content_type, body);
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +229,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>hello world</h1>");
 }
 
 /**
@@ -227,7 +238,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  char response_body[8];
+  sprintf(response_body, "%d", (rand()%20) + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
+
+
 
 /**
  * Send a /date endpoint response
@@ -235,6 +252,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+    char response_body[128];
+    time_t t1 = time(NULL);
+    struct tm *gtime = gmtime(&t1);
+
+    sprintf(response_body, "%s", asctime(gtime));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -256,9 +279,19 @@ void post_save(int fd, char *body)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
+char *find_end_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+    char *p;
+  p = strstr(header, "\n\n");
+  if (p != NULL) return p;
+  
+  p = strstr(header, "\r\r");
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\n");
+
+  return p;
 }
 
 /**
