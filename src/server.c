@@ -238,7 +238,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  char response_body[8];
+  sprintf(response_body, "%d", (rand()%20) + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
+
+
 
 /**
  * Send a /date endpoint response
@@ -246,6 +252,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+    char response_body[128];
+    time_t t1 = time(NULL);
+    struct tm *gtime = gmtime(&t1);
+
+    sprintf(response_body, "%s", asctime(gtime));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -270,6 +282,7 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+
 }
 
 /**
