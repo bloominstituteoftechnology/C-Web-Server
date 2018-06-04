@@ -279,10 +279,19 @@ void post_save(int fd, char *body)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
+char *find_end_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+    char *p;
+  p = strstr(header, "\n\n");
+  if (p != NULL) return p;
+  
+  p = strstr(header, "\r\r");
+  if (p != NULL) return p;
 
+  p = strstr(header, "\r\n");
+
+  return p;
 }
 
 /**
