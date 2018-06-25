@@ -228,6 +228,11 @@ send_response(fd,"HTTP/1.1 200 SUCCESS","text/plain","Hello World!");
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  char buffer[2];
+  int randNum = (rand() % 21 )+1;
+  snprintf(buffer,2,"%d", randNum);
+ send_response(fd,"HTTP/1.1 200 SUCCESS","text/plain",buffer); 
 }
 
 /**
