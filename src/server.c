@@ -206,6 +206,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
   response_length = header_length + body_length;
   printf("response length: %d\n", response_length);
 
+  printf("response: %s\n", response);
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
