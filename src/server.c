@@ -218,7 +218,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>HTTP WORKING</h1>");
 }
 
 /**
@@ -297,7 +297,6 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   printf("METHOD: %s\n", request_type);
   printf("PATH: %s\n", request_path);
-
   if(strcmp(request_path, "/") == 0) {
     get_root(fd);
   }
