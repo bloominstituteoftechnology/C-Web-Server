@@ -289,6 +289,7 @@ void handle_http_request(int fd)
   // Hint: sscanf()!
 
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  
   printf(request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
