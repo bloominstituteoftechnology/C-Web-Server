@@ -1,18 +1,18 @@
 /**
  * webserver.c -- A webserver written in C
- * 
+ *
  * Test with curl (if you don't have it, install it):
- * 
+ *
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
- * 
+ *
  * You can also test the above URLs in your browser! They should work!
- * 
+ *
  * Posting Data:
- * 
+ *
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
- * 
+ *
  * (Posting data is harder to test from a browser.)
  */
 
@@ -63,7 +63,7 @@ void sigchld_handler(int s) {
  *
  * Whenever a child process dies, the parent process gets signal
  * SIGCHLD; the handler sigchld_handler() takes care of wait()ing.
- * 
+ *
  * This is only necessary if we've implemented a multiprocessed version with
  * fork().
  */
@@ -179,7 +179,7 @@ int get_listener_socket(char *port) {
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
- * 
+ *
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, char *body) {
@@ -188,7 +188,11 @@ int send_response(int fd, char *header, char *content_type, char *body) {
     int response_length; // Total length of header plus body
 
     // !!!!  IMPLEMENT ME
+    time_t t = time(NULL);
 
+    // !!!!  IMPLEMENT ME
+    response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-length: %ld\nContent-Type: %s\n\n%s",
+            header, asctime(localtime(&t)), strlen(body), content_type, body);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -204,15 +208,20 @@ int send_response(int fd, char *header, char *content_type, char *body) {
  * Send a 404 response
  */
 void resp_404(int fd) {
-    send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+    char response_body[1024];
+    sprintf(response_body, "404 path not found");
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html",response_body);
+
 }
 
 /**
  * Send a / endpoint response
  */
 void get_root(int fd) {
-    // !!!! IMPLEMENT ME
-    //send_response(...
+    printf("I'm in get_root\n");
+    char response_body[1024];
+    sprintf(response_body, "<h1>Hello World From Root!!!!</h1>");
+    send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -220,6 +229,11 @@ void get_root(int fd) {
  */
 void get_d20(int fd) {
     // !!!! IMPLEMENT ME
+    char response_body[1024];
+    time_t t;
+    srand((unsigned) time(&t));
+    sprintf(response_body, "<h1>Random Number: %d</h1>", rand() % 100);
+    send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -227,6 +241,14 @@ void get_d20(int fd) {
  */
 void get_date(int fd) {
     // !!!! IMPLEMENT ME
+
+    char response_body[128];
+    time_t t1 = time(NULL);
+    struct tm *gtime = gmtime(&t1);
+
+    sprintf(response_body, "%s", asctime(gtime));
+
+    send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);  
 }
 
 /**
@@ -276,26 +298,20 @@ void handle_http_request(int fd) {
     // !!!! IMPLEMENT ME
     // Get the request type and path from the first line
     // Hint: sscanf()!
-    scanf(request, "%s %s %s", request_type, request_path, request_protocol);
-    printf("Request: %s %s %s\n", request_type, request_path, request_protocol);
+
 
     // !!!! IMPLEMENT ME (stretch goal)
     // find_start_of_body()
 
-    // !!!! IMPLEMENT ME
-    // call the appropriate handler functions, above, with the incoming data
-    if (strcmp(request_path, "/") == 0) {
-        get_root(fd);
+    sscanf(request, "%s\n %s\n %s\n\n", request_type, request_path, request_protocol);
 
-    }
-    else if (strcmp(request_path, "/d20") == 0) {
-        get_d20(fd);
-    }
-    else if (strcmp(request_path, "data") == 0) {
-        get_date(fd);
-    }
-    else {
-        resp_404(fd);
+    if (strcmp(request_type, "GET") == 0) {
+        if (strcmp(request_path, "/") == 0) {
+            get_root(fd);
+        }
+        else {
+            resp_404(fd);
+        }
     }
 }
 
