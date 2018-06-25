@@ -189,10 +189,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
+  char *ptr;
+  int header_length;
+  int body_length;
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  ptr = response;
 
+  header_length = sprintf(response, "%s", header);
+  printf("header length: %d\n", header_length);
+
+  body_length = sprintf(response, "%s", body);
+  printf("body length: %d\n", body_length);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
