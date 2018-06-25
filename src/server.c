@@ -304,17 +304,43 @@ void handle_http_request(int fd)
 
   GET /example HTTP/1.1 <--- this line
   Host: lambdaschool.com
+
   */
- 
+
   // set each word as string and categorize it.
   sscanf(request, "%s, %s, %s", request_type, request_path, request_protocol);
-
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) // call handler for get
+  {
+    if (strcmp(request_path, "/") > 0)
+    {
+      if (strcmp(request_path, "/d20") > 0)
+      {
+        get_d20();
+      }
+      if (strcmp(request_path, "/date") > 0)
+      {
+        get_date();
+      }
+    }
+    else if (strcmp(request_path, "/") == 0)
+    {
+      get_root()
+    }
+  }
+  else if (strcmp(request_type, "POST") == 0)
+  {
+    // call handler for get
+  }
+  else
+  {
+    resp_404(); // page not found;
+  }
 }
 
 /**
