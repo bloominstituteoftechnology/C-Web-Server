@@ -189,7 +189,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  int response_length = strlen(response); // Total length of header plus body edited
 
   // !!!!  IMPLEMENT ME
 
