@@ -194,6 +194,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // !!!!  IMPLEMENT ME
   response_length = sprintf(response, "%s\nConnection: close \nContent-Length: %lu \nContent-Type: %s \n\n%s \n", header, strlen(body), content_type, body);
   printf("%s", response);
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -241,12 +242,21 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
-  time_t mytime = time(NULL);
-  char * time_str = ctime(&mytime);
-  time_str[strlen(time_str)-1] = '\0';
+  // time_t mytime = time(NULL);
+  // char * time_str = ctime(&mytime);
+  // time_str[strlen(time_str)-1] = '\0';
 
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", time_str);
+  time_t rawtime;
+  struct tm *timeGMT;
+
+  time(&rawtime);
+  timeGMT = gmtime(&rawtime);
+
+  char dateAndTime[20];
+
+  sprintf(dateAndTime, "%.2d/%.2d/%d %.2d:%.2d:%.2d", timeGMT->tm_mon, timeGMT->tm_mday, timeGMT->tm_year + 1900, timeGMT->tm_hour, timeGMT->tm_min, timeGMT->tm_sec);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", dateAndTime);
 }
 
 /**
