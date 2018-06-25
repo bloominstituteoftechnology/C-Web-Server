@@ -254,7 +254,7 @@ then come back to goal #1 and dig in._
    pass to `send_response()`.
 
    If you need a hint as to what the `send_response()` call should look like,
-   check out the usage of it in `resp_404()`, just above there.
+   check out the usage of it in `resp_404()`, just below there.
 
    > The `fd` variable that is passed widely around to all the functions holds a
    > _file descriptor_. It's just a number use to represent an open

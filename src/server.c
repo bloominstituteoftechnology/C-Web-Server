@@ -192,6 +192,10 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  // sprintf() for creating the HTTP response
+  // strlen() to get content length
+  sprintf(response, "%s, %s, %s", *header, *content_type, *body);
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +222,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
