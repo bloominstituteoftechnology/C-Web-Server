@@ -230,6 +230,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("fd is: %d \n", fd);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>SUCCESS</h1>");
 }
 
 /**
@@ -299,8 +301,23 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf(request, "%s %s \n", request_type, request_path);
-
+  sscanf(request, "%s %s %s \n", request_type, request_path, request_protocol);
+  //printf("The request is %c: \n ", request);
+  printf("%s %s %s \n ", request_type, request_path, request_protocol);
+  if(strcmp("GET", request_type) == 0)
+  {
+    printf("Request type is: %s \n", request_type);
+    if(strcmp("/", request_path) == 0)
+    {
+      printf("We hit the root \n");
+      get_root(fd);
+    } 
+    else
+    {
+      printf("Error 404 \n");
+      resp_404(fd);
+    }
+  }
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
