@@ -232,7 +232,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTML/1.1 200 OK", "text/html", "<h2>YO</h2>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h2>YO</h2>");
 }
 
 /**
@@ -245,7 +245,7 @@ void get_d20(int fd)
   // !!!! IMPLEMENT ME
   char bob[20];
   sprintf(bob, "%d", (rand()%20)+1);
-  send_response(fd, "HTML/1.1 200 OK", "text/html", bob);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", bob);
 }
 
 /**
@@ -258,7 +258,7 @@ void get_date(int fd)
   struct tm *ltdan = localtime(&poo);
   char bob[200];
   sprintf(bob, "%s", asctime(ltdan));
-  send_response(fd, "HTML/1.1 200 OK", "text/html", bob);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", bob);
 }
 
 /**
@@ -311,7 +311,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf(request, "%s %s", request_type, request_path);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
