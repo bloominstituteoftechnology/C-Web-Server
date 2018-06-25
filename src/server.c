@@ -190,8 +190,15 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  
+  //variable for the header and body
+
+  int content;
+    
+  
 
   // !!!!  IMPLEMENT ME
+
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -287,6 +294,8 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  //scanf stuff here, should read 3 components
+  scanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
