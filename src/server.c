@@ -203,9 +203,14 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  strcat(response, header);
+  strcat(response, "\n");
+  strcat(response, content_type);
+  strcat(response, "\n\n");
+  strcat(response, body);
 
   // Send it all!
-  int rv = send(fd, response, response_length, 0);
+  int rv = send(fd, response, strlen(response), 0);
 
   if (rv < 0)
   {
@@ -304,14 +309,14 @@ void handle_http_request(int fd)
   sscanf(request, "%s %s %s \n", request_type, request_path, request_protocol);
   //printf("The request is %c: \n ", request);
   printf("%s %s %s \n ", request_type, request_path, request_protocol);
-  if(strcmp("GET", request_type) == 0)
+  if (strcmp("GET", request_type) == 0)
   {
     printf("Request type is: %s \n", request_type);
-    if(strcmp("/", request_path) == 0)
+    if (strcmp("/", request_path) == 0)
     {
       printf("We hit the root \n");
       get_root(fd);
-    } 
+    }
     else
     {
       printf("Error 404 \n");
