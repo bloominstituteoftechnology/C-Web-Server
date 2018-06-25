@@ -234,6 +234,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int randomNum = rand() % 20 + 1;
+  char numstr[3];
+  sprintf(numstr, "%d\n", randomNum);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", numstr);
 }
 
 /**
@@ -300,6 +304,8 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   if (strcmp(request_path, "/") == 0) {
     get_root(fd);
+  } else if (strcmp(request_path, "/d20") == 0){
+    get_d20(fd);
   } else {
     resp_404(fd);
   }
