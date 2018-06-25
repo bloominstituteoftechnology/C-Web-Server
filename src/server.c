@@ -316,12 +316,21 @@ void handle_http_request(int fd)
     {
       printf("We hit the root \n");
       get_root(fd);
+    } 
+    else if (strcmp("/favicon.ico", request_path) == 0)
+    {
+      get_root(fd);
     }
     else
     {
       printf("Error 404 \n");
       resp_404(fd);
     }
+  }
+  else
+  {
+    printf("Error 404 \n");
+    resp_404(fd);
   }
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
