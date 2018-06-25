@@ -190,8 +190,30 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body);
+  char value[16];
+  char *current_time;
+
+  response_length = strlen(body);
+  sprintf(value, "%d", response_length);
+  time_t t = time(NULL);
+  current_time = asctime(localtime(&t));
 
   // !!!!  IMPLEMENT ME
+  strcpy(response, header);
+  strcat(response, "\n");
+  strcat(response, "Date: ");
+  strcat(response, current_time);
+  strcat(response, "Connection: close\n");
+  strcat(response, "Content-Length: ");
+  strcat(response, value);
+  strcat(response, "\n");
+  strcat(response, "Content-Type: ");
+  strcat(response, content_type);
+  strcat(response, "\n\n");
+  strcat(response, body);
+  strcat(response, "\n");
+  response_length = strlen(response) - 1;
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -217,8 +239,8 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  printf("Called get_root\n");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><body><h1>Root Directory</h1></body></html>");
 }
 
 /**
@@ -226,7 +248,15 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  printf("Called get_d20\n");
+
+  char value[16];
+  srand(time(NULL));
+  int r = rand();
+  r %= 21;
+  sprintf(value, "%d", r);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", value);
 }
 
 /**
@@ -234,7 +264,12 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  printf("Called get_date\n");
+
+  char *current_date;
+  time_t t = time(NULL);
+  current_date = asctime(localtime(&t));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", current_date);
 }
 
 /**
@@ -287,6 +322,24 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  if (!strcmp("GET", request_type))
+  {
+    if(!strcmp("/", request_path))
+      get_root(fd);
+    else if(!strcmp("/d20", request_path))
+      get_d20(fd);
+    else if(!strcmp("/date", request_path))
+      get_date(fd);
+  }
+  else if (!strcmp("POST", request_type))
+  {
+    if(!strcmp("/", request_path))
+      get_root(fd);
+    else if(!strcmp("/d20", request_path))
+      get_d20(fd);
+  }
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
