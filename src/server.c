@@ -192,7 +192,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-
+  int content_length;
+  content_length = strlen(body);
+  sprintf(response, 
+  "%s\n"
+  "Length: %d\n"
+  "Type: %s\n"
+  "Connection: close\n"
+  "\n"
+  "%s"
+  , header, content_length, content_type, body);
+  response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -218,7 +228,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>You get an endpoint, you get an endpoint and guess what you get an ENDPOINT</h1>");
 }
 
 /**
@@ -226,6 +236,12 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  int d20;
+  char num[3];
+  srand(time(NULL));
+  d20 = rand() % 20;
+  sprintf(num, "%d\n", d20);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", num);
   // !!!! IMPLEMENT ME
 }
 
@@ -234,6 +250,11 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
+   time_t current_time;
+  char* date;
+  current_time = time(NULL);
+  date = gmtime(&current_time);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
   // !!!! IMPLEMENT ME
 }
 
@@ -285,6 +306,7 @@ void handle_http_request(int fd)
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
@@ -293,6 +315,14 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+    printf("Request Type: %s\n", request_type);
+    printf("Request Path: %s\n", request_path);
+    printf("Request Prot: %s\n", request_protocol);
+    if (strcmp(request_path, "/") == 0)
+  {
+    printf("Inside / if\n");
+    get_root(fd);
+  }
 }
 
 /**
