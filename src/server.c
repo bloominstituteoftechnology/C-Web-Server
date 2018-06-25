@@ -202,6 +202,10 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   body_length = sprintf(response, "%s", body);
   printf("body length: %d\n", body_length);
+
+  response_length = header_length + body_length;
+  printf("response length: %d\n", response_length);
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
