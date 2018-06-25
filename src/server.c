@@ -36,6 +36,10 @@
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
+#define HTTP_200 "HTTP/1.1 200 OK"
+#define HTTP_404 "HTTP/1.1 404 NOT FOUND"
+#define HTML "text/html"
+
 /**
  * Handle SIGCHILD signal
  *
@@ -187,19 +191,26 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  const int max_response_size = 65536;
-  char response[max_response_size];
-  int response_length; // Total length of header plus body
+  // char *response = malloc(sizeof(char) * 65536);
+  // memset(response, 0, 65536);
 
-  // !!!!  IMPLEMENT ME
+  // strcat(response, header);
+  // strcat(response, "\n");
+  // strcat(response, content_type);
+  // strcat(response, "\n\n");
+  // strcat(response, body);
+
+  char response[65536];
+  sprintf(response, "%s\n%s\n\n%s", header, content_type, body);
 
   // Send it all!
-  int rv = send(fd, response, response_length, 0);
+  int rv = send(fd, response, strlen(response), 0);
 
   if (rv < 0) {
     perror("send");
   }
 
+  // free(response);
   return rv;
 }
 
@@ -209,7 +220,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(fd, HTTP_404, HTML, "<h1>404 Page Not Found</h1>");
 }
 
 /**
@@ -218,7 +229,8 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  puts("root");
+  send_response(fd, HTTP_200, HTML, "<html><body><h1>Hello!</h1></body></html>");
 }
 
 /**
@@ -226,7 +238,11 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char body[64];
+  int random = (rand() % 20) + 1;
+
+  sprintf(body, "<html><body><h1>You rolled a %d!</h1></body></html>", random);
+  send_response(fd, HTTP_200, HTML, body);
 }
 
 /**
@@ -287,12 +303,25 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("%s\t%s\t%s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if(strcmp(request_type, "GET") == 0)
+  {
+    if(strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    if(strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+  }
 }
 
 /**
@@ -304,6 +333,9 @@ int main(void)
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
 
+  // Seed the RNG
+  srand(time(NULL));
+  
   // Start reaping child processes
   start_reaper();
 
