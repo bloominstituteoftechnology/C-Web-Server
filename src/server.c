@@ -191,7 +191,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
