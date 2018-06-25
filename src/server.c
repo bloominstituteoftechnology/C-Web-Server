@@ -297,17 +297,17 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   if (strcmp(request_type, "GET") == 0) {
     if (strcmp(request_path, "/") == 0) {
-
+      get_root(fd);
     } else if (strcmp(request_path, "/d20") == 0) {
-
+      get_d20(fd);
     } else if (strcmp(request_path, "/date") == 0) {
-
+      get_date(fd);
     } else {
-
+      resp_404(fd);
     }
   } else if (strcmp(request_type, "POST") == 0) {
     if (strcmp(request_path, "/save") == 0) {
-
+      post_save(fd);
     }
   }
 }
