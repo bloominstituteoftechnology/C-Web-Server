@@ -286,14 +286,16 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
-  // Hint: sscanf()!
+  // First line of a request: GET(TYPE) /example(PATH) HTTP/1.1
+  // Second line of a request: Host: lambdaschool.com
+  // Hint: sscanf()! longstring request_type
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-}
 
 /**
  * Main
