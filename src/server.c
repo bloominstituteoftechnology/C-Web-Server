@@ -250,6 +250,11 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
+   time_t current_time;
+  char* date;
+  current_time = time(NULL);
+  date = gmtime(&current_time);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
   // !!!! IMPLEMENT ME
 }
 
@@ -301,6 +306,7 @@ void handle_http_request(int fd)
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
@@ -309,6 +315,14 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+    printf("Request Type: %s\n", request_type);
+    printf("Request Path: %s\n", request_path);
+    printf("Request Prot: %s\n", request_protocol);
+    if (strcmp(request_path, "/") == 0)
+  {
+    printf("Inside / if\n");
+    get_root(fd);
+  }
 }
 
 /**
