@@ -198,21 +198,35 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  // const int max_response_size = 65536;
-  // char response[max_response_size];
-  // int response_length; // Total length of header plus body
+  const int max_response_size = 65536;
+  char response[max_response_size];
+  int response_length = sprintf(response,
+                                "%s\n"
+                                // "Date: %s\n"
+                                "Connection: close\n"
+                                "Content-Length: %d\n"
+                                "Content-Type: %s\n\n"
+                                "%s",
+                                header,
+                                // date,
+                                strlen(body),
+                                content_type,
+                                body);
 
-  // // !!!!  IMPLEMENT ME
-  printf("Send response");
-  // // Send it all!
-  // int rv = send(fd, response, response_length, 0);
+  char date = "Placeholder";
 
-  // if (rv < 0)
-  // {
-  //   perror("send");
-  // }
+  printf("Send response called fd: %d, %s %s %s\n", fd, header, content_type, body);
 
-  // return rv;
+  int rv = send(fd, response, response_length, 0);
+
+  printf("This is rv: %d\n", rv);
+
+  if (rv < 0)
+  {
+    perror("send");
+  }
+
+  return rv;
 }
 
 /**
@@ -228,8 +242,8 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>");
   printf("get_root(%d %d) called \n", fd, &fd);
-  send_response(fd, "HTTP/1.1 200 FOUND", "text/html", "<h1>TESTGET</h1>");
 }
 
 /**
