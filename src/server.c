@@ -263,6 +263,13 @@ char *find_start_of_body(char *header)
 
 /**
  * Handle HTTP request and send response
+
+ * Here is an example HTTP `GET` request and response using version 1.1 of the HTTP protocol 
+    getting the page `http://lambdaschool.com/example`:
+
+      GET /example HTTP/1.1
+      Host: lambdaschool.com
+
  */
 void handle_http_request(int fd)
 {
@@ -287,6 +294,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s", request_type, request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
