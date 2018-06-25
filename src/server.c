@@ -219,6 +219,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", "<h1>Hello, World!</h1>");
 }
 
 /**
