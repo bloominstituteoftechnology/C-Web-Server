@@ -192,9 +192,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  
-  // Send it all!
-  int rv = send(fd, response, response_length, 0);
+  sprintf(response, "%s\n%s\n\n%s", header, content_type, body);
+      // Send it all!
+      int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
     perror("send");
