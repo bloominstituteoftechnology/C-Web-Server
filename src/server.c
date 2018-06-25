@@ -267,7 +267,7 @@ char *find_start_of_body(char *header)
 void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
-  char request[request_buffer_size];
+  char request[request_buffer_size]; // request = allocated memory;
   char *p;
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
@@ -287,6 +287,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, )
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
