@@ -287,12 +287,36 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  //get the first line in its own variable
+  // char *first_line = request;
+  // // cut off everything after the first line
+  // // look for the newline character
+  // p=strchr(first_line, '\n');
+  // // truncate off everything else after this point
+  // *p = '\0';
+sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else {
+    fprintf(stderr, "unimplemented request type %s\n", request_type);
+    return;
+  }
 }
 
 /**
