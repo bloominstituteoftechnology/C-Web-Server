@@ -207,7 +207,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
   return rv;
 }
 
-
 /**
  * Send a 404 response
  */
@@ -227,18 +226,25 @@ void get_root(int fd)
 
 /**
  * Send a /d20 endpoint response
+ * srand()
+ * time(NULL)
+ * rand() 
  */
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK", "decimal", "");
 }
 
 /**
  * Send a /date endpoint response
+ * time(NULL)
+ * gmtime()
  */
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+   send_response(fd, "HTTP/1.1 200 OK", "date", "");
 }
 
 /**
