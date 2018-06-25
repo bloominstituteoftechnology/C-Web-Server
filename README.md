@@ -7,7 +7,7 @@ What's already there:
 * Skeleton code that handles all the network communication
 * The main loop in `main()`
 * Skeleton endpoint handler calls functions
-//test
+
 What you need to write:
 
 * Code that parses HTTP requests
