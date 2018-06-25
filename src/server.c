@@ -300,6 +300,8 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_path, "/") == 0) get_root(fd);
+  else resp_404(fd);
 }
 
 /**
