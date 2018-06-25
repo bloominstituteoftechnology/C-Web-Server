@@ -192,7 +192,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-
+  
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -218,7 +218,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World</h1>");
 }
 
 /**
@@ -301,11 +301,9 @@ void handle_http_request(int fd)
     } else if (strcmp(request_path, "/date") == 0) {
       get_date(fd);
     } else {
-      perror("Endpoint unkown");
+      resp_404(fd);
     }
-  } else {
-    printf("Not a GET request");
-  }
+  } 
 }
 
 /**
