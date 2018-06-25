@@ -272,6 +272,8 @@ void handle_http_request(int fd)
   char *get = "GET\0";
   char *post = "POST\0";
   char request_type[8]; // GET or POST
+  char *root = "/\0";
+  char *d20 = "/d20\0";
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
@@ -312,7 +314,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  
+
 }
 
 /**
