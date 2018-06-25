@@ -240,7 +240,12 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  //%d != decimal it means int
+  //char
   // !!!! IMPLEMENT ME
+  char bob[20];
+  sprintf(bob, "%d", (rand()%20)+1);
+  send_response(fd, "HTML/1.1 200 OK", "text/html", bob);
 }
 
 /**
@@ -249,6 +254,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t poo = time(NULL);
+  struct tm *ltdan = localtime(&poo);
+  char bob[200];
+  sprintf(bob, "%s", asctime(ltdan));
+  send_response(fd, "HTML/1.1 200 OK", "text/html", bob);
 }
 
 /**
