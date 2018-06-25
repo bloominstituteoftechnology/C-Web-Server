@@ -192,10 +192,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  response_length = strlen(header) + strlen(body);
-
-  sprintf(response, "%s\nConnection: close \nContent-Length: %d \nContent-Type: %s \n\n%s \n", header, strlen(body), content_type, body);
-  printf("%s", response);
+  response_length = sprintf(response, "%s\nConnection: close \nContent-Length: %d \nContent-Type: %s \n\n%s \n", header, strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -231,6 +228,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int random = rand() % (20 + 1 - 1) + 1;
+  char numstr[33];
+  sprintf(numstr, "%d", random);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", numstr);
 }
 
 /**
@@ -304,7 +305,13 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  if (strcmp(request_path, "/") == 0) get_root(fd);
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0) get_root(fd);
+    else if (strcmp(request_path, "/d20") == 0) get_d20(fd);
+    else resp_404(fd);
+  }
+
   else resp_404(fd);
 }
 
