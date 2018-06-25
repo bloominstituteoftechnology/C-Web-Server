@@ -3,8 +3,8 @@
  * 
  * Test with curl (if you don't have it, install it):
  * 
- *    curl -D - http://localhost:3490/d2
- *    curl -D - http://localhost:3490/0
+ *    curl -D - http://localhost:3490/
+ *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
  * 
  * You can also test the above URLs in your browser! They should work!
@@ -219,6 +219,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World!</h1>");
 }
 
 /**
@@ -289,7 +290,7 @@ void handle_http_request(int fd)
   // Hint: sscanf()!
 
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  
+
   printf(request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
