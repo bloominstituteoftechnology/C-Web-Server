@@ -192,7 +192,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  response_length = sprintf(response, "%s\nConnection: close \nContent-Length: %d \nContent-Type: %s \n\n%s \n", header, strlen(body), content_type, body);
+  response_length = sprintf(response, "%s\nConnection: close \nContent-Length: %lu \nContent-Type: %s \n\n%s \n", header, strlen(body), content_type, body);
   printf("%s", response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -242,6 +242,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t mytime = time(NULL);
+  char * time_str = ctime(&mytime);
+  time_str[strlen(time_str)-1] = '\0';
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", time_str);
 }
 
 /**
@@ -312,6 +317,7 @@ void handle_http_request(int fd)
   if (strcmp(request_type, "GET") == 0){
     if (strcmp(request_path, "/") == 0) get_root(fd);
     else if (strcmp(request_path, "/d20") == 0) get_d20(fd);
+    else if (strcmp(request_path, "/date") == 0) get_date(fd);
     else resp_404(fd);
   }
 
