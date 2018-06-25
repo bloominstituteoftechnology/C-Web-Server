@@ -16,13 +16,20 @@
  * (Posting data is harder to test from a browser.)
  */
 
+// #ifdef __WIN32__
+// # include <winsock2.h>
+// #else
+// # include <sys/socket.h>
+// #endif
+
+// ===== Issues due to windows environment, cannot fix the libraries required, working on repl.it and pasting here after =====
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
