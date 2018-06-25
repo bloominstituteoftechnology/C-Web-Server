@@ -315,6 +315,16 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
 
+  printf("Root compare: %d\n", strcmp(request_path, root));
+  printf("d20 compare: %d\n", strcmp(request_path, d20));
+
+  if (strcmp(request_path, root) == 0) {
+    // / path calls get_root()
+    get_root(fd);
+    // /d20 path calls get_d20()
+  } else if (strcmp(request_path, d20) == 0) {
+    get_d20(fd);
+  }
 }
 
 /**
