@@ -292,19 +292,13 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  char *first = request;
-  char *header = strchr(first, '\n');
-  printf("%s\n", header);
-  sscanf(first, "%s %s %s", request_type, request_path, request_protocol);
-
-  printf("%s", request_type);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  printf("Request path: %s", request_path);
-  if (request_path == "/") {
+  if (strcmp(request_path, "/") == 0) {
     get_root(fd);
   } else {
     resp_404(fd);
