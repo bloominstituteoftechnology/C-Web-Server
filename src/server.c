@@ -217,7 +217,7 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
+ 
   //send_response(...
 }
 
@@ -287,11 +287,22 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+sscanf(request, "%s %s %s", request_path,request_type,request_protocol);  
 
+char *getStr ="GET";
+char *rootPath ="/";
+char *d20Path ="/d20";
+if((strcmp(getStr,request_type)==0)&& (strcmp(rootPath,request_path)==0))
+{
+  get_root();
+}
+else if((strcmp(getStr,request_type)==0)&& (strcmp(d20Path,request_path)==0))
+{
+  get_d20();
+}
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
-  // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
 }
 
