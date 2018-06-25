@@ -349,6 +349,16 @@ void handle_http_request(int fd)
       printf("We hit the root \n");
       get_root(fd);
     }
+    else if (strcmp("/d20", request_path) == 0)
+    {
+      printf("We hit /d20 \n");
+      get_d20(fd);
+    }
+    else if (strcmp("/date", request_path) == 0)
+    {
+      printf("We hit /date \n");
+      get_date(fd);
+    }
   }
   else
   {
