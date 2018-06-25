@@ -203,7 +203,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  sprintf(response, "%s\nContent-Type: %s\nbody: %s\n", header, content_type, body);
 
+  response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -230,6 +232,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>GET root</h1>");
 }
 
 /**
@@ -238,6 +241,7 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>GET d20</h1>");
 }
 
 /**
@@ -246,6 +250,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>GET root</h1>");
 }
 
 /**
@@ -308,7 +313,9 @@ void handle_http_request(int fd)
   */
 
   // set each word as string and categorize it.
-  sscanf(request, "%s, %s, %s", request_type, request_path, request_protocol);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  // check to see if sscanf is working;
+  printf("REQ: %s %s %s \n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -317,20 +324,30 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   if (strcmp(request_type, "GET") == 0) // call handler for get
   {
+    // if (strcmp(request_path, "/") == 0)
+    // {
+    //   printf("Pathing is working\n");
+    //   get_root(fd);
+    // }
     if (strcmp(request_path, "/") > 0)
     {
-      if (strcmp(request_path, "/d20") > 0)
+      if (strcmp(request_path, "/d20") == 0)
       {
-        get_d20();
+        // printf("Pathing is working\n"); // checking if handler is working
+        get_d20(fd);
       }
-      if (strcmp(request_path, "/date") > 0)
+      if (strcmp(request_path, "/date") == 0)
       {
-        get_date();
+        get_date(fd);
       }
     }
     else if (strcmp(request_path, "/") == 0)
     {
-      get_root()
+      get_root(fd);
+    }
+    else
+    {
+      resp_404(fd); // page not found;
     }
   }
   else if (strcmp(request_type, "POST") == 0)
@@ -339,7 +356,8 @@ void handle_http_request(int fd)
   }
   else
   {
-    resp_404(); // page not found;
+    fprintf("Unable to handle request handler: %s.\n", request_type);
+    return 1;
   }
 }
 
