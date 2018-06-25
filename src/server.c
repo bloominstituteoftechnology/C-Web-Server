@@ -200,17 +200,49 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
 
+  int content_length = strlen(body);
+
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+  int response_length = sprintf(
+      response,
+      "%s\n"
+      "Content-Length: %d\n"
+      "Content-Type: %s\n"
+      "Date: %s"
+      "Connection: close\n"
+      "\n"
+      "%s",
+
+      header,
+      content_length,
+      content_type,
+      asctime(ltime),
+      body);
+
+  // Total length of header plus body
   // !!!!  IMPLEMENT ME
-  strcat(response, header);
-  strcat(response, "\n");
-  strcat(response, content_type);
-  strcat(response, "\n\n");
-  strcat(response, body);
+  // strcat(response, header);
+  // strcat(response, "\n");
+  // strcat(response, content_type);
+  // strcat(response, "\n\n");
+  // strcat(response, body);
+  printf("%s\n"
+         "Content-Length: %d\n"
+         "Content-Type: %s\n"
+         "Date: %s"
+         "Connection: close\n"
+         "\n"
+         "%s",
 
+         header,
+         content_length,
+         content_type,
+         asctime(ltime),
+         body);
   // Send it all!
-  int rv = send(fd, response, strlen(response), 0);
+  int rv = send(fd, response, response_length, 0);
 
   if (rv < 0)
   {
@@ -317,11 +349,11 @@ void handle_http_request(int fd)
       printf("We hit the root \n");
       get_root(fd);
     }
-    else
-    {
-      printf("Error 404 \n");
-      resp_404(fd);
-    }
+  }
+  else
+  {
+    printf("Error 404 \n");
+    resp_404(fd);
   }
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
