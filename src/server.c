@@ -359,6 +359,11 @@ void handle_http_request(int fd)
       printf("We hit /date \n");
       get_date(fd);
     }
+    else
+    {
+      printf("Error 404 \n");
+      resp_404(fd);
+    }
   }
   else
   {
