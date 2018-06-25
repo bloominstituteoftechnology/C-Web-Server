@@ -269,6 +269,8 @@ void handle_http_request(int fd)
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
+  char *get = "GET\0";
+  char *post = "POST\0";
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
@@ -281,18 +283,36 @@ void handle_http_request(int fd)
     return;
   }
 
-   // NUL terminate request string
+  // NUL terminate request string
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  p = request;
+
+  sscanf(p, "%7s", request_type);
+  printf("REQUEST TYPE: %s\n", request_type);
+
+  printf("Get compare: %d\n", strcmp(request_type, get));
+  printf("Post compare: %d\n", strcmp(request_type, post));
+
+  if (strcmp(request_type, get) == 0) {
+    printf("GET REQUEST PATH\n");
+    sscanf((p + 3), "%1024s", request_path);
+  } else if (strcmp(request_type, post) == 0) {
+    printf("POST REQUEST PATH\n");
+    sscanf((p + 5), "%1024s", request_path);
+  }
+
+  printf("REQUEST PATH: %s\n", request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  
 }
 
 /**
