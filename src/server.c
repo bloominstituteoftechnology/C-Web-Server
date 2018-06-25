@@ -292,13 +292,16 @@ sscanf(request, "%s %s %s", request_path,request_type,request_protocol);
 char *getStr ="GET";
 char *rootPath ="/";
 char *d20Path ="/d20";
-if((strcmp(getStr,request_type)==0)&& (strcmp(rootPath,request_path)==0))
+if((strcmp(getStr,request_type)==0))
+{
+if((strcmp((strcmp(rootPath,request_path)==0))
 {
   get_root();
 }
-else if((strcmp(getStr,request_type)==0)&& (strcmp(d20Path,request_path)==0))
+else if((strcmp(d20Path,request_path)==0))
 {
   get_d20();
+}
 }
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
