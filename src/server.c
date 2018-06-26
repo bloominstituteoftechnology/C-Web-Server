@@ -191,11 +191,28 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-
+  time_t now = time(0);
+  char date[64];
+  char content_length[64];
+  char content_type_header[64];
   char response[65536];
-  sprintf(response, "%s\n%s\n\n%s", header, content_type, body);
+
+  sprintf(date, "\nDate: %s", ctime(&now));
+  sprintf(content_length, "Content-Length: %d\n", strlen(body));
+  sprintf(content_type_header, "Content-Type: %s\n", content_type);
+
+  sprintf(
+    response,
+    "%s%s%s%s\n%s",
+    header,
+    date,
+    content_length,
+    content_type_header,
+    body
+  );
 
   // Send it all!
+  puts(response);
   int rv = send(fd, response, strlen(response), 0);
 
   if (rv < 0) {
@@ -254,7 +271,7 @@ void get_date(int fd)
 void post_save(int fd, char *post_body)
 {
   char body[1024];
-  sprintf(body, "You sent me this:\n\n%s", post_body);
+  sprintf(body, "<html><body><h1>You sent me this:\n\n%s</h1></body></html>", post_body);
   send_response(fd, HTTP_200, HTML, body);
 }
 
