@@ -192,6 +192,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  int content_length = strlen(body);
+  time_t timer = time(NULL);
+  struct tm *date = localtime(&timer);
+
+  response_length = sprintf(response, "%s\n Date: %s Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s\n", header, asctime(date), content_length, content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -227,8 +232,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-
-}
+  char response_body[800];
+  sprintf(response_body, "<h1>Random Number: %d</h1>", rand() % 100);
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
+  }
 
 /**
  * Send a /date endpoint response
@@ -236,6 +243,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[800];
+  time_t timer = time(NULL);
+  struct tm *date = gmtime(&timer);
+
+  sprintf(response_body, "%s\n", asctime(date));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
