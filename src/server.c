@@ -191,9 +191,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  time_t currentTime;
+  char* timeStr;
+  currentTime = time(NULL);
+  timeStr = ctime(&currentTime);
 
+  // !!!!  IMPLEMENT ME
+  int length = strlen(body);
+
+  sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, timeStr, length, content_type, body);
   // Send it all!
+  response_length = strlen(response);
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
@@ -217,16 +225,21 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  char cIsGarbage[] = "<!DOCTYPE html><HTML><HEAD><TITLE>C is Garbage</TITLE></HEAD><BODY BACKGROUND=\"http://the13skullspodcast.podbean.com/mf/web/69feeh/Six_Skulls_by_gaaarg.jpg\"><CENTER><H1><FONT COLOR=\"red\" SIZE=\"80\"><br><br><br>F u C<br><br><br>hope u<br><br><br>D i E</H1></CENTER></BODY></HTML>";
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", cIsGarbage);
 }
-
+//<IMG SRC=\"https://wallpapercave.com/wp/4Q3FEIV.jpg\">
 /**
  * Send a /d20 endpoint response
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char body[1024]; 
+  int d20 = rand() % 20;
+
+  sprintf(body, "<!DOCTYPE html><HTML><HEAD><TITLE>C is Garbage</TITLE></HEAD></BODY><CENTER><H1>ALL</H1><H2>THIS</H2><H3>WORK</H3><H4>FOR...</H4><H1>%d</H1></CENTER></BODY></HTML>", d20);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
 }
 
 /**
@@ -234,7 +247,16 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char body[1024]; 
+
+  time_t currentTime;
+  char* timeStr;
+  currentTime = time(NULL);
+  timeStr = ctime(&currentTime);
+
+  sprintf(body, "<!DOCTYPE html><HTML><HEAD><TITLE>C is Garbage</TITLE></HEAD></BODY><CENTER><H1>%s</H1></CENTER></BODY></HTML>", timeStr);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
 }
 
 /**
@@ -287,12 +309,51 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  char types[2][10] = {"GET","POST"};
+  char paths[4][10] = {"/","/d20","/date","/save"};
+  int restRes, postRes;
+  char rest[10], path[10];
+  for (int i = 0; i < 2; i++) {
+    restRes = strcmp(types[i], request_type);
+    if (restRes == 0) strcpy(rest, types[i]);
+  }
+  for (int i = 0; i < 4; i++) {
+    postRes = strcmp(paths[i], request_path);
+    if (postRes == 0) {
+      strcpy(path, paths[i]);
+    }
+  }
+
+  if (strcmp(rest,types[0]) == 0) { // if GET
+    if (strcmp(path,paths[0]) == 0) { // if '/'
+      get_root(fd);
+    }
+    else if (strcmp(path,paths[1]) == 0) { // if '/d20'
+      get_d20(fd);
+    }
+    else if (strcmp(path,paths[2]) == 0) { // if '/date'
+      get_date(fd);
+    }
+    else { // none of the above
+      resp_404(fd, path);
+    }
+  }
+  // if (strcmp(request, types[1]) == 0) { // if POST
+  //   if (strcmp(path, paths[3]) == 0) { // if '/save'
+  //     post_save(fd, char*);
+  //   }
+  //   else { // none of the above
+  //     resp_404(fd, path);
+  //   }
+  // } 
+  
+    
 }
 
 /**
