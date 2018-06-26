@@ -239,11 +239,6 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  time_t current_time;
-  char* date;
-  current_time = time(NULL);
-  date = gmtime(&current_time);
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
@@ -252,6 +247,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t current_time;
+  char* date;
+  current_time = time(NULL);
+  date = gmtime(%current_time);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
@@ -314,10 +314,21 @@ void handle_http_request(int fd)
  if (strcmp(request_type, "GET") == 0) {
 
      if (strcmp(request_path, "/") == 0) {
-       printf("implement get_root: %s %s %s\n", request_type, request_path, request_protocol);
+       printf("get_root: %s %s %s\n", request_type, request_path, request_protocol);
        get_root(fd);
-
      }
+     else if (strcmp(request_path, "/d20") == 0) {
+       printf("get_d20: %s %s %s\n", request_type, request_path, request_protocol);
+           //get_d20(fd);
+       }
+     else if (strcmp(request_path, "/date") == 0) {
+       printf("get_date: %s %s %s\n", request_type, request_path, request_protocol);
+           get_date(fd);
+       }
+     else {
+       printf("resp_404: %s %s %s\n", request_type, request_path, request_protocol);
+           //resp_404(fd, request_path);
+        }
 }
 }
 
