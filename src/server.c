@@ -220,7 +220,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   int rv = send(fd, response, response_length, 0);
 
-  printf("This is the sent response:\n%s\n\n", response);
+  printf("The request response:\n%s\n\n", response);
 
   if (rv < 0)
   {
@@ -288,7 +288,7 @@ void post_save(int fd, char *body)
   fp = fopen("data.json", "r+");
   if (fp)
   {
-    printf("This file EXISTSTSSS \n\n\n");
+    flock(fileno(fp), LOCK_EX);
     fseek(fp, -2, SEEK_END);
     char *put = malloc(256);
     sprintf(put, ",\n\t{\n\t\t\"data\": \"%s\"\n\t}\n]", body);
@@ -298,10 +298,11 @@ void post_save(int fd, char *body)
   else
   {
     fp = fopen("data.json", "w");
+    flock(fileno(fp), LOCK_EX);
     fprintf(fp, "[\n\t{\n\t\t\"data\": \"%s\"\n\t}\n]", body);
-    printf("FILE NOT EXISTENT");
   }
   fclose(fp);
+  flock(fileno(fp), LOCK_UN);
   send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\":\"ok\"}");
 }
 
@@ -356,7 +357,7 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // printf("Here is the request: \n %s \n", request);
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  printf("request_type: %s\nrequest_path: %s\nrequest_protocol: %s\n", request_type, request_path, request_protocol);
+  printf("request_type: %s\nrequest_path: %s\nrequest_protocol: %s\n\n", request_type, request_path, request_protocol);
 
   p = find_start_of_body(request);
 
@@ -364,7 +365,7 @@ void handle_http_request(int fd)
   {
     if (p)
     {
-      printf("\nThe body: %s\n", p);
+      printf("The request body:\n%s\n\n", p);
       post_save(fd, p);
     }
     else
