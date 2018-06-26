@@ -189,24 +189,30 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  char *ptr;
-  int header_length;
-  int body_length;
+  // timestamp
+  time_t seconds = time(NULL); // get current time at execution
+  // convert to a tm struct
+  struct tm *ltime = localtime(&seconds);
+  // conver struct tm type to a string
+  char *timestamp = asctime(ltime);
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  ptr = response;
+  response_length = sprintf(response,
+    "%s\n"
+    "%s"
+    "Connection:close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "%s\n",
+    header,
+    timestamp,
+    strlen(body),
+    content_type,
+    body
+  );
 
-  header_length = sprintf(response, "%s", header);
-  printf("header length: %d\n", header_length);
-
-  body_length = sprintf(response, "%s", body);
-  printf("body length: %d\n", body_length);
-
-  response_length = header_length + body_length;
-  printf("response length: %d\n", response_length);
   printf("response: %s\n", response);
-  printf("content type: %s\n", content_type);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -243,7 +249,7 @@ void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
   int num;
-  char str[2 * sizeof(int)]; // buffer to hold stringified random num
+  char str[8]; // buffer to hold stringified random num
 
   srand(time(NULL)); // seed rand()
   num = rand() % 20 + 1;
@@ -263,6 +269,21 @@ void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
   printf("MADE IT TO DATE HANDLER\n");
+  // time_t t;
+  // struct tm *info;
+
+  // t = time(NULL);
+  // info = gmtime(&t);
+
+  // printf("London: %2d:%02d\n\n", (info->tm_hour+BST)%24, info->tm_min);
+  // send_response(fd, "HTTP/1.1 200 OK", "text/plain", info->tm_hour+BST);
+
+  char response_body[128];
+  time_t seconds = time(NULL);
+  struct tm*ltime = localtime(&seconds);
+
+  sprintf(response_body, "%s", asctime(ltime));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
