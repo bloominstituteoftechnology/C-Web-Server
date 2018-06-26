@@ -250,7 +250,11 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char body[64];
+  time_t now = time(NULL);
+
+  sprintf(body, "The current date and time is %s", ctime(&now));
+  send_response(fd, HTTP_200, HTML, body);
 }
 
 /**
@@ -317,9 +321,17 @@ void handle_http_request(int fd)
     {
       get_root(fd);
     }
-    if(strcmp(request_path, "/d20") == 0)
+    else if (strcmp(request_path, "/d20") == 0)
     {
       get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else 
+    {
+      resp_404(fd);
     }
   }
 }
