@@ -194,8 +194,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // !!!!  IMPLEMENT ME
   // sprintf() for creating the HTTP response
   // strlen() to get content length
-  sprintf(response, "%s, %s, %s", *header, *content_type, *body);
-  response_length = strlen(header) + strlen(body);
+  int body_length = strlen(body);
+  sprintf(response, "%s\n %s\n %s\n", header, content_type, body);
+  // response_length = strlen(response) + strlen(body);
+  response_length = sprintf(
+    response,
+    "%s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-type: %s\n"
+    "\n"
+    "%s\n",
+    header, body_length, content_type, body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -233,7 +244,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "decimal", "");
+  srand(time(NULL));
+
+  char randNum[12];
+  int random = ((rand() %20) + 1);
+  sprintf(randNum, "<h1>%d</h1>", random);
+
+  send_response(fd, "HTTP/1.1 200 OK", "decimal", randNum);
 }
 
 /**
@@ -244,7 +261,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-   send_response(fd, "HTTP/1.1 200 OK", "date", "");
+  //  send_response(fd, "HTTP/1.1 200 OK", "date", "");
 }
 
 /**
@@ -307,15 +324,10 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
   if (strcmp(request_type, "GET") == 0) {
-    if (strcmp(request_path, "/") == 0) {
-      get_root(fd);
-    } else if (strcmp(request_path, "/d20") == 0) {
-      get_d20(fd);
-    } else if (strcmp(request_path, "/date") == 0) {
-      get_date(fd);
-    } else {
-      resp_404(fd);
-    }
+    if (strcmp(request_path, "/") == 0) get_root(fd);
+    else if (strcmp(request_path, "/d20") == 0) get_d20(fd);
+    else if (strcmp(request_path, "/date") == 0) get_date(fd);
+    else resp_404(fd);
   }
 }
 /**
