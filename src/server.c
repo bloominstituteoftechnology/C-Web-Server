@@ -241,7 +241,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>GET d20</h1>");
+  char str[2]; // since it will only be between 1 and 20;
+
+  srand(time(0)); // use CURRENT time as seed for random generation
+  int rando = rand() % 20 + 1;
+  sprintf(str, "%d", rando); // convert int to string
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", str);
 }
 
 /**
@@ -250,7 +255,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>GET root</h1>");
+  int currTime = gmtime(time(0));
+  int callTime;
+  sprintf(callTime, "%d\n", currTime);
+  printf("get_date is working");
+  // printf("<h1>%d</h1>", callTime);
+  // send_response(fd, "HTTP/1.1 200 OK", "text/html", callTime);
 }
 
 /**
@@ -329,21 +339,19 @@ void handle_http_request(int fd)
     //   printf("Pathing is working\n");
     //   get_root(fd);
     // }
-    if (strcmp(request_path, "/") > 0)
-    {
-      if (strcmp(request_path, "/d20") == 0)
-      {
-        // printf("Pathing is working\n"); // checking if handler is working
-        get_d20(fd);
-      }
-      if (strcmp(request_path, "/date") == 0)
-      {
-        get_date(fd);
-      }
-    }
-    else if (strcmp(request_path, "/") == 0)
+    if (strcmp(request_path, "/") == 0)
     {
       get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      // printf("Pathing is working\n"); // checking if handler is working
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      printf("get_date is working");
+      get_date(fd);
     }
     else
     {
