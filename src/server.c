@@ -236,7 +236,7 @@ void get_d20(int fd)
   // !!!! IMPLEMENT ME
   char html[30];
 
-  srand(time(0));
+  srand(time(NULL));
   sprintf(html, "<h1>You rolled a %d!</h1>", rand() % 20 + 1);
 
   send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", html);
@@ -248,6 +248,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char html[30];
+
+  time_t now = time(NULL);
+  struct tm *gmt = gmtime(&now);
+  sprintf(html, "<h1>Current GMT is %2d:%02d</h1>", gmt->tm_hour, gmt->tm_min);
+
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", html);
 }
 
 /**
