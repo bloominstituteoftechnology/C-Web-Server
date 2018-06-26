@@ -284,9 +284,7 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME
-
-  // Save the body and send a response
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", body);
 }
 
 /**
@@ -300,7 +298,17 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  for (int i = 0; header[i] != '\0'; i++)
+  {
+    if (header[i] == '\r' && header[i + 1] == '\n' && header[i + 2] == '\r' && header[i + 3] == '\n' && header[i + 4] != '\0')
+    {
+      return &header[i + 4];
+    }
+    else if (header[i + 1] == '\0')
+    {
+      return NULL;
+    }
+  }
 }
 
 /**
@@ -332,28 +340,40 @@ void handle_http_request(int fd)
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   printf("request_type: %s\nrequest_path: %s\nrequest_protocol: %s\n", request_type, request_path, request_protocol);
 
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  p = find_start_of_body(request);
 
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "POST") == 0)
+  {
+    if (p)
+    {
+      printf("\nThe body: %s\n", p);
+      post_save(fd, p);
+    }
+    else
+    {
+      fprintf(stderr, "\nThe body of the request isn't formatted correctly or does not exist.\n");
+      return;
+    }
+  }
 
-  // printf("HERE IS STRING COMPARE: %d \n ", strcmp(request_type, "GET"));
-  if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/") == 0)
+  if (strcmp(request_type, "GET") == 0)
   {
-    get_root(fd);
-  }
-  else if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/d20") == 0)
-  {
-    get_d20(fd);
-  }
-  else if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/date") == 0)
-  {
-    get_date(fd);
-  }
-  else
-  {
-    resp_404(fd);
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd);
+    }
   }
 }
 
