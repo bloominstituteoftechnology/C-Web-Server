@@ -241,6 +241,10 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t rawtime;
+  struct tm *getTime;
+  getTime = gmtime(time(NULL));
+  send_response(fd,"HTTP/1.1 200 SUCCESS","text/plain",getTime); 
 }
 
 /**
@@ -322,6 +326,10 @@ sscanf(request, "%s %s %s", &request_type, &request_path, &request_protocol);
   else if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/d20") == 0)
   {
     get_d20(fd);
+  }
+else if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/date") == 0)
+  {
+    get_date(fd);
   }
   else
   {
