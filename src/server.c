@@ -311,8 +311,22 @@ void handle_http_request(int fd)
   // call the appropriate handler functions, above, with the incoming data
   printf("METHOD: %s\n", request_type);
   printf("PATH: %s\n", request_path);
-  if(strcmp(request_path, "/") == 0) {
-    get_root(fd);
+
+  if(strcmp(request_type, "GET") == 0) {
+    if(strcmp(request_path, "/") == 0) {
+  get_root(fd);
+    }
+    else if(strcmp(request_type, "/d20") == 0) {
+      get_d20(fd);
+    }
+    else if(strcmp(request_type, "/date") == 0) {
+      get_date(fd);
+    }
+    else {
+    resp_404(fd);
+    }
+  }else {
+    fprintf(stderr, "Unimplemented request type");
   }
 }
 
