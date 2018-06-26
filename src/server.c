@@ -190,8 +190,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body);
+  time_t seconds = time(NULL);
+  // convert to a time struct
+  struct tm *ltime = localtime(&seconds);
+  // convert struct tm type to a string
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(response,
+      "%s\n"
+      "Date: %s"
+      "Connection: close\n"
+      "Content-Type: %s\n"
+      "\n"
+      // body
+      "%s\n",
+      header,
+      timestamp;
+      time,
+      content_length,
+      content_type,
+      body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +239,10 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello, World!</h1><html>");
+
   //send_response(...
+  
 }
 
 /**
@@ -227,6 +251,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid());
+  char response_body[8];
+  sprintf(response_body, "%d\n", (ran() & 20) + 1);
+      send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+
 }
 
 /**
@@ -235,6 +264,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t seconds = time(NULL);
+  struct tm *ltime = localtime(&seconds);
+
+  sprintf(repsonse_body, "%s")
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
