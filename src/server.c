@@ -209,7 +209,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
                                 "%s\n"
                                 "Date: %s"
                                 "Connection: close\n"
-                                "Content-Length: %d\n"
+                                "Content-Length: %ld\n"
                                 "Content-Type: %s\n\n"
                                 "%s",
                                 header,
@@ -290,7 +290,7 @@ void post_save(int fd, char *body)
     flock(fileno(fp), LOCK_EX);
     fseek(fp, -2, SEEK_END);
     char *put = malloc(256);
-    sprintf(put, ",\n\t{\n\t\t\"data\": \"%s\"\n\t}\n]", body);
+    sprintf(put, ",\n\t{\n\t\t\"data\": \"%s\",\n\t\t\"pid:\": \"%d\"\n\t}\n]", body, getpid());
     fputs(put, fp);
     free(put);
   }
@@ -298,10 +298,10 @@ void post_save(int fd, char *body)
   {
     fp = fopen("data.json", "w");
     flock(fileno(fp), LOCK_EX);
-    fprintf(fp, "[\n\t{\n\t\t\"data\": \"%s\"\n\t}\n]", body);
+    fprintf(fp, "[\n\t{\n\t\t\"data\": \"%s\",\n\t\t\"pid:\": \"%d\"\n\t}\n]", body, getpid());
   }
-  fclose(fp);
   flock(fileno(fp), LOCK_UN);
+  fclose(fp);
   send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\":\"ok\"}");
 }
 
@@ -327,6 +327,7 @@ char *find_start_of_body(char *header)
       return NULL;
     }
   }
+  return NULL;
 }
 
 /**
