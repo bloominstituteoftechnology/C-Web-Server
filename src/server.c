@@ -34,7 +34,7 @@
 
 #define PORT "3490"  // the port users will be connecting to
 
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10   // how many pending connections queue will hold
 
 /**
  * Handle SIGCHILD signal
@@ -254,6 +254,11 @@ send_response(fd, "HTTP/1.1 200 OK", "text/plain", num);
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char date[64];
+  strftime(date, sizeof(date), "%c", tm);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", date);
 }
 
 /**
@@ -313,25 +318,15 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
- if (strcmp(request_type, "GET") == 0) {
-
-     if (strcmp(request_path, "/") == 0) {
-       printf("get_root: %s %s %s\n", request_type, request_path, request_protocol);
-       get_root(fd);
-     }
-     else if (strcmp(request_path, "/d20") == 0) {
-       printf("get_d20: %s %s %s\n", request_type, request_path, request_protocol);
-           get_d20(fd);
-       }
-     else if (strcmp(request_path, "/date") == 0) {
-       printf("get_date: %s %s %s\n", request_type, request_path, request_protocol);
-           get_date(fd);
-       }
-     else {
-       printf("resp_404: %s %s %s\n", request_type, request_path, request_protocol);
-           resp_404(fd, request_path);
-        }
-}
+  char d20_check[] = "/d20";
+  char date_check[] = "/date";
+  if ((strcmp(request_type, "GET") == 0) && (strcmp("/", request_path) == 0))
+    get_root(fd);
+  else if ((strcmp(request_type, "GET") == 0) && (strcmp("/d20", request_path) == 0))
+    get_d20(fd);
+  else if ((strcmp(request_type, "GET") == 0) && (strcmp("/date", request_path) == 0))
+    get_date(fd);
+  else resp_404(fd);
 }
 
 /**
@@ -393,4 +388,3 @@ int main(void)
 
   return 0;
 }
-
