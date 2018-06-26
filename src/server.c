@@ -189,7 +189,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length = strlen(response); // Total length of header plus body
+  int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
   strcpy(response, header);
@@ -234,6 +234,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int randomNum = rand() % 20 + 1;
+  char numstr[3];
+  sprintf(numstr, "%d\n", randomNum);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", numstr);
 }
 
 /**
