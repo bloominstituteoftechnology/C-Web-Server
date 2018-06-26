@@ -198,28 +198,29 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
+  time_t t;
+  struct tm *info;
+  time(&t);
+  info = gmtime(&t);
+
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length = sprintf(response,
                                 "%s\n"
-                                // "Date: %s\n"
+                                "Date: %s"
                                 "Connection: close\n"
                                 "Content-Length: %d\n"
                                 "Content-Type: %s\n\n"
                                 "%s",
                                 header,
-                                // date,
+                                asctime(info),
                                 strlen(body),
                                 content_type,
                                 body);
 
-  char date = "Placeholder";
-
-  // printf("Send response called fd: %d, %s %s %s\n", fd, header, content_type, body);
-
   int rv = send(fd, response, response_length, 0);
 
-  // printf("This is rv: %d\n", rv);
+  printf("This is the sent response:\n%s\n\n", response);
 
   if (rv < 0)
   {
