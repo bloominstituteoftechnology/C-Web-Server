@@ -233,7 +233,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  return send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
@@ -242,6 +242,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int num;
+  srand(time(NULL)); // seed rand()
+  num = rand() % 20 + 1;
+  printf("MADE IT TO D20 HANDLER\n");
+  printf("num: %d\n", num);
 }
 
 /**
@@ -336,10 +341,16 @@ void handle_http_request(int fd)
   if (strcmp(request_path, root) == 0) {
     // / path calls get_root()
     get_root(fd);
-    // /d20 path calls get_d20()
   } else if (strcmp(request_path, d20) == 0) {
+    // /d20 calls get_d20()
+    printf("going to d20 handler\n");
     get_d20(fd);
+  } else {
+    // unknown paths call resp_404()
+    printf("going to resp_404 handler\n");
+    resp_404(fd);
   }
+  
 }
 
 /**
