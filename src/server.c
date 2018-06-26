@@ -193,6 +193,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
 
+    int body_length = strlen(body);
+
+    /*
+
+     Using `snprintf`:
+     snprintf(responseVariable, responseSize, FormatSpecifiers, aHeader, bodyLength(we used strlen for this),  contentType, responseBody);
+
+     https://www.geeksforgeeks.org/snprintf-c-library/
+     */
+
+		 /* which indicates the maximum number of characters (including at the end of null character) to be written to buffer */
+			 // buffer
+      response_length = sprintf(
+         response,
+         "%s\n"
+         "Connection: close\n"
+         "Content-Length: %d\n"
+         "Content-type: %s\n"
+         "\n"
+         "%s \r \n",
+         header, body_length, content_type, body);
+
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -219,6 +242,12 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+
+	char response_body[1024];
+	sprintf(response_body, "<h1>test hello hello</h1>");
+	send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+
+
 }
 
 /**
@@ -227,14 +256,61 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+	char randomText[20];
+	int random = (rand() % 20);
+	sprintf(randomText, "<h1> %d</h1>", random);
+	send_response(fd, "HTTP/1.1 200 OK", "text/html", randomText);
 }
 
 /**
  * Send a /date endpoint response
  */
+//void get_date(int fd)
+//{
+//  // !!!! IMPLEMENT ME
+//	char timeBuffer[64];
+//	time_t t = time(NULL);
+//	struct tm *temp;
+//	temp = gmtime(&t);
+//
+//	if(temp == NULL) {
+//		printf("failed");
+//		exit(1);
+//	}
+//
+//	if(strftime(timeBuffer, sizeof(timeBuffer), "%d", temp) == 0) {
+//		exit(2);
+//	} else {
+//		print("%s \n", timeBuffer);
+//	send_response(fd, "HTTP/1.1 200 OK", "date", timeBuffer);
+//	}
+//
+//}
+
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t t;
+  t = time(NULL);
+  char timeBuffer[30];
+  const char *fmt = "%a, %d %b %y %T %z";
+  int imran = 2;
+
+  struct tm *temp;
+
+//   temp = localtime(&t);
+  temp = gmtime(&t);
+
+  if (temp == NULL) {
+    printf("Failed");
+    exit(1);
+  }
+
+  if (strftime(timeBuffer, sizeof(timeBuffer), fmt, temp) == 0) exit(imran);
+
+  printf("%s\n", timeBuffer);
+
+  send_response(fd, "HTTP/1.1 200 OK", "date", timeBuffer);
 }
 
 /**
@@ -273,8 +349,10 @@ void handle_http_request(int fd)
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
+
+  //fd--> socket file discriptor
   // Read request
-  int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+  int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);// request --> buffer
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -286,14 +364,26 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
-  // Hint: sscanf()!
+  // Hint: sscanf()!// destructures request into request type, request_path, request_protoclol
+
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+//  printf("Request: %s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  if (strcmp(request_path,"/") == 0) {
+    get_root(fd);
+    printf("out of get root");
+  }
+  else if (strcmp(request_path,"/d20") == 0) get_d20(fd);
+  else if (strcmp(request_path,"/date") == 0) get_date(fd);
+  else resp_404(fd);
 }
+
 
 /**
  * Main
