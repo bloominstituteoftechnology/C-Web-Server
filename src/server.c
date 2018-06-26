@@ -235,7 +235,11 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  srand(time(null));
+  int randomNumber = rand() % ((20 - 0 + 1) + 0);
+  char body[50];
+  sprintf(body, "<!DOCTYPE html><html><body>%d</body></html>", randomNumber);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
 }
 
 /**
