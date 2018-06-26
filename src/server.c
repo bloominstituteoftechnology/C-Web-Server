@@ -192,7 +192,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  int content_length = strlen(body);
+  int content_length;
+  content_length = strlen(body);
   response_length = sprintf(response,
     "%s\n"
     "Content-Length: %d\n"
@@ -239,6 +240,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int d20;
+  char num[3];
+  srand(time(NULL));
+  d20 = rand() % 20;
+  sprintf(num, "%d\n", d20);
+send_response(fd, "HTTP/1.1 200 OK", "text/plain", num);
 }
 
 /**
@@ -247,11 +254,6 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  time_t current_time;
-  char* date;
-  current_time = time(NULL);
-  date = gmtime(%current_time);
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
@@ -319,7 +321,7 @@ void handle_http_request(int fd)
      }
      else if (strcmp(request_path, "/d20") == 0) {
        printf("get_d20: %s %s %s\n", request_type, request_path, request_protocol);
-           //get_d20(fd);
+           get_d20(fd);
        }
      else if (strcmp(request_path, "/date") == 0) {
        printf("get_date: %s %s %s\n", request_type, request_path, request_protocol);
@@ -327,7 +329,7 @@ void handle_http_request(int fd)
        }
      else {
        printf("resp_404: %s %s %s\n", request_type, request_path, request_protocol);
-           //resp_404(fd, request_path);
+           resp_404(fd, request_path);
         }
 }
 }
