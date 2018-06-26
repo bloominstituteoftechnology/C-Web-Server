@@ -230,7 +230,8 @@ void get_d20(int fd)
   // !!!! IMPLEMENT ME
   char response_body[1024];
   int num = rand() % 100;
-  srand(time(0));
+  time_t t;
+  srand(time(&t));
   sprintf(response_body, "<h1>Random number: %d\n</h1>", num);
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -241,6 +242,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t t = time(NULL);
+  struct tm *tm = gmtime(&t);
+  sprintf(response_body, "%s", asctime(&tm));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
