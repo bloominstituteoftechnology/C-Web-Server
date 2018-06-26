@@ -200,25 +200,82 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
 
+  int content_length = strlen(body);
+
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+  int response_length = sprintf(
+      response,
+      "%s\n"
+      "Content-Length: %d\n"
+      "Content-Type: %s\n"
+      "Date: %s"
+      "Connection: close\n"
+      "\n"
+      "%s",
+
+      header,
+      content_length,
+      content_type,
+      asctime(ltime),
+      body);
+
+  // Total length of header plus body
   // !!!!  IMPLEMENT ME
-  strcat(response, header);
-  strcat(response, "\n");
-  strcat(response, content_type);
-  strcat(response, "\n\n");
-  strcat(response, body);
+  // strcat(response, header);
+  // strcat(response, "\n");
+  // strcat(response, content_type);
+  // strcat(response, "\n\n");
+  // strcat(response, body);
+  printf("%s\n"
+         "Content-Length: %d\n"
+         "Content-Type: %s\n"
+         "Date: %s"
+         "Connection: close\n"
+         "\n"
+         "%s",
 
+         header,
+         content_length,
+         content_type,
+         asctime(ltime),
+         body);
   // Send it all!
-  int rv = send(fd, response, strlen(response), 0);
+  int rv = send(fd, response, response_length, 0);
 
   if (rv < 0)
   {
     perror("send");
   }
-  // this is A TESTsdfsd
+  // this is A TEST
   return rv;
 }
+
+
+// int send_response(int fd, char *header, char *content_type, char *body)
+// {
+//   const int max_response_size = 65536;
+//   char response[max_response_size];
+//   int response_length; // Total length of header plus body
+
+//   // !!!!  IMPLEMENT ME
+//   strcat(response, header);
+//   strcat(response, "\n");
+//   strcat(response, content_type);
+//   strcat(response, "\n\n");
+//   strcat(response, body);
+
+//   // Send it all!
+//   int rv = send(fd, response, strlen(response), 0);
+
+//   if (rv < 0)
+//   {
+//     perror("send");
+//   }
+//   // this is A TESTsdfsd
+//   return rv;
+// }
 
 /**
  * Send a 404 response
@@ -245,6 +302,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // roll a 20 sided die and output the response
+  void srand(unsigned int seed); // just creates the seed nothing else.
+  char diceRoll[1024];
+  int randomRoll = 1 + rand() % 20; /* random int between 1 and 25 */
+  sprintf(diceRoll,"%d\n",randomRoll);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", diceRoll);
+
 }
 
 /**
@@ -253,6 +317,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t rawTime;
+  time(&rawTime);
+  //char response_body[1024];
+  //printf(response_body, "time is: %s", asctime(gmtime(&rawTime)));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", asctime(gmtime(&rawTime)) );
+  // output the date and time.
 }
 
 /**
@@ -320,6 +390,14 @@ void handle_http_request(int fd)
     else if (strcmp("/favicon.ico", request_path) == 0)
     {
       get_root(fd);
+    }
+    else if(strcmp("/d20", request_path) == 0)
+    {
+      get_d20(fd);
+    }
+    else if(strcmp("/date", request_path) == 0)
+    {
+      get_date(fd);
     }
     else
     {
