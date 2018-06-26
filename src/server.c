@@ -236,7 +236,9 @@ void get_d20(int fd)
   // !!!! IMPLEMENT ME
   char html[30];
 
+  // Seed random numbers with current time
   srand(time(NULL));
+  // Format html with random number from 1 to 20 inclusive
   sprintf(html, "<h1>You rolled a %d!</h1>", rand() % 20 + 1);
 
   send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", html);
@@ -250,8 +252,10 @@ void get_date(int fd)
   // !!!! IMPLEMENT ME
   char html[30];
 
+  // Grab current time
   time_t now = time(NULL);
   struct tm *gmt = gmtime(&now);
+  // Format html with hours and minutes
   sprintf(html, "<h1>Current GMT is %2d:%02d</h1>", gmt->tm_hour, gmt->tm_min);
 
   send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", html);
