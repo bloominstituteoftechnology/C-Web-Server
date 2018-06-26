@@ -332,7 +332,7 @@ void handle_http_request(int fd)
   p = strchr(first_line, '\n'); 
   //truncate off everything else after this point
   *p = '\0'; 
-  scanf(request, "%s %s %s", request_type, request_path, request_protocol); 
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol); 
 //incrementing pointer to first character of 2nd line
 char *rest_of_header = p + 1; 
 
@@ -342,9 +342,9 @@ char *rest_of_header = p + 1;
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-printf("REQUEST: &s &s &s\n", request_type, request_path, request_protocol);
+printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
 
-  If (strcmp(request_type, "GET") == 0) {
+  if (strcmp(request_type, "GET") == 0) {
     if (strcmp(request_path, "/") == 0) {
       get_root(fd);
     }  else if(strcmp(request_path, "/d20") == 0) {
