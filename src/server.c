@@ -192,6 +192,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  response_length =  strlen(header) + strlen(body);
+
+  sprintf(response, 
+    "%s\nContent-Length: %ld\nContent-Type: %s\n%s", 
+    header, strlen(body), content_type, body);
+  puts(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,7 +225,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", "<h1>Hello, World!</h1>");
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
@@ -307,7 +313,7 @@ void handle_http_request(int fd)
     }
   } else if (strcmp(request_type, "POST") == 0) {
     if (strcmp(request_path, "/save") == 0) {
-      post_save(fd);
+      //post_save(fd, body);
     }
   }
 }
