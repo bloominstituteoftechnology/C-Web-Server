@@ -335,7 +335,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd)
 {
-  printf("\nHANDLER CALLED BY PID %d\n", getpid());
+  printf("\n\nHANDLER CALLED BY PID %d\n\n", getpid());
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
@@ -453,15 +453,13 @@ int main(void)
     if (forked == 0)
     {
       handle_http_request(newfd);
-      printf("CHILD PID %d\n", getpid());
+      close(newfd);
+      exit(0);
     }
     else
     {
-      printf("PARENT PID %d\n", getpid());
+      printf("\nPARENT PID %d\n\n", getpid());
     }
-
-    // Done with this
-    close(newfd);
   }
 
   // Unreachable code
