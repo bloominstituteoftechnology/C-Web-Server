@@ -262,6 +262,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  printf("MADE IT TO DATE HANDLER\n");
 }
 
 /**
@@ -301,6 +302,7 @@ void handle_http_request(int fd)
   char request_type[8]; // GET or POST
   char *root = "/\0";
   char *d20 = "/d20\0";
+  char *date = "/date\0";
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
@@ -352,12 +354,15 @@ void handle_http_request(int fd)
     // /d20 calls get_d20()
     printf("going to d20 handler\n");
     get_d20(fd);
+  } else if (strcmp(request_path, date) == 0) {
+    // /date calls get_date()
+    printf("going to date handler\n");
+    get_date(fd);
   } else {
     // unknown paths call resp_404()
     printf("going to resp_404 handler\n");
     resp_404(fd);
   }
-  
 }
 
 /**
