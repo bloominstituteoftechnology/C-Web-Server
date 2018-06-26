@@ -191,15 +191,18 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  time_t seconds = time(NULL);
+  struct tm* ltime = localtime(&seconds);
+  char timestamp[60];
+
+  sprintf(timestamp, "Date: %s", asctime(ltime));
   char* connection_str = "Connection: close";
   char content_length_str[50];
   sprintf(content_length_str, "Content-Length: %lu", strlen(body));
   char content_type_str[50];
   sprintf(content_type_str, "Content-Type: %s", "text/html");
 
-  /* printf("response is %s\n", response); */
-  response_length = sprintf(response, "%s\n %s\n %s\n %s\n\n %s\n", header, connection_str, content_length_str, content_type_str, body);
+  response_length = sprintf(response, "%s\n %s %s\n %s\n %s\n\n %s\n", header, timestamp, connection_str, content_length_str, content_type_str, body);
 
   // Send it all!
   
