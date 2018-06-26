@@ -39,6 +39,7 @@
 #define HTTP_200 "HTTP/1.1 200 OK"
 #define HTTP_404 "HTTP/1.1 404 NOT FOUND"
 #define HTML "text/html"
+#define JSON "application/json"
 
 /**
  * Handle SIGCHILD signal
@@ -270,9 +271,8 @@ void get_date(int fd)
  */
 void post_save(int fd, char *post_body)
 {
-  char body[1024];
-  sprintf(body, "<html><body><h1>You sent me this:\n\n%s</h1></body></html>", post_body);
-  send_response(fd, HTTP_200, HTML, body);
+  char *body = "{\"status\":\"ok\"}";
+  send_response(fd, HTTP_200, JSON, body);
 }
 
 /**
@@ -374,8 +374,6 @@ int main(void)
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
 
-  // Seed the RNG
-  srand(time(NULL));
   
   // Start reaping child processes
   start_reaper();
@@ -410,17 +408,28 @@ int main(void)
       get_in_addr((struct sockaddr *)&their_addr),
       s, sizeof s);
     printf("server: got connection from %s\n", s);
-    
-    // newfd is a new socket descriptor for the new connection.
-    // listenfd is still listening for new connections.
 
-    // !!!! IMPLEMENT ME (stretch goal)
-    // Convert this to be multiprocessed with fork()
+    // Handle http request in a child process
+    int rc = fork();
+    if (rc < 0)
+    {
+      perror("fork");
+      return 1;
+    }
+    else if (rc == 0)
+    {
+      // Seed the RNG
+      srand(time(NULL) + getpid());
 
-    handle_http_request(newfd);
-
-    // Done with this
-    close(newfd);
+      handle_http_request(newfd);
+      close(newfd);
+      exit(0);
+    }
+    else
+    {
+      // Make sure the connection is closed after child sends response
+      close(newfd);
+    }
   }
 
   // Unreachable code
