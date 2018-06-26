@@ -195,19 +195,29 @@ int send_response(int fd, char *header, char *content_type, char *body) {
 	int response_length; // Total length of header plus body
 
 	// !!!!  IMPLEMENT ME
-  time_t t = time(NULL);
-
-	response_length = sprintf(
-		response,
-		"%s\nDate: %sConnection: close\nContent-length: %ld\nContent-Type: "
-		"%s\n\n%s",
-		header,
-		asctime(localtime(&t)),
-		strlen(body),
-		content_type,
-		body);
+  time_t t;
+  struct tm ts;
+  char date[128];
+  time(&t);
+  ts = *localtime(&t);
+  strftime(date, sizeof(date), "%a %B-%d-%Y %I:%M:%S %p %Z", &ts);
 
 	// Send it all!
+  int content_length = strlen(body);
+  response_length = sprintf(
+    response,
+    "%s\n"
+    "Date: %s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n%s",
+    header,
+    date,
+    content_length,
+    content_type,
+    body
+  );
 	int rv = send(fd, response, response_length, 0);
 
 	if (rv < 0) {
@@ -234,13 +244,14 @@ void resp_404(int fd) {
  */
 void get_root(int fd) {
 	// !!!! IMPLEMENT ME
-  char responseBody[1024];
-  sprintf(responseBody, "Error 404\n Route doesnt exist");
+  // char responseBody[1024];
+  // sprintf(responseBody, "Error 404\n Route doesnt exist");
   send_response(
     fd,
     "HTTP/1.1 200 SUCCESS",
     "text/html",
-    responseBody
+    // responseBody
+    "<h1>Error 404 Route doesn't exist</h1>"
   );
 	// send_response(...
 }
@@ -255,7 +266,7 @@ void get_d20(int fd) {
 
   srand((unsigned) time(&t)); //starts rand num gen
 
-  sprintf(responseBody, "Random Number: %d\n", rand() % 21);  //random num from 0 -> 20 inclusive
+  sprintf(responseBody, "<h1>Random Number: %d\n</h1>", rand() % 21);  //random num from 0 -> 20 inclusive
   send_response(
     fd,
    "HTTP/1.1 200 SUCCESS",
@@ -273,14 +284,21 @@ void get_date(int fd) {
   // struct date dt;
   // getdate(&dt);
   // sprintf(responseBody, "%d-%d-%d\n", dt.da_day, dt.da_mon, dt.da_year);
-  time_t t = time(NULL);
-  struct tm *gtime = gmtime(&t);
-  sprintf(responseBody, "%s", asctime(gtime));
+  time_t t;
+  struct tm ts;
+  char date[128];
+  time(&t);
+  ts = *localtime(&t);
+  strftime(date, sizeof(date), "<h1>%a %B-%d-%Y %I:%M:%S %p %Z</h1>", &ts);
+  // time_t t = time(NULL);
+  // struct tm *gtime = gmtime(&t);
+  // sprintf(responseBody, "<h1>%s</h1>", asctime(gtime));
   send_response(
     fd,
     "HTTP/1.1 200 SUCCESS",
     "text/html",
-    responseBody
+    // responseBody
+    date
   );
 
 }
