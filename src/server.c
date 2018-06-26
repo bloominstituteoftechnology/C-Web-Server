@@ -265,7 +265,6 @@ void get_date(int fd)
   t = time(NULL);
   char timeBuffer[30];
   const char *fmt = "%a, %d %b %y %T %z";
-  int imran = 2;
 
   struct tm *temp;
 
@@ -277,7 +276,7 @@ void get_date(int fd)
     exit(1);
   }
 
-  if (strftime(timeBuffer, sizeof(timeBuffer), fmt, temp) == 0) exit(imran);
+  if (strftime(timeBuffer, sizeof(timeBuffer), fmt, temp) == 0) exit(2);
 
   printf("%s\n", timeBuffer);
 
@@ -306,6 +305,7 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+
 }
 
 /**
@@ -336,10 +336,10 @@ void handle_http_request(int fd)
   // First line of a request: GET(TYPE) /example(PATH) HTTP/1.1
   // Second line of a request: Host: lambdaschool.com
   // Hint: sscanf()! longstring request_type
-  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  sscanf(request, "%s %s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  // find_start_of_body();
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -348,6 +348,8 @@ void handle_http_request(int fd)
     else if (strcmp(request_path, "/d20") == 0) get_d20(fd);
     else if (strcmp(request_path, "/date") == 0) get_date(fd);
     else resp_404(fd);
+  } else if (strcmp(request_type, "POST") == 0) {
+
   }
 }
 /**
