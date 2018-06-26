@@ -196,7 +196,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   int contentLength = strlen(body);
   
-  sprintf(
+  response_length = sprintf(
     response, 
     "%s\nContent-Length: %ld\nContent-Type: %s\n%s", 
     header, 
@@ -210,7 +210,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
-    perror("send");
+    perror("send, an error has occured");
   }
 
   return rv;
@@ -233,7 +233,6 @@ void get_root(int fd)
   // !!!! IMPLEMENT ME
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>HTTP WORKING</h1>");
 }
-
 /**
  * Send a /d20 endpoint response
  */
@@ -248,12 +247,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response[80];
   time_t rawtime;
   struct tm *info;
   char buffer[80];
   time ( &rawtime );
   info = localtime ( &rawtime );
-  printf("Current local time and date: %s", asctime(info));
+  sprintf(response, "%s", asctime(info));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response);
   return 0;
 }
 
@@ -308,31 +309,37 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
-  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  sscanf(request, "%s %s", request_type, request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
-  printf("METHOD: %s\n", request_type);
-  printf("PATH: %s\n", request_path);
+  // call th e appropriate handler functions, above, with the incoming data
+  // printf("METHOD: %s\n", request_type);
+  // printf("PATH: %s\n", request_path);
 
-  if(strcmp(request_type, "GET") == 0) {
-    if(strcmp(request_path, "/") == 0) {
-  get_root(fd);
+if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
     }
-    else if(strcmp(request_type, "/d20") == 0) {
+    else if (strcmp(request_path, "/d20") == 0)
+    {
       get_d20(fd);
     }
-    else if(strcmp(request_type, "/date") == 0) {
+    else if (strcmp(request_path, "/date") == 0)
+    {
       get_date(fd);
     }
-    else {
-    resp_404(fd);
-    }
-  }else {
-    fprintf(stderr, "Unimplemented request type");
+    else
+      resp_404(fd);
+  }
+  else
+  {
+    fprintf(stderr, "unimplemented request type %s\n", request_type);
+    return;
   }
 }
 
