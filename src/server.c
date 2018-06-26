@@ -31,6 +31,7 @@
 #include <time.h>
 #include <sys/file.h>
 #include <fcntl.h>
+#include <time.h>
 
 #define PORT "3490"  // the port users will be connecting to
 
@@ -193,6 +194,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
 
+  int contentLength = strlen(body);
+  
+  sprintf(
+    
+  )
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -235,6 +242,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t rawtime;
+  struct tm *info;
+  char buffer[80];
+  time ( &rawtime );
+  info = localtime ( &rawtime );
+  printf("Current local time and date: %s", asctime(info));
+  return 0;
 }
 
 /**
