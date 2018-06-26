@@ -201,9 +201,31 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body);
+
+  /* local time */
+  char locTime[50];
+  time_t rawtime;
+  struct tm *localTime;
+
+
+  localTime = ctime(&rawtime); // current time
+
+  sprintf(locTime, "Date: %s", asctime(localTime)); // int to char in GMT (e.g. Tue Jun)
 
   // !!!!  IMPLEMENT ME
-  sprintf(response, "%s\nContent-Type: %s\nbody: %s\n", header, content_type, body);
+  sprintf(response,
+          "%s\n"                 // header
+          "Date: %s\n"           //local time
+          "Connection: close\n"  // connection status
+          "Content-Length: %s\n" // content length
+          "Content-Type: %s\n\n" //double space
+          "%s\n",
+          header,
+          locTime,        // date; connection-type is hard coded (skip)
+          content_length, // content-length
+          content_type,
+          body);
 
   response_length = strlen(response);
   // Send it all!
@@ -232,7 +254,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>GET root</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>GET root</h1></html>");
 }
 
 /**
@@ -255,12 +277,15 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  int currTime = gmtime(time(0));
-  int callTime;
-  sprintf(callTime, "%d\n", currTime);
-  printf("get_date is working");
-  // printf("<h1>%d</h1>", callTime);
-  // send_response(fd, "HTTP/1.1 200 OK", "text/html", callTime);
+  char str[50];
+  time_t rawtime;
+  struct tm *gmtTime;
+
+  time(&rawtime);             // current time
+  gmtTime = gmtime(&rawtime); // current time in GMT
+
+  sprintf(str, "Date: %s", asctime(gmtTime)); // int to char in GMT (e.g. Tue Jun)
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", str);
 }
 
 /**
@@ -350,7 +375,6 @@ void handle_http_request(int fd)
     }
     else if (strcmp(request_path, "/date") == 0)
     {
-      printf("get_date is working");
       get_date(fd);
     }
     else
