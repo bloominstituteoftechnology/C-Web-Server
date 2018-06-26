@@ -16,6 +16,7 @@
  * (Posting data is harder to test from a browser.)
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -193,6 +194,20 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
 
+  int content_length = strlen(body);
+  time_t timer = time(NULL);
+  struct tm *date = localtime(&timer);
+  // char *timestamp = asctime(ltime);
+
+  response_length = sprintf(response,
+    "%s\n Date: %s Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s\n",
+    header,
+    asctime(date),
+    content_length,
+    content_type,
+    body
+  );
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -219,6 +234,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char *response_body = "<!DOCTYPE html><html><head><title>Lambda School</title></head><body><h1>Hello World!</h1></body></html>";
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -227,6 +244,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[8];
+  int randNum;
+
+  srand(time(NULL) + getpid());
+
+  randNum = (rand() % 20) + 1;
+  sprintf(response_body, "%d\n", randNum);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +260,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  time_t timer = time(NULL);
+  struct tm *date = gmtime(&timer);
+
+  sprintf(response_body, "%s\n", asctime(date));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -242,6 +273,7 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
+
   // !!!! IMPLEMENT ME
 
   // Save the body and send a response
@@ -287,12 +319,35 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+    // Get the first line in its own variable
+  // char *first_line = request;
+    // Cut off everything after the first line
+    // Look for the newline character
+  // p = strchr(first_line, '\n');
+    // Truncate off everything else after this point
+  // *p = '\0';
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  // } else {
+  //   fprintf(stderr; "unimplemented request type %s\n", request_type);
+  }
 }
 
 /**
