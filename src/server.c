@@ -192,8 +192,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  char* connection_str = "Connection: close";
+  char content_length_str[50];
+  sprintf(content_length_str, "Content-Length: %lu", strlen(body));
+  char content_type_str[50];
+  sprintf(content_type_str, "Content-Type: %s", "text/html");
+
+  /* printf("response is %s\n", response); */
+  response_length = sprintf(response, "%s\n %s\n %s\n %s\n\n %s\n", header, connection_str, content_length_str, content_type_str, body);
 
   // Send it all!
+  
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
@@ -218,7 +227,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><body>Hello World</body></html>");
 }
 
 /**
@@ -287,12 +296,28 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  
+  /* printf("request is %s\n", request); */
+  sscanf(request, "%s %s", request_type, request_path);
+
+  /* printf("request type is %s. Path is %s\n", request_type, request_path); */
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (!strcmp(request_type, "GET")) {
+      if (!strcmp(request_path, "/")) {
+          get_root(fd);
+      } else if (!strcmp(request_path, "/d20")) {
+          get_d20(fd);
+      } else {
+          resp_404(fd);
+      }
+  } else {
+    // other HTTP actions
+  }
 }
 
 /**
