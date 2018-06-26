@@ -212,8 +212,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
     body
   );
 
-  printf("response: %s\n", response);
-
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -253,12 +251,8 @@ void get_d20(int fd)
 
   srand(time(NULL)); // seed rand()
   num = rand() % 20 + 1;
-
-  printf("MADE IT TO D20 HANDLER\n");
-  printf("num: %d\n", num);
-
-  sprintf(str, "%d", num);
-  printf("str: %s\n", str);
+  sprintf(str, "%d\n", num);
+  
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", str);
 }
 
@@ -268,16 +262,6 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  printf("MADE IT TO DATE HANDLER\n");
-  // time_t t;
-  // struct tm *info;
-
-  // t = time(NULL);
-  // info = gmtime(&t);
-
-  // printf("London: %2d:%02d\n\n", (info->tm_hour+BST)%24, info->tm_min);
-  // send_response(fd, "HTTP/1.1 200 OK", "text/plain", info->tm_hour+BST);
-
   char response_body[128];
   time_t seconds = time(NULL);
   struct tm*ltime = localtime(&seconds);
@@ -344,20 +328,12 @@ void handle_http_request(int fd)
   p = request;
 
   sscanf(p, "%7s", request_type);
-  printf("REQUEST TYPE: %s\n", request_type);
-
-  printf("Get compare: %d\n", strcmp(request_type, get));
-  printf("Post compare: %d\n", strcmp(request_type, post));
 
   if (strcmp(request_type, get) == 0) {
-    printf("GET REQUEST PATH\n");
     sscanf((p + 3), "%1024s", request_path);
   } else if (strcmp(request_type, post) == 0) {
-    printf("POST REQUEST PATH\n");
     sscanf((p + 5), "%1024s", request_path);
   }
-
-  printf("REQUEST PATH: %s\n", request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -365,23 +341,17 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
 
-  printf("Root compare: %d\n", strcmp(request_path, root));
-  printf("d20 compare: %d\n", strcmp(request_path, d20));
-
   if (strcmp(request_path, root) == 0) {
     // / path calls get_root()
     get_root(fd);
   } else if (strcmp(request_path, d20) == 0) {
     // /d20 calls get_d20()
-    printf("going to d20 handler\n");
     get_d20(fd);
   } else if (strcmp(request_path, date) == 0) {
     // /date calls get_date()
-    printf("going to date handler\n");
     get_date(fd);
   } else {
     // unknown paths call resp_404()
-    printf("going to resp_404 handler\n");
     resp_404(fd);
   }
 }
