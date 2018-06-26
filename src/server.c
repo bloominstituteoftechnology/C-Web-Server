@@ -232,7 +232,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h2>YO</h2>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h2>Y O Y</h2>");
 }
 
 /**
