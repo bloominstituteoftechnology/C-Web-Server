@@ -207,13 +207,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
   strcat(response, "Connection: close\n");
   strcat(response, "Content-Length: ");
   strcat(response, value);
-  strcat(response, "\n");
-  strcat(response, "Content-Type: ");
+  strcat(response, "\nContent-Type: ");
   strcat(response, content_type);
   strcat(response, "\n\n");
   strcat(response, body);
-  strcat(response, "\n");
-  response_length = strlen(response) - 1;
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -251,7 +249,7 @@ void get_d20(int fd)
   printf("Called get_d20\n");
 
   char value[16];
-  srand(time(NULL));
+  srand(time(NULL) ^ (getpid()<<16));
   int r = rand();
   r %= 21;
   sprintf(value, "%d", r);
@@ -323,6 +321,14 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("%s %s\n", request_type, request_path);
+
+  // char temp;
+
+  // do {
+  //     sscanf(request, "%c", &temp);
+  // } while(temp != '\n'); //One more time for second newline
+  // sscanf(request, "%c", &temp);  // start of body now in request
 
   if (!strcmp("GET", request_type))
   {
@@ -397,7 +403,18 @@ int main(void)
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
+    int rc = fork();
+    if (rc < 0)
+    {
+      perror("fork");
+      return 1;
+    }
+    else if (rc == 0)
+    {
     handle_http_request(newfd);
+    close(newfd);
+    exit(0);
+    }
 
     // Done with this
     close(newfd);
