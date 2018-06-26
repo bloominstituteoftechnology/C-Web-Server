@@ -36,6 +36,11 @@
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
+#define HTTP_200 "HTTP/1.1 200 OK"
+#define HTTP_404 "HTTP/1.1 404 NOT FOUND"
+#define HTML "text/html"
+#define JSON "application/json"
+
 /**
  * Handle SIGCHILD signal
  *
@@ -187,19 +192,34 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  const int max_response_size = 65536;
-  char response[max_response_size];
-  int response_length; // Total length of header plus body
+  time_t now = time(0);
+  char date[64];
+  char content_length[64];
+  char content_type_header[64];
+  char response[65536];
 
-  // !!!!  IMPLEMENT ME
+  sprintf(date, "\nDate: %s", ctime(&now));
+  sprintf(content_length, "Content-Length: %d\n", (int) strlen(body));
+  sprintf(content_type_header, "Content-Type: %s\n", content_type);
+
+  sprintf(
+    response,
+    "%s%s%s%s\n%s",
+    header,
+    date,
+    content_length,
+    content_type_header,
+    body
+  );
 
   // Send it all!
-  int rv = send(fd, response, response_length, 0);
+  puts(response);
+  int rv = send(fd, response, strlen(response), 0);
 
   if (rv < 0) {
     perror("send");
   }
-
+  
   return rv;
 }
 
@@ -209,7 +229,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(fd, HTTP_404, HTML, "<h1>404 Page Not Found</h1>");
 }
 
 /**
@@ -218,7 +238,8 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  puts("root");
+  send_response(fd, HTTP_200, HTML, "<html><body><h1>Hello!</h1></body></html>");
 }
 
 /**
@@ -226,7 +247,11 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char body[64];
+  int random = (rand() % 20) + 1;
+
+  sprintf(body, "<html><body><h1>You rolled a %d!</h1></body></html>", random);
+  send_response(fd, HTTP_200, HTML, body);
 }
 
 /**
@@ -234,17 +259,25 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char body[64];
+  time_t now = time(NULL);
+
+  sprintf(body, "The current date and time is %s", ctime(&now));
+  send_response(fd, HTTP_200, HTML, body);
 }
 
 /**
  * Post /save endpoint data
  */
-void post_save(int fd, char *body)
+void post_save(int fd, char *post_body)
 {
-  // !!!! IMPLEMENT ME
-
-  // Save the body and send a response
+  int post_file = open("./post_data", O_WRONLY);
+  flock(post_file, LOCK_EX);
+  write(post_file, post_body, strlen(post_body));
+  close(post_file);
+  flock(post_file, LOCK_UN);
+  char *body = "{\"status\":\"ok\"}";
+  send_response(fd, HTTP_200, JSON, body);
 }
 
 /**
@@ -256,9 +289,23 @@ void post_save(int fd, char *body)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
+char *find_start_of_body(char *request)
 {
-  // !!!! IMPLEMENT ME
+  char *body;
+  if ((body = strstr(request, "\n\n")) || (body = strstr(request, "\r\r")))
+  {
+    body += 2;
+  }
+  else if ((body = strstr(request, "\r\n\r\n")))
+  {
+    body += 4;
+  }
+  else
+  {
+    body = NULL;
+  }
+
+  return body;
 }
 
 /**
@@ -268,7 +315,6 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  char *p;
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
@@ -287,12 +333,40 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("%s\t%s\t%s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  char *body = find_start_of_body(request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if(strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else 
+    {
+      resp_404(fd);
+    }
+  }
+  else if (strcmp(request_type, "POST") == 0)
+  {
+    if (strcmp(request_path, "/save") == 0)
+    {
+      post_save(fd, body);
+    }
+  }
 }
 
 /**
@@ -304,6 +378,7 @@ int main(void)
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
 
+  
   // Start reaping child processes
   start_reaper();
 
@@ -337,17 +412,28 @@ int main(void)
       get_in_addr((struct sockaddr *)&their_addr),
       s, sizeof s);
     printf("server: got connection from %s\n", s);
-    
-    // newfd is a new socket descriptor for the new connection.
-    // listenfd is still listening for new connections.
 
-    // !!!! IMPLEMENT ME (stretch goal)
-    // Convert this to be multiprocessed with fork()
+    // Handle http request in a child process
+    int rc = fork();
+    if (rc < 0)
+    {
+      perror("fork");
+      return 1;
+    }
+    else if (rc == 0)
+    {
+      // Seed the RNG
+      srand(time(NULL) + getpid());
 
-    handle_http_request(newfd);
-
-    // Done with this
-    close(newfd);
+      handle_http_request(newfd);
+      close(newfd);
+      exit(0);
+    }
+    else
+    {
+      // Make sure the connection is closed after child sends response
+      close(newfd);
+    }
   }
 
   // Unreachable code
