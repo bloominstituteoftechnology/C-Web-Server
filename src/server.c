@@ -197,9 +197,15 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int contentLength = strlen(body);
   
   sprintf(
-    
-  )
+    response, 
+    "%s\nContent-Length: %ld\nContent-Type: %s\n%s", 
+    header, 
+    strlen(body), 
+    content_type, 
+    body
+    );
 
+  puts(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
