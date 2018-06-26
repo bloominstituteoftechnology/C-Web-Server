@@ -232,7 +232,11 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>Lambda School</title></head></html>");
+  char response_body[1024];
+
+  sprintf(response_body, "<!DOCTYPE html><html><head><title>Lambda School</title></head></html>");
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -240,7 +244,17 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME  
+  char response_body[1024];
+  // Seed random number using internal clock
+  srand(time(NULL));
+
+  int number = 1 + rand() % 20;
+
+  sprintf(response_body, "<h1>You rolled %d!</h1>", number);
+
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
+
 }
 
 /**
@@ -302,11 +316,9 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf(request, "%s, %s, %s\n", request_type, request_path, request_protocol);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
-  printf("%s\n", request_type);
-  printf("%s\n", request_path);
-  printf("%s\n", request_protocol);
+  printf("%s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -329,7 +341,7 @@ void handle_http_request(int fd)
     }
     else
     {
-      resp_404(fd, request_path);
+      resp_404(fd);
     }
   }
 }
