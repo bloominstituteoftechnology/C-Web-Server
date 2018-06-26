@@ -268,7 +268,7 @@ void get_date(int fd)
   time_t seconds = time(NULL);
   struct tm *ltime = localtime(&seconds);
 
-  sprintf(repsonse_body, "%s")
+  sprintf(response_body, "%s")
 
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
