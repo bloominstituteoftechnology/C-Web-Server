@@ -199,7 +199,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[65536];
 
   sprintf(date, "\nDate: %s", ctime(&now));
-  sprintf(content_length, "Content-Length: %d\n", strlen(body));
+  sprintf(content_length, "Content-Length: %d\n", (int) strlen(body));
   sprintf(content_type_header, "Content-Type: %s\n", content_type);
 
   sprintf(
@@ -271,6 +271,11 @@ void get_date(int fd)
  */
 void post_save(int fd, char *post_body)
 {
+  int post_file = open("./post_data", O_WRONLY);
+  flock(post_file, LOCK_EX);
+  write(post_file, post_body, strlen(post_body));
+  close(post_file);
+  flock(post_file, LOCK_UN);
   char *body = "{\"status\":\"ok\"}";
   send_response(fd, HTTP_200, JSON, body);
 }
@@ -291,7 +296,7 @@ char *find_start_of_body(char *request)
   {
     body += 2;
   }
-  else if (body = strstr(request, "\r\n\r\n"))
+  else if ((body = strstr(request, "\r\n\r\n")))
   {
     body += 4;
   }
@@ -310,7 +315,6 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  char *p;
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
