@@ -1,8 +1,3 @@
-// Goal is to make 3 endpoints:
-// (1) / contains default header
-// (2) /d20 contains a random number between 1-20
-// (3) /date prints current time in GMT
-
 // Port is 3490 with `PORT`
 
 // Line 180 in server.c sends 404

@@ -15,6 +15,8 @@
  * 
  * (Posting data is harder to test from a browser.)
  */
+  
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -266,7 +268,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd)
 {
-  const int request_buffer_size = 65536; // 64K
+  const int request_buffer_size = 65536; // Provies Max of 64Kilobites per request 
   char request[request_buffer_size];
   char *p;
   char request_type[8]; // GET or POST
@@ -287,12 +289,37 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  char *first_line = request; // Store the request in first_line
+  p = strchr(first_line, "\n");
+  
+  *p = "\0";
+
+  char *remaining_header = p + 1;
+
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  printf("Request: %s %s %s\n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd, request_path);
+    }
+  } else {
+    fprintf(stderr, "Look Cody I used standard error unlike last week when i totally fucked it up.\n", request_type);
+    return;
+  }
 }
 
 /**
