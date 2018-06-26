@@ -303,9 +303,9 @@ void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
   // roll a 20 sided die and output the response
-  void srand(unsigned int seed); // just creates the seed nothing else.
+    srand(time(0)); // just creates the seed nothing else.
   char diceRoll[1024];
-  int randomRoll = 1 + rand() % 20; /* random int between 1 and 25 */
+  int randomRoll = 1 + rand() % 20; /* random int between 1 and 20 */
   sprintf(diceRoll,"%d\n",randomRoll);
   send_response(fd, "HTTP/1.1 200 OK", "text/html", diceRoll);
 
@@ -347,6 +347,7 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  printf("The header is %c", header);
 }
 
 /**
