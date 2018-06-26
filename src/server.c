@@ -204,12 +204,26 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   //variable for the header and body
 
-  int content;
+  int content_length = strlen(body);
 
   // !!!!  IMPLEMENT ME
 
-  // Send it all!
-  int rv = send(fd, response, response_length, 0);
+  sprintf(response, "%s\n %s\n %s\n", header, content_type, body);
+
+  response_length = sprinf(
+      response,
+      "%s \n"
+      "Content-type: %s \n"
+      "Content-Length: %d \n"
+      "Connection: closed \n"
+      "\n"
+      "%s",
+      header, content_length, content_type, body
+      );
+      response_length = strlen(response);
+
+      // Send it all!
+      int rv = send(fd, response, response_length, 0);
 
   if (rv < 0)
   {
