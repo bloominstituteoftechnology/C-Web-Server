@@ -251,11 +251,11 @@ void get_date(int fd)
 /**
  * Post /save endpoint data
  */
-void post_save(int fd, char *body)
+void post_save(int fd, char *post_body)
 {
-  // !!!! IMPLEMENT ME
-
-  // Save the body and send a response
+  char body[1024];
+  sprintf(body, "You sent me this:\n\n%s", post_body);
+  send_response(fd, HTTP_200, HTML, body);
 }
 
 /**
@@ -267,9 +267,23 @@ void post_save(int fd, char *body)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
+char *find_start_of_body(char *request)
 {
-  // !!!! IMPLEMENT ME
+  char *body;
+  if ((body = strstr(request, "\n\n")) || (body = strstr(request, "\r\r")))
+  {
+    body += 2;
+  }
+  else if (body = strstr(request, "\r\n\r\n"))
+  {
+    body += 4;
+  }
+  else
+  {
+    body = NULL;
+  }
+
+  return body;
 }
 
 /**
@@ -302,11 +316,11 @@ void handle_http_request(int fd)
   printf("%s\t%s\t%s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  char *body = find_start_of_body(request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  if(strcmp(request_type, "GET") == 0)
+  if (strcmp(request_type, "GET") == 0)
   {
     if(strcmp(request_path, "/") == 0)
     {
@@ -323,6 +337,13 @@ void handle_http_request(int fd)
     else 
     {
       resp_404(fd);
+    }
+  }
+  else if (strcmp(request_type, "POST") == 0)
+  {
+    if (strcmp(request_path, "/save") == 0)
+    {
+      post_save(fd, body);
     }
   }
 }
