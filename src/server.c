@@ -240,11 +240,10 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
-  time_t rawtime;
-  struct tm *getTime;
-  getTime = gmtime(time(NULL));
-  send_response(fd,"HTTP/1.1 200 SUCCESS","text/plain",getTime); 
+  time_t t = time(NULL);
+  struct tm *tm = gmtime(&t);
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", asctime(tm));
+
 }
 
 /**
