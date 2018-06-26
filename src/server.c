@@ -220,7 +220,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!<h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!<p>");
 }
 
 /**
@@ -229,7 +229,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  
+  // srand(time(NULL) + getpid());
+  char response_body[1024];
+  sprintf(response_body, "<p>Random Number: %d</p>", (rand() % 20) + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -238,6 +241,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  time_t t = time(NULL);
+
+  sprintf(response_body, "%d\n", asctime(localtime(&t)));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -303,11 +311,11 @@ void handle_http_request(int fd)
     {
       get_root(fd);
     }
-    else if(strcmp(request_type, "/date") == 0)
+    else if(strcmp(request_path, "/date") == 0)
     {
       get_date(fd);
     }
-    else if(strcmp(request_type, "/d20") == 0)
+    else if(strcmp(request_path, "/d20") == 0)
     {
       get_d20(fd);
     }
