@@ -318,8 +318,6 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  char d20_check[] = "/d20";
-  char date_check[] = "/date";
   if ((strcmp(request_type, "GET") == 0) && (strcmp("/", request_path) == 0))
     get_root(fd);
   else if ((strcmp(request_type, "GET") == 0) && (strcmp("/d20", request_path) == 0))
