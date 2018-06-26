@@ -254,8 +254,7 @@ void get_d20(int fd)
 {
   int d20 = 1;
   char *body = malloc(48);
-  time_t t;
-  srand((unsigned)time(&t));
+  srand(time(NULL) + getpid());
   d20 += rand() % 20;
   sprintf(body, "%s%d%s",
           "<h1>The random number is ", d20, "</h1>");
