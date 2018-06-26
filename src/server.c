@@ -201,11 +201,24 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body); // Length of request or response body
+
+  // time
+  time_t timeinfo = time(NULL);
+  struct tm *ltime = localtime(&timeinfo);
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
   response_length = strlen(header) + strlen(body);
 
-  sprintf(response, "%s\n", "Content-Length: %d\n", "Content-Type: %s\n", "Connection: close\n", "%s\n", header, strlen(body), content_type, body);
+  sprintf(response,
+          "%s\n"
+          "Date:%s\n"
+          "Connection: close\n"
+          "Content-Length: %d\n"
+          "Content-Type: %s\n"
+          "%s\n",
+          header, timestamp, content_length, content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -244,7 +257,7 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME  
+  // !!!! IMPLEMENT ME
   char response_body[1024];
   // Seed random number using internal clock
   srand(time(NULL));
@@ -254,7 +267,6 @@ void get_d20(int fd)
   sprintf(response_body, "<h1>You rolled %d!</h1>", number);
 
   send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
-
 }
 
 /**
