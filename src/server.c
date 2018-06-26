@@ -190,8 +190,21 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body);
+  time_t poo = time(NULL);
+  struct tm *ltdan = localtime(&poo);
 
   // !!!!  IMPLEMENT ME
+  //Tried to model afrter the http response in the repo
+  response_length = sprintf(response, 
+  "%s\n"
+  "Date: %s"
+  "Connection: close\n"
+  "Content-length: %d\n"
+  "Content-type: %s\n"
+  "\n"
+  "%s"
+  , header, asctime(ltdan), content_length, content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +232,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h2>Y O Y</h2>");
 }
 
 /**
@@ -226,7 +240,12 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  //%d != decimal it means int
+  //char
   // !!!! IMPLEMENT ME
+  char bob[20];
+  sprintf(bob, "%d", (rand()%20)+1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", bob);
 }
 
 /**
@@ -235,6 +254,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t poo = time(NULL);
+  struct tm *ltdan = localtime(&poo);
+  char bob[200];
+  sprintf(bob, "%s", asctime(ltdan));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", bob);
 }
 
 /**
@@ -287,12 +311,27 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if(strcmp(request_type, "GET") == 0) {
+    if(strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }
+    else if(strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+    else if(strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    }
+    else {
+      resp_404(fd);
+    }
+  }
 }
 
 /**
