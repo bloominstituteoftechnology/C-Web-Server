@@ -191,14 +191,6 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  // char *response = malloc(sizeof(char) * 65536);
-  // memset(response, 0, 65536);
-
-  // strcat(response, header);
-  // strcat(response, "\n");
-  // strcat(response, content_type);
-  // strcat(response, "\n\n");
-  // strcat(response, body);
 
   char response[65536];
   sprintf(response, "%s\n%s\n\n%s", header, content_type, body);
@@ -209,8 +201,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   if (rv < 0) {
     perror("send");
   }
-
-  // free(response);
+  
   return rv;
 }
 
