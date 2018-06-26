@@ -200,29 +200,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  // int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  time_t currTime = time(NULL);
+  struct tm *timeCurr = localtime(&currTime);
+
   int content_length = strlen(body);
-  int response_length = sprintf(response, //sprintf sends formatted output to a string pointed to by str
-                                "%\n"
-                                "Content-Length: %d\n"
-                                "Content-Type: %s\n"
-                                "Date: %s"
-                                "Connection: close\n\n"
-                                "%s",
-                                header,
-                                content_length,
-                                content_type,
-                                asctime(timeCurr), //getting date and time
-                                body);             //total length of header plus body
-
-  )
+  int response_length = sprintf(response, 
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "\n"
+    "%s",
+    header,
+    content_length,
+    content_type,
+    asctime(timeCurr),
+    body); // Total length of header plus body
+ 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
-  if (rv < 0)
-  {
+  if (rv < 0) {
     perror("send");
   }
 
@@ -328,13 +328,35 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  char *first_line = request; 
+  p = strchr(first_line, '\n'); 
+  //truncate off everything else after this point
+  *p = '\0'; 
+  scanf(request, "%s %s %s", request_type, request_path, request_protocol); 
+//incrementing pointer to first character of 2nd line
+char *rest_of_header = p + 1; 
+
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+printf("REQUEST: &s &s &s\n", request_type, request_path, request_protocol);
+
+  If (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }  else if(strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+    resp_404(fd);
+  }
+  }
 }
+
 
 /**
  * Main
