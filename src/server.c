@@ -191,6 +191,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
+  time_t t = time(NULL);
   // !!!!  IMPLEMENT ME
   sprintf(response, "%s\n%s\n\n%s", header, content_type, body);
       // Send it all!
@@ -227,6 +228,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  int num = rand() % 100;
+  srand(time(0));
+  sprintf(response_body, "<h1>Random number: %d\n</h1>", num);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
