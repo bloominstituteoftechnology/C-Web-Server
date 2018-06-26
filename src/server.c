@@ -251,11 +251,11 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  int d20;
+  int d20 = 1;
   char *body = malloc(48);
   time_t t;
   srand((unsigned)time(&t));
-  d20 = rand() % 20;
+  d20 += rand() % 20;
   sprintf(body, "%s%d%s",
           "<h1>The random number is ", d20, "</h1>");
   send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
@@ -267,7 +267,15 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  time_t t;
+  struct tm *info;
+  time(&t);
+  info = gmtime(&t);
+  char *body = malloc(256);
+  sprintf(body, "%s%s%s",
+          "<h1>The current GMT is: ", asctime(info), "</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
+  free(body);
 }
 
 /**
@@ -337,6 +345,10 @@ void handle_http_request(int fd)
   else if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/d20") == 0)
   {
     get_d20(fd);
+  }
+  else if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/date") == 0)
+  {
+    get_date(fd);
   }
   else
   {
