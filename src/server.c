@@ -190,8 +190,30 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  // Handles time stamp
+  time_t seconds = time(NULL);
+  // Convert to a tm struct
+  struct tm *ltime = localtime(&seconds);
+  // Convert struct tm type to a string
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
+  // sprintf() for creating the HTTP response
+  // strlen() to get content length
+  int body_length = strlen(body);
+  sprintf(response, "%s\n %s\n %s\n", header, content_type, body);
+  // response_length = strlen(response) + strlen(body);
+  response_length = sprintf(
+    response,
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-type: %s\n"
+    "\n"
+    "%s\n",
+    header, timestamp, body_length, content_type, body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -202,7 +224,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   return rv;
 }
-
 
 /**
  * Send a 404 response
@@ -218,23 +239,55 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
  * Send a /d20 endpoint response
+ * srand()
+ * time(NULL)
+ * rand() 
  */
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+
+  char randNum[12];
+  int random = ((rand() %20) + 1);
+  sprintf(randNum, "<h1>%d</h1>", random);
+
+  send_response(fd, "HTTP/1.1 200 OK", "decimal", randNum);
 }
 
 /**
  * Send a /date endpoint response
+ * time(NULL)
+ * gmtime()
  */
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t t;
+  t = time(NULL);
+  char timeBuffer[30];
+  const char *fmt = "%a, %d %b %y %T %z";
+
+  struct tm *temp;
+
+  // temp = localtime(&t); 
+  temp = gmtime(&t);
+
+  if (temp == NULL) {
+    printf("Failed");
+    exit(1);
+  }
+
+  if (strftime(timeBuffer, sizeof(timeBuffer), fmt, temp) == 0) exit(2);
+
+  printf("%s\n", timeBuffer);
+
+  send_response(fd, "HTTP/1.1 200 OK", "date", timeBuffer);
 }
 
 /**
@@ -259,6 +312,7 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+
 }
 
 /**
@@ -286,15 +340,25 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
-  // Hint: sscanf()!
+  // First line of a request: GET(TYPE) /example(PATH) HTTP/1.1
+  // Second line of a request: Host: lambdaschool.com
+  // Hint: sscanf()! longstring request_type
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  // find_start_of_body();
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-}
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) get_root(fd);
+    else if (strcmp(request_path, "/d20") == 0) get_d20(fd);
+    else if (strcmp(request_path, "/date") == 0) get_date(fd);
+    else resp_404(fd);
+  } else if (strcmp(request_type, "POST") == 0) {
 
+  }
+}
 /**
  * Main
  */
