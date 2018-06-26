@@ -190,14 +190,46 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body);
+  // handle the timestamp
+  time_t seconds = time(NULL);
+  // convert to a tm struct
+  struct tm *ltime = localtime(&seconds); 
+  // convert struct tm type to a string
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
-  strcpy(response, header);
-  strcat(response, "\nConnection: close\nContent-Type: ");
-  strcat(response, content_type);
-  strcat(response, "\n\n");
-  strcat(response, body);
-  response_length = sizeof(response);
+  response_length = sprintf(response, 
+    // format // header
+    "%s\n"
+    "Date: %s"    // the new line is handled for us automatically by the time function
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s\n", // body
+    header,
+    timestamp,
+    content_length,
+    content_type,
+    body
+  );
+
+  // response_length = sprintf(response, "%s\n" 
+  // "Date: %s" 
+  // "Connection: close\n" 
+  // "Content-Length: %d\n" 
+  // "Content-Type: %s\n" 
+  // "\n" 
+  // "%s"
+  // , header, localtime, content_length, content_type, body);
+
+  // strcpy(response, header);
+  // strcat(response, "\nConnection: close\nContent-Type: ");
+  // strcat(response, content_type);
+  // strcat(response, "\n\n");
+  // strcat(response, body);
+  // response_length = sizeof(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -215,7 +247,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>\n");
 }
 
 /**
@@ -225,7 +257,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World!</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello World!</h1></html>\n");
 }
 
 /**
@@ -234,10 +266,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  int randomNum = rand() % 20 + 1;
-  char numstr[3];
-  sprintf(numstr, "%d\n", randomNum);
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", numstr);
+  // seed the random number generator
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d\n", (rand() % 20) + 1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -246,11 +281,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  time_t t = time(NULL);
-  struct tm *tm = localtime(&t);
-  char s[64];
-  strftime(s, sizeof(s), "%c", tm);
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", s);
+  char response_body[128];
+  time_t seconds = time(NULL);
+  struct tm *ltime = localtime(&seconds);
+
+  sprintf(response_body, "%s", asctime(ltime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
