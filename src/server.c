@@ -277,6 +277,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[8];
+
+  int randNum = (rand() % 20) + 1;
+  sprintf(response_body, "%d\n", randNum);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -284,7 +289,7 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  // !!!!IMPLEMENT ME
   time_t timer = time(NULL);
   struct tm *date = gmtime(&timer);
   char response_body[1024];
