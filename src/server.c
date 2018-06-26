@@ -190,6 +190,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  // Handles time stamp
+  time_t seconds = time(NULL);
+  // Convert to a tm struct
+  struct tm *ltime = localtime(&seconds);
+  // Convert struct tm type to a string
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
   // sprintf() for creating the HTTP response
@@ -200,12 +206,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
   response_length = sprintf(
     response,
     "%s\n"
+    "Date: %s"
     "Connection: close\n"
     "Content-Length: %d\n"
     "Content-type: %s\n"
     "\n"
     "%s\n",
-    header, body_length, content_type, body
+    header, timestamp, body_length, content_type, body
   );
 
   // Send it all!
@@ -336,7 +343,7 @@ void handle_http_request(int fd)
   // First line of a request: GET(TYPE) /example(PATH) HTTP/1.1
   // Second line of a request: Host: lambdaschool.com
   // Hint: sscanf()! longstring request_type
-  sscanf(request, "%s %s %s %s", request_type, request_path, request_protocol);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body();
