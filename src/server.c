@@ -261,7 +261,27 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  //  send_response(fd, "HTTP/1.1 200 OK", "date", "");
+  time_t t;
+  t = time(NULL);
+  char timeBuffer[30];
+  const char *fmt = "%a, %d %b %y %T %z";
+  int imran = 2;
+
+  struct tm *temp;
+
+  // temp = localtime(&t); 
+  temp = gmtime(&t);
+
+  if (temp == NULL) {
+    printf("Failed");
+    exit(1);
+  }
+
+  if (strftime(timeBuffer, sizeof(timeBuffer), fmt, temp) == 0) exit(imran);
+
+  printf("%s\n", timeBuffer);
+
+  send_response(fd, "HTTP/1.1 200 OK", "date", timeBuffer);
 }
 
 /**
