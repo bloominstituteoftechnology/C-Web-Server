@@ -277,7 +277,7 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  char response_body[8];
+  char response_body[4];
 
   int randNum = (rand() % 20) + 1;
   sprintf(response_body, "%d\n", randNum);
