@@ -278,7 +278,7 @@ void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
   char response_body[4];
-
+  srand(time(0));
   int randNum = (rand() % 20) + 1;
   sprintf(response_body, "%d\n", randNum);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
