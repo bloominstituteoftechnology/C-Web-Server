@@ -78,7 +78,6 @@ void start_reaper(void)
     perror("sigaction");
     exit(1);
   }
-}
 
 /**
  * This gets an Internet address, either IPv4 or IPv6
@@ -103,7 +102,7 @@ int get_listener_socket(char *port)
 {
   int sockfd;
   struct addrinfo hints, *servinfo, *p;
-  int yes=1;
+  int yes = 1;
   int rv;
 
   // This block of code looks at the local network interfaces and
@@ -190,8 +189,31 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body);
+  time_t seconds = time(NULL);
+  //convert to a tm struct
+  struct tm *ltime = localtime(&seconds);
+  //convert struct tm type to a string
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
+response_length = sprintf(response,
+  //format
+  // header
+  "%s\n"
+  "Date: %s" //the newñine is handled for us automatically by the time
+  "Connection: close \n"
+  "Content-Length: %d\n"
+  "Content-Type: %s\n"
+  "\n"
+  //body
+  "%s\n",
+  header,
+  timestamp,
+  content_length,
+  content_type,
+  body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -209,7 +231,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>\n");
 }
 
 /**
@@ -219,6 +241,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello, World!</h1></html>\n");
+
 }
 
 /**
@@ -227,6 +251,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // seed the random number generator
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d\n", (rand() % 20) + 1);
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +266,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t seconds = time (NULL);
+  struct tm *ltime = localtime(&seconds);
+
+  sprintf(response_body, "%s", asctime(ltime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
