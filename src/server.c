@@ -285,6 +285,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t timer = time(NULL);
+  struct tm *date = gmtime(&timer);
+  char response_body[1024];
+
+  sprintf(response_body, "%s\n", asctime(date));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
