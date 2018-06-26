@@ -229,7 +229,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<head><title>Hello World!</title><body><h1>Hello World!</h1></body></head>");
 }
 
 /**
@@ -279,14 +279,17 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  char *p;
+  char *p;                    // who are you char *p??
   char request_type[8];       // GET or POST
   char request_path[1024];    // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
   // Read request
+  // buffer is a pointer because it's an array
+  // recv() returns how many bytes - not actual request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
+  // if neg value received, return error
   if (bytes_recvd < 0)
   {
     perror("recv");
@@ -299,6 +302,15 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  // get the first line in its own var
+  // char *first_line = request;
+  // // cut off everything after first_line
+  // // look for the newline char
+  // // strchr searches for a specific char in a string
+  // p = strchr(first_line, '\n');
+  // // truncate off everything else after this point
+  // *p = '\0'; // everything after this point is unreachable
+
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
@@ -307,6 +319,31 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
   printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+}
+
+if (strcmp(request_type, "GET") == 0)
+{
+  if (strcmp(request_path, "/") == 0)
+  {
+    get_root(fd);
+  }
+  else if (strcmp(request_path, "/d20") == 0)
+  {
+    get_d20(fd);
+  }
+  else if (strcmp(request_path, "/date") == 0)
+  {
+    get_date(fd);
+  }
+  else
+  {
+    resp_404(fd, request_path);
+  }
+  else
+  {
+    fprintf(stderr, "unknown request type %s\n", request_type);
+    return;
+  }
 }
 
 /**
