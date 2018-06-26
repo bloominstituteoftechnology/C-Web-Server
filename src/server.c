@@ -176,7 +176,7 @@ int get_listener_socket(char *port)
   return sockfd;
 }
 
-/**
+/** PART 1---------------------------------------------------
  * Send an HTTP response
  *
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
@@ -189,9 +189,15 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  int response_length = strlen(response); // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  strcpy(response, header);
+  strcat(response, "\nConnection: close\nContent-Type: ");
+  strcat(response, content_type);
+  strcat(response, "\n\n");
+  strcat(response, body);
+  response_length = sizeof(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,7 +225,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTML/1.1 200 OK", "text/html", "<h2>Hello World!</h2>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World!</h1>");
 }
 
 /**
@@ -265,7 +271,7 @@ char *find_start_of_body(char *header)
 /**
  * Handle HTTP request and send response
  */
-void handle_http_request(int fd)
+void handle_http_request(int fd) //fd = socket file descriptor
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
@@ -277,6 +283,7 @@ void handle_http_request(int fd)
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
+  // Error checking
   if (bytes_recvd < 0) {
     perror("recv");
     return;
@@ -288,26 +295,37 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf(request, "%s %s", request_type, request_path);
+  // get the first line in its own variable
+  // ----part of stretch; uncomment -----------------------------
+  // char *first_line = request;
+  // // cut off everything after the first line
+  // // look for the newline character
+  // p = strchr(first_line, '\n');
+  // // truncate off everything else after this point
+  // *p = '\0';
+  // ----part of stretch; uncomment -----------------------------
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  if(strcmp(request_type, "GET") == 0) {
-    if(strcmp(request_path, "/") == 0) {
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
       get_root(fd);
-    }
-    else if(strcmp(request_path, "/d20") == 0) {
+    } else if (strcmp(request_path, "/d20") == 0) {
       get_d20(fd);
-    }
-    else if(strcmp(request_path, "/date") == 0) {
+    } else if (strcmp(request_path, "/date") == 0) {
       get_date(fd);
-    }
-    else {
+    } else {
       resp_404(fd);
     }
+  } else {
+    fprintf(stderr, "unimplemented request type %s\n", request_type);
+    return;
   }
 }
 
