@@ -195,7 +195,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // sprintf() for creating the HTTP response
   // strlen() to get content length
   sprintf(response, "%s, %s, %s", *header, *content_type, *body);
-  response_length = strlen(response);
+  response_length = strlen(header) + strlen(body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
