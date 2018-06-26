@@ -203,6 +203,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  response_length = strlen(header) + strlen(body);
+
+  sprintf(response, "%s\n", "Content-Length: %d\n", "Content-Type: %s\n", "Connection: close\n", "%s\n" header, strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
