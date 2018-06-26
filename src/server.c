@@ -192,6 +192,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  time_t t = time(NULL);
+  response_length = sprintf(response, "%s\n" "Date: %s" "Connection: close\n" "Content-length: %d\n" "Content-Type: %s\n" "\n" "%s", header, asctime(localtime(&t)), strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -227,6 +229,7 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  
 }
 
 /**
