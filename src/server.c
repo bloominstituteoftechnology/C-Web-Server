@@ -335,6 +335,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd)
 {
+  printf("\nHANDLER CALLED BY PID %d\n", getpid());
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
@@ -448,7 +449,16 @@ int main(void)
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
-    handle_http_request(newfd);
+    int forked = fork();
+    if (forked == 0)
+    {
+      handle_http_request(newfd);
+      printf("CHILD PID %d\n", getpid());
+    }
+    else
+    {
+      printf("PARENT PID %d\n", getpid());
+    }
 
     // Done with this
     close(newfd);
