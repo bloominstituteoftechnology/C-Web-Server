@@ -284,7 +284,25 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", body);
+  FILE *fp;
+  fp = fopen("data.json", "r+");
+  if (fp)
+  {
+    printf("This file EXISTSTSSS \n\n\n");
+    fseek(fp, -2, SEEK_END);
+    char *put = malloc(256);
+    sprintf(put, ",\n\t{\n\t\t\"data\": \"%s\"\n\t}\n]", body);
+    fputs(put, fp);
+    free(put);
+  }
+  else
+  {
+    fp = fopen("data.json", "w");
+    fprintf(fp, "[\n\t{\n\t\t\"data\": \"%s\"\n\t}\n]", body);
+    printf("FILE NOT EXISTENT");
+  }
+  fclose(fp);
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\":\"ok\"}");
 }
 
 /**
