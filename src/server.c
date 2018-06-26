@@ -208,19 +208,18 @@ int send_response(int fd, char *header, char *content_type, char *body)
   time_t rawtime;
   struct tm *localTime;
 
-
   localTime = ctime(&rawtime); // current time
 
-  sprintf(locTime, "Date: %s", asctime(localTime)); // int to char in GMT (e.g. Tue Jun)
+  sprintf(locTime, "%s", localTime); // int to char in GMT (e.g. Tue Jun)
 
   // !!!!  IMPLEMENT ME
   sprintf(response,
           "%s\n"                 // header
-          "Date: %s\n"           //local time
+          "Date: %s"             // local time; it already moves to new line
           "Connection: close\n"  // connection status
-          "Content-Length: %s\n" // content length
-          "Content-Type: %s\n\n" //double space
-          "%s\n",
+          "Content-Length: %d\n" // content length
+          "Content-Type: %s\n\n" // double spaces
+          "%s\n",              // body
           header,
           locTime,        // date; connection-type is hard coded (skip)
           content_length, // content-length
@@ -244,7 +243,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>\n");
 }
 
 /**
@@ -254,7 +253,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>GET root</h1></html>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>root directory</h1>\n");
 }
 
 /**
@@ -263,11 +262,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  char str[2]; // since it will only be between 1 and 20;
+  char str[15]; // since it will only be between 1 and 20;
 
   srand(time(0)); // use CURRENT time as seed for random generation
   int rando = rand() % 20 + 1;
-  sprintf(str, "%d", rando); // convert int to string
+  sprintf(str, "<h2>Picked: %d</h2>\n", rando); // convert int to string
   send_response(fd, "HTTP/1.1 200 OK", "text/html", str);
 }
 
