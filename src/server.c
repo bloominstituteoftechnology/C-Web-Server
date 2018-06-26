@@ -203,12 +203,34 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  response_length = strlen(body) + strlen(header);
-  *response = sprintf("%s %s %s", header, content_type, body);
+  int body_length = strlen(body);
+  // response_length =  strlen(header);
+  // response_length += strlen(body);
+  //  sprintf(response," %s \n %s \n %s \r \n", header, content_type, body);
+  // sprintf(response,
+  //         "\n %s %s %s %s \n",
+  //         header,
+  //         "Connection: close",
+  //         content_type,
+  //         body);
+ response_length = sprintf(
+      response,
+      "%s\n"
+      "Connection: close\n"
+      "Content-Length: %d\n"
+      "Content-type: %s\n"
+      "\n"
+      "%s  \n",
+      header, body_length, content_type, body);
   // char comobo[] = {header, content_type, body};
   // *response = comobo;
 
   // Send it all!
+  printf("before\n");
+  printf("header : %s, response Length: %d, \n response: %s\n", header, response_length, response);
+
+  printf("after\n");
+
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0)
@@ -243,10 +265,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char temp[25];
   srand(time(NULL));
   int rnum = (int)(1 + rand() % 20);
   char *strnum = rnum;
-  send_response(fd,"HTTP/1.1 200 OK", "text/html", strnum);
+  sprintf(temp, "<h1>%d</h1>", rnum);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", temp);
 }
 
 /**
@@ -256,24 +280,26 @@ void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
   char outstr[200];
-    time_t t;
-    struct tm *tmp;
-    const char* fmt = "%a, %d %b %y %T %z";
+  time_t t;
+  struct tm *tmp;
+  const char *fmt = "%a, %d %b %y %T %z";
 
-    t = time(NULL);
-    tmp = gmtime(&t);
-    if (tmp == NULL) {
-        perror("gmtime error");
-        exit(1);
-    }
+  t = time(NULL);
+  tmp = gmtime(&t);
+  if (tmp == NULL)
+  {
+    perror("gmtime error");
+    exit(1);
+  }
 
-    if (strftime(outstr, sizeof(outstr), fmt, tmp) == 0) { 
-        // fprintf(stderr, "strftime returned 0");
-        exit(1); 
-    } 
-    printf("%s\n", outstr);
-    send_response(fd,"HTTP/1.1 200 OK", "text/html", outstr);
-    exit(EXIT_SUCCESS); 
+  if (strftime(outstr, sizeof(outstr), fmt, tmp) == 0)
+  {
+    // fprintf(stderr, "strftime returned 0");
+    exit(1);
+  }
+  printf("%s\n", outstr);
+  send_response(fd, "HTTP/1.1 200 OK", "date", outstr);
+  // exit(EXIT_SUCCESS);
 }
 
 /**
