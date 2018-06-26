@@ -215,11 +215,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   char date = "Placeholder";
 
-  printf("Send response called fd: %d, %s %s %s\n", fd, header, content_type, body);
+  // printf("Send response called fd: %d, %s %s %s\n", fd, header, content_type, body);
 
   int rv = send(fd, response, response_length, 0);
 
-  printf("This is rv: %d\n", rv);
+  // printf("This is rv: %d\n", rv);
 
   if (rv < 0)
   {
@@ -243,7 +243,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>");
-  printf("get_root(%d %d) called \n", fd, &fd);
+  // printf("get_root(%d %d) called \n", fd, &fd);
 }
 
 /**
@@ -251,7 +251,15 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  int d20;
+  char *body = malloc(48);
+  time_t t;
+  srand((unsigned)time(&t));
+  d20 = rand() % 20;
+  sprintf(body, "%s%d%s",
+          "<h1>The random number is ", d20, "</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
+  free(body);
 }
 
 /**
@@ -310,13 +318,10 @@ void handle_http_request(int fd)
   // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
-  // Hint: sscanf()!
-
   // printf("Here is the request: \n %s \n", request);
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  printf("%s %s %s\n", request_type, request_path, request_protocol);
+  printf("request_type: %s\nrequest_path: %s\nrequest_protocol: %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -327,8 +332,15 @@ void handle_http_request(int fd)
   // printf("HERE IS STRING COMPARE: %d \n ", strcmp(request_type, "GET"));
   if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/") == 0)
   {
-    // printf("HELLO %s %s \n", request_type, request_path);
     get_root(fd);
+  }
+  else if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/d20") == 0)
+  {
+    get_d20(fd);
+  }
+  else
+  {
+    resp_404(fd);
   }
 }
 
