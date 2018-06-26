@@ -294,6 +294,25 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  if(strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if(strcmp(request_type, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else if(strcmp(request_type, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else
+    {
+      resp_404(fd);
+    }
+  }
 }
 
 /**
