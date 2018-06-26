@@ -190,8 +190,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int constent_length = strlen(body);
 
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(response, 
+    "%s\n"
+    "Date: Wed Dec 20 13:05:11 PST 2017\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n\n\n"
+    
+    "<!DOCTYPE html><html><head><title>Lambda School</title></head><body> %s </body></html>)",
+    header, constent_length, content_type, body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,7 +230,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  //send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World!</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World!</h1>");
+
   printf("\n === request to root adress ===\n");
 }
 
