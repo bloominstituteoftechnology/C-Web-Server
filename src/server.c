@@ -234,6 +234,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char html[30];
+
+  srand(time(0));
+  sprintf(html, "<h1>You rolled a %d!</h1>", rand() % 20 + 1);
+
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", html);
 }
 
 /**
