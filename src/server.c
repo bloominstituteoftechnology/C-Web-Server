@@ -190,8 +190,30 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+int content_length = strlen(body);
+  //handle timestamp
+  time_t seconds = time(NULL);
+  // convert to a tm struct
+  struct tm *ltime = localtime(&seconds);
+  //convert struct tm type to a string
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
+response_length = sprintf(response,
+  "%s\n"
+  "Date: %s"
+  "Connection: close\n"
+  "Content-Length %d\n"
+  "Content-Type: %s\n"
+  "\n"
+  "s\n",
+  header,
+  timestamp,
+  content_length,
+  content_type,
+  body
+);
+
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
