@@ -78,6 +78,7 @@ void start_reaper(void)
     perror("sigaction");
     exit(1);
   }
+}
 
 /**
  * This gets an Internet address, either IPv4 or IPv6
