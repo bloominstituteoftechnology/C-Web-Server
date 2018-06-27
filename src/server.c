@@ -200,7 +200,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  int response_length;               // Total length of header plus body
   int content_length = strlen(body); // Length of request or response body
 
   // time
@@ -209,14 +209,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
-  response_length = strlen(header) + strlen(body);
+  //response_length = strlen(header) + strlen(body);
 
-  sprintf(response,
+  // printf("%d", response_length);
+
+  response_length = sprintf(response,
           "%s\n"
-          "Date:%s\n"
+          "Date: %s"
           "Connection: close\n"
           "Content-Length: %d\n"
           "Content-Type: %s\n"
+          "\n"
           "%s\n",
           header, timestamp, content_length, content_type, body);
 
@@ -247,7 +250,7 @@ void get_root(int fd)
   // !!!! IMPLEMENT ME
   char response_body[1024];
 
-  sprintf(response_body, "<!DOCTYPE html><html><head><title>Lambda School</title></head></html>");
+  sprintf(response_body, "<h1>Lambda School</h1>");
 
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -266,7 +269,7 @@ void get_d20(int fd)
 
   sprintf(response_body, "<h1>You rolled %d!</h1>", number);
 
-  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/plain", response_body);
+  send_response(fd, "HTTP/1.1 200 SUCCESS", "text/html", response_body);
 }
 
 /**
@@ -355,6 +358,10 @@ void handle_http_request(int fd)
     {
       resp_404(fd);
     }
+  }
+  else
+  {
+    printf("there is an errrorrrrrrrrrr");
   }
 }
 
