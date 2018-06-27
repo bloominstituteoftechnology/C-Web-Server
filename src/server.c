@@ -34,7 +34,7 @@
 
 #define PORT "3490" // the port users will be connecting to
 
-#define BACKLOG 10 // how many pending connections queue will hold
+#define BACKLOG 9 // how many pending connections queue will hold
 
 /**
  * Handle SIGCHILD signal
@@ -200,9 +200,24 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  time_t t = time(NULL);
+  struct tm *localT = localtime(&t);
+
+  int contentlength = strlen(body);
+  int response_length = sprintf(response,
+                                "\n\n%s\n" //header
+                                "Content-Length: %d\n"
+                                "Content-Type: %s\n"
+                                "Date & time: %s\n" //
+                                "Connection: close\n\n"
+                                "%s",
+
+                                header,
+                                contentlength,
+                                content_type,
+                                asctime(localT),
+                                body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,9 +233,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  char response_body[1024];
+
+  sprintf(response_body, "404: %s not found", path);
+  
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
 }
 
 /**
@@ -228,8 +247,9 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, World!</h1></body></html>\n\n";
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -237,7 +257,12 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "\n d20: %d\n\n", (rand() % 20) + 1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -245,17 +270,13 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
-}
+  char response_body[128];
+  time_t t1 = time(NULL);
+  struct tm *gtime = gmtime(&t1);
 
-/**
- * Post /save endpoint data
- */
-void post_save(int fd, char *body)
-{
-  // !!!! IMPLEMENT ME
+  sprintf(response_body, "%s", asctime(gtime));
 
-  // Save the body and send a response
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -296,34 +317,43 @@ void handle_http_request(int fd)
   // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
-  // Hint: sscanf()!
   char *line1 = request;
+
   sscanf(line1, "%s %s", request_type, request_path);
 
-  if (strcmp(request_type, "GET") == 0) {
+  if (strcmp(request_type, "GET") == 0)
+  {
 
-        if (strcmp(request_path, "/") == 0) {
-           get_root(fd);
-        }  else {
-           resp_404(fd, request_path);
-        }
- 
-  }   else {
+    // Endpoint "/"
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
 
-    fprintf(stderr, "unknown request type \"%s\"\n", request_type);
-    return;
+    // Endpoint "/d20"
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
 
+    // Endpoint "/date"
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+
+    else
+    {
+      resp_404(fd, request_path);
+    }
   }
 
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
-
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+  else
+  {
+    fprintf(stderr, "unknown request type \"%s\"\n", request_type);
+    return;
+  }
 }
-sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 /**
  * Main
  */
