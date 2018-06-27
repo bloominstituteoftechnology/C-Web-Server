@@ -15,6 +15,8 @@
  * 
  * (Posting data is harder to test from a browser.)
  */
+  
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -190,8 +192,32 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body); 
+  // handle timestamp
+  time_t seconds = time(NULL);
+  
+  // convert to a tm struct
+  struct tm *ltime = localtime(&seconds);
+
+  // convert struct tim to string
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(response, 
+    // format of response
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-Length: %s\n"
+    "\n"
+    // body
+    "&s\n",
+    header, 
+    timestamp,
+    content_length,
+    content_type,
+    body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +244,8 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello, World</h1></html>\n");
+
 }
 
 /**
@@ -227,6 +254,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid()); 
+
+  char response_body[8];
+  sprintf(response_body, "%d\n", (rand() % 20) + 1);
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +268,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t seconds = time(NULL);
+  struct tm *ltime = localtime(&seconds);
+
+  sprintf(response_body, "%s", asctime(ltime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);)
 }
 
 /**
@@ -266,7 +306,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd)
 {
-  const int request_buffer_size = 65536; // 64K
+  const int request_buffer_size = 65536; // Provies Max of 64Kilobites per request 
   char request[request_buffer_size];
   char *p;
   char request_type[8]; // GET or POST
@@ -287,12 +327,37 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  char *first_line = request; // Store the request in first_line
+  p = strchr(first_line, "\n");
+  
+  *p = "\0";
+
+  char *remaining_header = p + 1;
+
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  printf("Request: %s %s %s\n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd, request_path);
+    }
+  } else {
+    fprintf(stderr, "Look Cody I used standard error unlike last week when i totally fucked it up.\n", request_type);
+    return;
+  }
 }
 
 /**
