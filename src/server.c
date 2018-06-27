@@ -275,9 +275,10 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME
+  printf("Called post_save\n");
+  printf("Body to save: %s\n", body);
 
-  // Save the body and send a response
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "Saved the data!\n");
 }
 
 /**
@@ -321,14 +322,20 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  printf("%s %s\n", request_type, request_path);
 
-  // char temp;
+  int i = 0;
+  char* tempReq;
 
-  // do {
-  //     sscanf(request, "%c", &temp);
-  // } while(temp != '\n'); //One more time for second newline
-  // sscanf(request, "%c", &temp);  // start of body now in request
+  do {
+      // printf("%c", request[i]);
+      i++;
+  } while(!((request[i] == '\r') && (request[i-1] == '\n')));
+  tempReq = &request[i+2]; // start of body now in tempReq as string
+  
+  // printf("\nNext Line:");
+  // printf("%s", tempReq);
+  // printf("\n");
+
 
   if (!strcmp("GET", request_type))
   {
@@ -342,9 +349,9 @@ void handle_http_request(int fd)
   else if (!strcmp("POST", request_type))
   {
     if(!strcmp("/", request_path))
-      get_root(fd);
-    else if(!strcmp("/d20", request_path))
-      get_d20(fd);
+      printf("Post Root\n");//get_root(fd);
+    else if(!strcmp("/save", request_path))
+      post_save(fd, tempReq);
   }
 
   // !!!! IMPLEMENT ME (stretch goal)
