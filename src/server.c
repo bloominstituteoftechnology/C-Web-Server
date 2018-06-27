@@ -276,7 +276,12 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   printf("Called post_save\n");
-  printf("Body to save: %s\n", body);
+  //printf("Body to save: %s\n", body);
+  strcat(body, "\n");
+  FILE *file_ptr;
+  file_ptr = fopen("../data/storage.bin","ab+");
+  fwrite(body, 1, strlen(body),file_ptr);
+  fclose(file_ptr);
 
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "Saved the data!\n");
 }
