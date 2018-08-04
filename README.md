@@ -22,10 +22,11 @@ What you don't need to write:
 
 ## What is a Web Server?
 
-A web server is a piece of software that accepts HTTP requests (commonly GET
-requests for HTML pages), and returns responses (commonly HTML pages). Other
-common uses are GET requests for images within web pages, and POST requests to
-upload data to the server (e.g. a form submission or file upload).
+A web server is a piece of software that accepts HTTP requests (e.g. GET
+requests for HTML pages), and returns responses (e.g. HTML pages). Other common
+uses are GET requests for getting data from RESTful API endpoints, images within
+web pages, and POST requests to upload data to the server (e.g. a form
+submission or file upload).
 
 ## General Information about Networking
 
