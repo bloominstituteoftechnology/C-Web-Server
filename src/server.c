@@ -192,6 +192,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  char header_time[1024];
+  time_t current_time = time(NULL);
+  struct tm *local_time = localtime(&current_time);
+  strftime(header_time, 1024, "%A, %B %d %X %Z %Y", local_time);
+
+  int content_length = strlen(body);
+  response_length = sprintf(response, "%s\n"
+  "Content_Length: %d\n"
+  "Content-Type: %s\n"
+  "Date: %s\n"
+  "Connection: close\n" 
+  "\n"
+  "%s", header, content_length, content_type, header_time, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +231,11 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  char response_body[1024];
+
+  sprintf(response_body, "<!DOCTYPE html><html><body><h1>Hello World!</h1></body></html>");
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -226,7 +243,14 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  int size = 16;
+  char *response_body = (char *) malloc(size);
+
+  srand(time(NULL));
+
+  snprintf(response_body, size, "You rolled: %d", (rand() % 20 + 1));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+  free(response_body);
 }
 
 /**
@@ -234,7 +258,14 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  int size = 64;
+  char *response_body = (char *) malloc(size);
+  time_t current_time = time(NULL);
+  struct tm *local_time = localtime(&current_time);
+  
+  strftime(response_body, size, "%A, %B %d, %X %Z %Y", local_time);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+  free(response_body);
 }
 
 /**
@@ -287,12 +318,22 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_path, "/") == 0) {
+    get_root(fd);
+  } else if (strcmp(request_path, "/d20") == 0) {
+    get_d20(fd);
+  } else if (strcmp(request_path, "/date") == 0) {
+    get_date(fd);
+  } else {
+    resp_404(fd, request_path);
+  }
 }
 
 /**
