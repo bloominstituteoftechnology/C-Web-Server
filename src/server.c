@@ -190,8 +190,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int constent_length = strlen(body);
 
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(response, 
+    "%s\n"
+    "Date: Wed Dec 20 13:05:11 PST 2017\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n\n\n"
+    
+    "<!DOCTYPE html><html><head><title>Lambda School</title></head><body> %s </body></html>)",
+    header, constent_length, content_type, body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +230,9 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World!</h1>");
+
+  printf("\n === request to root adress ===\n");
 }
 
 /**
@@ -288,11 +302,30 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf(request_type, request_path, request_protocol);
+
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else if (strcmp(request_type, "POST") == 0) {
+    printf("POST request made");
+  } else {
+    resp_404(fd);
+  }
 }
 
 /**
