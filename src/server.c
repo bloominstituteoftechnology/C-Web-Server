@@ -218,7 +218,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>get_root</h1>");
 }
 
 /**
@@ -298,21 +298,25 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
 
+  // if request_type is GET AND path is / then get_root
   if (strcmp(request_type, "GET") == 0)
   {
     if (strcmp(request_path, "/") == 0)
     {
       get_root(fd);
     }
+  // or if the path is /d20 instead, then get_d20
     else if (strcmp(request_path, "/d20") == 0)
     {
       get_d20(fd);
     }
+  // otherwise, 404
     else
     {
       resp_404(fd);
     }
   }
+  // if the request type isn't GET, you have real problems
   else
   {
     fprintf(stderr, "whoops!");
