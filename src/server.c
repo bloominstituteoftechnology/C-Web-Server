@@ -34,7 +34,7 @@
 
 #define PORT "3490"  // the port users will be connecting to
 
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10   // how many pending connections queue will hold
 
 /**
  * Handle SIGCHILD signal
@@ -192,6 +192,19 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  int content_length;
+  content_length = strlen(body);
+  response_length = sprintf(response,
+    "%s\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "Connection: close\n"
+    "\n"
+    "%s",
+    header,
+    content_length,
+    content_type,
+body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +231,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hearthstone rocks!</h1>");
 }
 
 /**
@@ -227,6 +240,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int d20;
+  char num[3];
+  srand(time(NULL));
+  d20 = rand() % 20;
+  sprintf(num, "%d\n", d20);
+send_response(fd, "HTTP/1.1 200 OK", "text/plain", num);
 }
 
 /**
@@ -235,6 +254,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char date[64];
+  strftime(date, sizeof(date), "%c", tm);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", date);
 }
 
 /**
@@ -287,12 +311,20 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if ((strcmp(request_type, "GET") == 0) && (strcmp("/", request_path) == 0))
+    get_root(fd);
+  else if ((strcmp(request_type, "GET") == 0) && (strcmp("/d20", request_path) == 0))
+    get_d20(fd);
+  else if ((strcmp(request_type, "GET") == 0) && (strcmp("/date", request_path) == 0))
+    get_date(fd);
+  else resp_404(fd);
 }
 
 /**
@@ -354,4 +386,3 @@ int main(void)
 
   return 0;
 }
-
