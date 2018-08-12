@@ -191,20 +191,24 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 // totally got this from Stack Overflow: https://stackoverflow.com/questions/1442116/how-to-get-the-date-and-time-values-in-a-c-program
-// I actually don't even know if this was part of the assignment, since the
-// instructions above are different from the instructions in the README
-// but it was fun looking it up and learning how to datestamp. 
   time_t t = time(NULL);
   struct tm *tm = localtime(&t);
   
   // !!!!  IMPLEMENT ME
+  int content_length = strlen(body);
   response_length = sprintf(response,
-    "%s\n",
-    "Date: %s\n",
-    "Connection: close\n",
-    "Content-Length: %d\n",
-    "Content-Type: %s\n",
-    header, asctime(tm), strlen(body), content_type, body);
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header,
+    asctime(tm),
+    content_length,
+    content_type,
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -231,7 +235,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>get_root</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>get_root</h1></html>");
 }
 
 /**
@@ -244,11 +248,11 @@ void get_d20(int fd)
   srand(time(NULL)); // hint from README
   // srand(time(NULL)) uses the computer's internal clock to help generate
   // random number
-  char response[1024];
+  char str[1024];
   int random = rand() % 20;
-  sprintf(response, "%d\n", random);
+  sprintf(str, "%d\n", random);
 
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", response);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", str);
   
 }
 
@@ -261,13 +265,13 @@ void get_date(int fd)
 
   // used this https://www.tutorialspoint.com/c_standard_library/c_function_gmtime.htm
   // to help me construct this endpoint response
-  time_t epoch;
-  struct tm *tm;
-  time(&epoch);
-  char response[1024];
-  sprintf(response, "%s\n", asctime(gmtime(&epoch)));
+  time_t epoch = time(NULL);
+  struct tm *tm = localtime(&epoch);
+  char mydate[1024];
+  
+  sprintf(mydate, "%s\n", asctime(tm));
 
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", response); 
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", mydate); 
 }
 
 /**
@@ -323,11 +327,9 @@ void handle_http_request(int fd)
 
   // The instructions here are different from the instructions in 
   // the README, which say we should also get the protocol.
-  // It doesn't seem like we use the protocol for anything so I
-  // skipped it
-  sscanf(request, "%s, %s", request_type, request_path);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
-  printf("request_type = %s, request_path = %s", request_type, request_path);
+  printf("request_type = %s, request_path = %s, request_protocol = %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -347,6 +349,11 @@ void handle_http_request(int fd)
     {
       get_d20(fd);
     }
+  // or if the path is /date, then get_date
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
   // otherwise, 404
     else
     {
@@ -357,6 +364,7 @@ void handle_http_request(int fd)
   else
   {
     fprintf(stderr, "whoops!");
+    return;
   }
 }
 
