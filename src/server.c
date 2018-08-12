@@ -187,11 +187,25 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
+  printf("Inside send_response\n");
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
 
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(response,
+    "%s\n"
+    "\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n\n"
+    "%s\n",
+    header, asctime(ltime), strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -209,6 +223,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
+  printf("Inside resp_404\n");
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
 }
 
@@ -218,7 +233,11 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  printf("Inside get_root\n");
+  // char rootResp[] = "<!DOCTYPE html><html><head><title>LambdaSchool</title><head><body><div>Some text here.</div></body><html>\n\n";
+  // send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>LambdaSchool</title><head><body><div>Some text here.</div></body></html>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>LambdaSchool!</h1>");
+
 }
 
 /**
@@ -227,6 +246,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t t;
+  srand((unsigned) time(&t));
+  int number = 0;
+  while(number == 0) {
+    number = rand() % 21;
+  }
+  char str[2];
+  sprintf(str, "%d", number);
+
+  send_response(fd, "HTTP/101.200 OK", "text/html", str);
 }
 
 /**
@@ -287,13 +316,38 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("type: %s\n", request_type);
+  printf("path: %s\n", request_path);
+  printf("protocol: %s\n\n", request_protocol);
+
+
+
+  // printf("HTTP Request: %s\n", request[1]);
+  // p = strchr(request, '\n');  //Get the first line
+  // *p = '/0';  // set the address of the pointer to the null terminator
+
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-}
+  if(strcmp(request_type, "GET") == 0) {
+    if(strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if(strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else {
+    fprintf(stderr, "Problem with your request: %s\n", request_type);
+    return;
+  };
+};
 
 /**
  * Main
