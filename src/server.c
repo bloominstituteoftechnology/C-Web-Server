@@ -204,7 +204,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
     "Connection: close\n",
     "Content-Length: %d\n",
     "Content-Type: %s\n",
-    header, asctime(ltime), strlen(body), content_type, body);
+    header, asctime(tm), strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -240,6 +240,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // Note to self: d20 should return random # between 1 and 20
+  srand(time(NULL)); // hint from README
+  // srand(time(NULL)) uses the computer's internal clock to help generate
+  // random number
+  char response[1024];
+  int random = rand() % 20;
+  sprintf(response, "%d\n", random);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response);
+  
 }
 
 /**
@@ -248,6 +258,16 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+
+  // used this https://www.tutorialspoint.com/c_standard_library/c_function_gmtime.htm
+  // to help me construct this endpoint response
+  time_t epoch;
+  struct tm *tm;
+  time(&epoch);
+  char response[1024];
+  sprintf(response, "%s\n", asctime(gmtime(&epoch)));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response); 
 }
 
 /**
