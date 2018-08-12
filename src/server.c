@@ -190,8 +190,21 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+// totally got this from Stack Overflow: https://stackoverflow.com/questions/1442116/how-to-get-the-date-and-time-values-in-a-c-program
+// I actually don't even know if this was part of the assignment, since the
+// instructions above are different from the instructions in the README
+// but it was fun looking it up and learning how to datestamp. 
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(response,
+    "%s\n",
+    "Date: %s\n",
+    "Connection: close\n",
+    "Content-Length: %d\n",
+    "Content-Type: %s\n",
+    header, asctime(ltime), strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -288,6 +301,10 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+  // The instructions here are different from the instructions in 
+  // the README, which say we should also get the protocol.
+  // It doesn't seem like we use the protocol for anything so I
+  // skipped it
   sscanf(request, "%s, %s", request_type, request_path);
 
   printf("request_type = %s, request_path = %s", request_type, request_path);
