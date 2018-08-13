@@ -190,12 +190,14 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
   int content_length = strlen(body);
-  char *current_date = "Mon Aug 13 13:04:37 PST 2018"; // !!! TODO: make date dynamic
+  
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char *current_date = asctime(tm);
 
   // !!!!  IMPLEMENT ME
-  sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, current_date, content_length, content_type, body);
+  sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, current_date, content_length, content_type, body);
 
   response_length = strlen(response);
   // Send it all!
@@ -233,6 +235,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char nstr[8];
+  srand( time(NULL) );
+  int randnum = ( rand() % 20 ) + 1;
+  sprintf(nstr, "%d", randnum);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", nstr);
 }
 
 /**
