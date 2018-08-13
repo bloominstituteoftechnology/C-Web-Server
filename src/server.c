@@ -192,7 +192,26 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  // char *reply = 
+  // "HTTP/1.1 200 OK\n"
+  // "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+  // "Server: Apache/2.2.3\n"
+  // "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+  // "ETag: \"56d-9989200-1132c580\"\n"
+  // "Content-Type: text/html\n"
+  // "Content-Length: 15\n"
+  // "Accept-Ranges: bytes\n"
+  // "Connection: close\n"
+  // "\n"
+  // "sdfkjsdnbfkjbsf";
 
+  //   char *reply = 
+  // "HTTP/1.1 200 OK\n"
+  // "<h1>Testing: you are in the root</h1>";
+
+  sprintf(response,"%s\n%s\n\n%s",header,content_type,body);
+  printf("Response : %s\n", response);
+  response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -219,6 +238,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Testing: you are in the root</h1>");
 }
 
 /**
@@ -276,6 +296,10 @@ void handle_http_request(int fd)
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
+  // sscanf( request, "%s %s %d  %d", weekd );
+
+  printf("%s\n", request);
+
   if (bytes_recvd < 0) {
     perror("recv");
     return;
@@ -293,6 +317,9 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  get_root(fd);
+
 }
 
 /**
