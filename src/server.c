@@ -294,7 +294,21 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  
+  if (strcmp('GET', request_type) == 0) {
+    if (strcmp('http://localhost:3490/', request_path) == 0) {
+      get_root(fd);
+    } else if (strcmp('http://localhost:3490/d20', request_path) == 0) {
+      get_d20(fd);
+    } else if (strcmp('http://localhost:3490/date', request_path) == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else if (strcmp('POST', request_type) == 0) {
+      post_save(fd, p);
+  } else {
+    resp_404(fd);
+  }
 }
 
 /**
