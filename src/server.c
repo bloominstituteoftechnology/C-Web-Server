@@ -36,8 +36,6 @@
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
-// Start here
-
 /**
  * Handle SIGCHILD signal
  *
