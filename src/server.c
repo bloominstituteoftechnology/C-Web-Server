@@ -259,9 +259,9 @@ void get_date(int fd)
   // !!!! IMPLEMENT ME
   time_t raw_format;
   time(&raw_format);
-  char* date = asctime(localtime(&raw_format));
+
   char date_string[256];
-  sprintf(date_string, "<h1>The current date is %s</h1>", date);
+  sprintf(date_string, "<h1>The current date is %s</h1>", asctime(localtime(&raw_format)));
   send_response(fd, "HTTP/1.1 200 OK", "text/html", date_string);
 }
 
