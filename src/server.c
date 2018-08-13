@@ -299,9 +299,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  printf("%s", request);
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-  printf("%s \n%s \n%s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -309,8 +307,25 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
   
-//   get_root(fd);
-  get_date(fd);
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd);
+    }
+  }
 }
 
 /**
