@@ -189,9 +189,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  // int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  int content_length = strlen(body);
+
+  int response_length = sprintf(response,
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s\n",
+    
+    header,
+    asctime(ltime),
+    content_length,
+    content_type,
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -207,8 +227,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
+  char response_body[1024];
+
+  sprintf(response_body, "404: %s not found", path);
+
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
 }
 
@@ -219,6 +243,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+
 }
 
 /**
@@ -227,6 +252,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d\n", (rand()%20)+1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +266,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t t1 = time(NULL);
+  struct tm *gtime = gmtime(&t1);
+
+  sprintf(response_body, "%s", asctime(gtime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -243,8 +281,35 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  char *status;
+
+  int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
+
+  if (file_fd >= 0)
+  {
+    flock(file_fd, LOCK_EX);
+
+    write(file_fd, body, strlen(body));
+
+    flock(file_fd, LOCK_UN);
+
+    close(file_fd);
+
+    status = "okay";
+  }
+
+  else
+  {
+    status = "fail";
+  }
 
   // Save the body and send a response
+
+  char response_body[128];
+
+  sprintf(response_body, "{\"status\": \"%s\"}\n", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -259,6 +324,25 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL)
+  {
+    return p;
+  }
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL)
+  {
+    return p;
+  }
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -287,12 +371,41 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  char *first_line = request;
+
+  p = strchr(first_line, '\n');
+  *p = '\0';
+
+  char *header = p + 1;
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  sscanf(first_line, "%s %s %s\n", request_type, request_path, request_protocol);
+
+}
+
+  else if (strcmp(request_type, "POST") == 0)
+  {
+    // Endpoint: "/save"
+    if (strcmp(request_path, "/save") == 0)
+    {
+      post_save(fd, body);
+    }
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
+
+  else
+  {
+    fprintf(stderr, "Unknown request type \"%s\"\n", request_type);
+    return;
+  }
 }
 
 /**
@@ -343,8 +456,14 @@ int main(void)
 
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
+    if (fork() == 0)
+    {
+      close(listenfd);
 
-    handle_http_request(newfd);
+      handle_http_request(newfd);
+
+      exit(0);
+    }
 
     // Done with this
     close(newfd);
