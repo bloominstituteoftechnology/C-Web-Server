@@ -1,4 +1,4 @@
-/**
+                                                /**
  * webserver.c -- A webserver written in C
  * 
  * Test with curl (if you don't have it, install it):
@@ -287,12 +287,14 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  
 }
 
 /**
