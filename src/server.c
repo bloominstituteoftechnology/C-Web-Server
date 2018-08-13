@@ -272,7 +272,7 @@ void post_save(int fd, char *body)
   fprintf(fp, "%s\n", body);
   flock(fd, LOCK_UN);
 
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", "your data has been saved!");
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\": \"OK\"}");
     // Save the body and send a response
 }
 
@@ -319,7 +319,16 @@ void handle_http_request(int fd)
   sscanf(request, "%s %s %s",request_type, request_path, request_protocol);
   
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  char *find_start_of_body(char *header){
+    for(unsigned int i = 0; i < sizeof(&header); i++) {
+      if(header[i] == '\n' && header[i-1] == '\n'){
+        header++;
+        return header;
+      }
+      header++;
+    }
+    return header;
+  }
 
   // !!!! IMPLEMENT ME
   printf("strcmp: %d\n", strcmp(request_path, "/"));
@@ -330,6 +339,9 @@ void handle_http_request(int fd)
     get_d20(fd);
   }else if(strcmp(request_path, "/date") == 0){
     get_date(fd);
+  }else if(strcmp(request_path, "/save") == 0){
+    char *body = find_start_of_body(request);
+    post_save(fd, body);
   }
   // call the appropriate handler functions, above, with the incoming data
 }
