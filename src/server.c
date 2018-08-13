@@ -318,12 +318,14 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   printf("strcmp: %d\n", strcmp(request_path, "/"));
   if((strcmp(request_path, "/")) == 0){
-    printf("we are firing!\n");
+    printf("we are firing root\n");
     get_root(fd);
   }
-  else if(strcmp(request_path, "/d20\n") == 0){
+  else if(strcmp(request_path, "/d20") == 0){
+    printf("we are firing root\n");
     get_d20(fd);
-  }else if(strcmp(request_path, "/date\n") == 0){
+  }else if(strcmp(request_path, "/date") == 0){
+    printf("we are firing root\n");
     get_date(fd);
   }
   // call the appropriate handler functions, above, with the incoming data
