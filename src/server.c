@@ -257,7 +257,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  printf("get_date placeholder\n");
+  time_t raw_format;
+  time(&raw_format);
+  char* date = asctime(localtime(&raw_format));
+  char date_string[256];
+  sprintf(date_string, "<h1>The current date is %s</h1>", date);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", date_string);
 }
 
 /**
