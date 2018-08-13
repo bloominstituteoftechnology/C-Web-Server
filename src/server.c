@@ -248,19 +248,14 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  printf("/g20 ENDPOINT\n");
   // !!!! IMPLEMENT ME
   srand(time(NULL));
-  printf("/g20 ENDPOINT 2\n");
   int number = (rand() % 20) + 1;
-  printf("/g20 ENDPOINT 3\n");
 
   char str_number[8];
-  printf("/g20 ENDPOINT 4\n");
   sprintf(str_number, "%d", number);
-  printf("/g20 ENDPOINT 5\n");
+
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", str_number);
-  printf("/g20 ENDPOINT 6\n");
 }
 
 /**
