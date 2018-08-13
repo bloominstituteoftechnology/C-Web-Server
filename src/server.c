@@ -263,12 +263,18 @@ void get_date(int fd)
 /**
  * Post /save endpoint data
  */
-//void post_save(int fd, char *body)
-//{
+void post_save(int fd, char *body)
+{
   // !!!! IMPLEMENT ME
+  FILE * fp;
+  fp = fopen("./text.txt", "a");
+  flock(fd, LOCK_EX);
+  fprintf(fp, "%s\n", body);
+  flock(fd, LOCK_UN);
 
-  // Save the body and send a response
-//}
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", "your data has been saved!");
+    // Save the body and send a response
+}
 
 /**
  * Search for the start of the HTTP body.
@@ -318,14 +324,11 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   printf("strcmp: %d\n", strcmp(request_path, "/"));
   if((strcmp(request_path, "/")) == 0){
-    printf("we are firing root\n");
     get_root(fd);
   }
   else if(strcmp(request_path, "/d20") == 0){
-    printf("we are firing root\n");
     get_d20(fd);
   }else if(strcmp(request_path, "/date") == 0){
-    printf("we are firing root\n");
     get_date(fd);
   }
   // call the appropriate handler functions, above, with the incoming data
@@ -339,7 +342,7 @@ int main(void)
   int newfd;  // listen on sock_fd, new connection on newfd
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
-
+  int parent_id = getpid();
   // Start reaping child processes
   start_reaper();
 
@@ -350,7 +353,6 @@ int main(void)
     fprintf(stderr, "webserver: fatal error getting listening socket\n");
     exit(1);
   }
-
   printf("webserver: waiting for connections...\n");
 
   // This is the main loop that accepts incoming connections and
@@ -358,6 +360,10 @@ int main(void)
   // process then goes back to waiting for new connections.
   
   while(1) {
+    int rv = fork();
+    if(rv < 0){
+      printf("Creating a child process has failed");
+    }
     socklen_t sin_size = sizeof their_addr;
 
     // Parent process will block on the accept() call until someone
@@ -381,7 +387,9 @@ int main(void)
     // Convert this to be multiprocessed with fork()
 
     handle_http_request(newfd);
-
+    if(getpid() != parent_id)
+    {_exit(1);}
+    
     // Done with this
     close(newfd);
   }
