@@ -192,8 +192,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-
+  // strncpy(response, "Hello world.", max_response_size);
+  // printf("response: %s\n", response);
   // Send it all!
+  response_length = 98 + strlen(header) + strlen(content_type) + strlen(body);
+  printf("response length: %i\n", response_length);
+  printf("sprintf length: %i\n", sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %i\nContent-Type: %s\n\n%s\n\n", header, response_length, content_type, body));
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
@@ -219,6 +223,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>I love boobies.</h1>");
 }
 
 /**
@@ -287,12 +292,20 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s / %s\nHost: %s\n", request_type, request_protocol, request_path);
+  printf("path: %s\n", request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "localhost:3490") == 0) {
+      // call roothandler
+      get_root(fd);
+    }
+  } 
 }
 
 /**
@@ -331,7 +344,7 @@ int main(void)
       perror("accept");
       continue;
     }
-
+    
     // Print out a message that we got the connection
     inet_ntop(their_addr.ss_family,
       get_in_addr((struct sockaddr *)&their_addr),
