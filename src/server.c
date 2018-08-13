@@ -245,6 +245,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  #define RAND_MAX = 20;
+  srand(time(0));
+  int number = rand();
+  char numberBuffer[2];
+  sprintf(numberBuffer, "%d", number);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", numberBuffer);
 }
 
 /**
