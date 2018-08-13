@@ -190,8 +190,25 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+// totally got this from Stack Overflow: https://stackoverflow.com/questions/1442116/how-to-get-the-date-and-time-values-in-a-c-program
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  
   // !!!!  IMPLEMENT ME
+  int content_length = strlen(body);
+  response_length = sprintf(response,
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header,
+    asctime(tm),
+    content_length,
+    content_type,
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +235,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>get_root</h1></html>");
 }
 
 /**
@@ -227,6 +244,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // Note to self: d20 should return random # between 1 and 20
+  srand(time(NULL)); // hint from README
+  // srand(time(NULL)) uses the computer's internal clock to help generate
+  // random number
+  char str[1024];
+  int random = rand() % 20;
+  sprintf(str, "%d\n", random);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", str);
+  
 }
 
 /**
@@ -235,6 +262,16 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+
+  // used this https://www.tutorialspoint.com/c_standard_library/c_function_gmtime.htm
+  // to help me construct this endpoint response
+  time_t epoch = time(NULL);
+  struct tm *tm = localtime(&epoch);
+  char mydate[1024];
+  
+  sprintf(mydate, "%s\n", asctime(tm));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", mydate); 
 }
 
 /**
@@ -288,11 +325,47 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+  // The instructions here are different from the instructions in 
+  // the README, which say we should also get the protocol.
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("request_type = %s, request_path = %s, request_protocol = %s\n", request_type, request_path, request_protocol);
+
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  // if request_type is GET AND path is / then get_root
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+  // or if the path is /d20 instead, then get_d20
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+  // or if the path is /date, then get_date
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+  // otherwise, 404
+    else
+    {
+      resp_404(fd);
+    }
+  }
+  // if the request type isn't GET, you have real problems
+  else
+  {
+    fprintf(stderr, "whoops!");
+    exit(1);
+  }
 }
 
 /**
