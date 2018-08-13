@@ -191,8 +191,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  int content_length = strlen(body);
+  char *current_date = "Mon Aug 13 13:04:37 PST 2018"; // !!! TODO: make date dynamic
 
+  // !!!!  IMPLEMENT ME
+  sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, current_date, content_length, content_type, body);
+
+  response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -219,6 +224,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!<h1>");
 }
 
 /**
@@ -294,19 +300,19 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  if ( strcmp(*request_type, "GET") == 0 ) 
+  if ( strcmp(request_type, "GET") == 0 ) 
   {
-    if ( strcmp(*request_path, "/") == 0 ) {
+    if ( strcmp(request_path, "/") == 0 ) {
       get_root(fd);
-    } else if ( strcmp(*request_path, "/d20") == 0 ) {
+    } else if ( strcmp(request_path, "/d20") == 0 ) {
       get_d20(fd);
-    } else if ( strcmp(*request_path, "/date") == 0 ) {
+    } else if ( strcmp(request_path, "/date") == 0 ) {
       get_date(fd);
     } else {
       resp_404(fd);
     }
   } 
-  else if ( strcmp(*request_type, "POST") == 0 ) 
+  else if ( strcmp(request_type, "POST") == 0 ) 
   {
     // !!!! Stretch Goal (I think)
   }
