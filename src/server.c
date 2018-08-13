@@ -285,11 +285,13 @@ void handle_http_request(int fd)
   if (strcmp(request_type, "GET") == 0)
   {
     if (strcmp(request_path, "/") == 0)
-      get_root(fd);
+      return get_root(fd);
     if (strcmp(request_path, "/d20") == 0)
-      get_d20(fd);
+      return get_d20(fd);
     if (strcmp(request_path, "/date") == 0)
-      get_date(fd);
+      return get_date(fd);
+
+    resp_404(fd);
   }
   else if (strcmp(request_type, "POST") == 0)
   {
