@@ -284,12 +284,44 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
+  // get the whole string
+  char *first_line = request;
+  
+  // // use strchr to find the first instance of \n in the request
+  // p = strchr(first_line, '\n');
+
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+  sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+
+ 
+
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
+  if(strcmp(request_type, "GET") == 0) {
+    if(strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if(strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if(strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else if(strcmp(request_type, "POST") == 0) {
+    if(strcmp(request_path, "/save") == 0) {
+      // post_save(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else {
+    resp_404(fd);
+  }
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
