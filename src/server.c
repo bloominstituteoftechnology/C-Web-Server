@@ -190,19 +190,27 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+//Got this part from stackoverflow: https://stackoverflow.com/questions/1442116/how-to-get-the-date-and-time-values-in-a-c-program
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  
   // !!!!  IMPLEMENT ME
+  int content_length = strlen(body);
+  response_length = sprintf(response,
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header,
+    asctime(tm),
+    content_length,
+    content_type,
+    body);
+
   // Send it all!
- int body_length = strlen(body);
- int header_length = strlen(header);
-  strcat(response, header);
-  strcat(response, "\n");
-  strcat(response, content_type);
-  strcat(response, "\n");
-  strcat(response, body);
-
-  response_length = header_length + body_length;
-
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
@@ -227,8 +235,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>")
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>get_root</h1></html>");
 }
 
 /**
@@ -237,6 +244,7 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+
 }
 
 /**
@@ -297,12 +305,46 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("request_type = %s, request_path = %s, request_protocol = %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  // if the path is "/" then get_root
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+  // if the path is "/d20"
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+  // if the path is "/date"
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+  // otherwise, 404
+    else
+    {
+      resp_404(fd);
+    }
+  }
+  //We have a problem
+  else
+  {
+    fprintf(stderr, "Something Bahhhd!");
+    exit(1);
+  }
 }
 
 /**
@@ -364,4 +406,3 @@ int main(void)
 
   return 0;
 }
-
