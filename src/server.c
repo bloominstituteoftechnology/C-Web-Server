@@ -284,8 +284,7 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
+  // Get the request type and path
   // Hint: sscanf()!
 
   // !!!! IMPLEMENT ME (stretch goal)
