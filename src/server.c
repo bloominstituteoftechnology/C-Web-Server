@@ -1,18 +1,18 @@
 /**
  * webserver.c -- A webserver written in C
- * 
+ *
  * Test with curl (if you don't have it, install it):
- * 
+ *
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
- * 
+ *
  * You can also test the above URLs in your browser! They should work!
- * 
+ *
  * Posting Data:
- * 
+ *
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
- * 
+ *
  * (Posting data is harder to test from a browser.)
  */
 
@@ -63,7 +63,7 @@ void sigchld_handler(int s) {
  *
  * Whenever a child process dies, the parent process gets signal
  * SIGCHLD; the handler sigchld_handler() takes care of wait()ing.
- * 
+ *
  * This is only necessary if we've implemented a multiprocessed version with
  * fork().
  */
@@ -182,7 +182,7 @@ int get_listener_socket(char *port)
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
- * 
+ *
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, char *body)
@@ -209,6 +209,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
+  printf("I should be sending a 404");
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
 }
 
@@ -219,6 +220,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("get_root placeholder\n");
 }
 
 /**
@@ -227,6 +229,7 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  printf("get_d20 placeholder\n");
 }
 
 /**
@@ -235,6 +238,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  printf("get_date placeholder\n");
 }
 
 /**
@@ -243,6 +247,7 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  printf("post_save placeholder\n");
 
   // Save the body and send a response
 }
@@ -284,9 +289,45 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
+
+
+
+
+
+
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+
+  sscanf(request, "%s %s", request_type, request_path);
+
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    }
+    else {
+      resp_404(fd);
+    }
+  }
+  else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      post_save(fd, "Placeholder");
+    }
+    else {
+      resp_404(fd);
+    }
+  }
+  else {
+    resp_404(fd);
+  }
+
+
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -320,7 +361,7 @@ int main(void)
   // This is the main loop that accepts incoming connections and
   // fork()s a handler process to take care of it. The main parent
   // process then goes back to waiting for new connections.
-  
+
   while(1) {
     socklen_t sin_size = sizeof their_addr;
 
@@ -337,7 +378,7 @@ int main(void)
       get_in_addr((struct sockaddr *)&their_addr),
       s, sizeof s);
     printf("server: got connection from %s\n", s);
-    
+
     // newfd is a new socket descriptor for the new connection.
     // listenfd is still listening for new connections.
 
@@ -354,4 +395,3 @@ int main(void)
 
   return 0;
 }
-
