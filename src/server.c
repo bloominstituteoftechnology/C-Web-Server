@@ -283,6 +283,7 @@ void handle_http_request(int fd)
   char request_type[8];       // GET or POST
   char request_path[1024];    // /info etc.
   char request_protocol[128]; // HTTP/1.1
+  char request_body[64376];
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -325,6 +326,21 @@ void handle_http_request(int fd)
     {
       resp_404(fd);
     }
+  }
+  else if (request_type == "POST")
+  {
+    if (request_path == "/save")
+    {
+      post_save(fd, &request_body);
+    }
+    else
+    {
+      resp_404(fd);
+    }
+  }
+  else
+  {
+    resp_404(fd);
   }
 }
 
