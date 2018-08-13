@@ -227,7 +227,7 @@ then come back to goal #1 and dig in._
    information to decide which handler function to call.
 
    The variable `request` in `handle_http_request()` holds the entire HTTP
-   request once the `recv()` call returns.
+   request once the `recv()` call returns. *Added by Nalee: request is the buffer*
 
    Read the three components from the first line of the HTTP header. Hint:
    `sscanf()`.

@@ -190,8 +190,30 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+int content_length = strlen(body);
+  //handle timestamp
+  time_t seconds = time(NULL);
+  // convert to a tm struct
+  struct tm *ltime = localtime(&seconds);
+  //convert struct tm type to a string
+  char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
+response_length = sprintf(response,
+  "%s\n"
+  "Date: %s"
+  "Connection: close\n"
+  "Content-Length %d\n"
+  "Content-Type: %s\n"
+  "\n"
+  "s\n",
+  header,
+  timestamp,
+  content_length,
+  content_type,
+  body
+);
+
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,6 +240,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello, World!!</h1></html>\n")
   //send_response(...
 }
 
@@ -227,6 +250,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // seed the random number generator
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d\n", (rand() % 20) + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +264,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128]; //more space because it holds the timestamp string
+  time_t seconds = time(NULL);
+  struct tm *ltime = localtime(&seconds);
+
+  springf(response_body, "%s", asctime(ltime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -264,17 +300,23 @@ char *find_start_of_body(char *header)
 /**
  * Handle HTTP request and send response
  */
-void handle_http_request(int fd)
+void handle_http_request(int fd) //fd = socket filedescriptor
 {
   const int request_buffer_size = 65536; // 64K
+    //allocate memory
   char request[request_buffer_size];
-  char *p;
-  char request_type[8]; // GET or POST
-  char request_path[1024]; // /info etc.
+  char *p; 
+  char request_type[8]; // (holds) GET or POST
+  char request_path[1024]; // / (endpoint string)info etc.
   char request_protocol[128]; // HTTP/1.1
 
   // Read request
+  //remember recv reads from socket -> recv(sockfd, buf, len, flags);
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+  //whatever is read off the server is gettings stored in the request buffer
+  //no flags, so put in 0
+  //buffer is a pointer
+  //recieve recieves request from socket, and stores it in the request buffer
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -287,12 +329,40 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  //get the first line in it's own variable
 
+    // char *first_line = request;
+  //cut off everything after the first line
+  //look for the newline character
+    // p = strchr(first_line, '\n');
+  //after you find it, use strchr --> this will return the address of the first occurance
+  //of the the character denoted in the string
+  //truncate off everything else after this point
+  // *p = '\0';
+
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else {
+    fprintf(stderr, "unimplemented request type %s\n", request_type);
+    return;
+  }
+}
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol)
 }
 
 /**
