@@ -287,6 +287,21 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  //  printf(request); // see output below for request to http://localhost:3490/
+  
+                  // GET / HTTP/1.1
+                  // Host: localhost:3490
+                  // Connection: keep-alive
+                  // Cache-Control: max-age=0  
+                  // Upgrade-Insecure-Requests: 1
+                  // User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36
+                  // Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+                  // Accept-Encoding: gzip, deflate, br
+                  // Accept-Language: en-US,en;q=0.9 
+      
+  sscanf(request, "%s %s", request_type, request_path);
+  printf("REQUEST TYPE: %s\n", request_type);
+  printf("REQUEST PATH: %s\n", request_path);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
