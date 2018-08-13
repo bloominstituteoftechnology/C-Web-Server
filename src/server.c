@@ -143,9 +143,23 @@ int get_listener_socket(char *port)
       return -2;
     }
 
+    /* OLD WAY OF BINDING WOULD BE LIKE:
+    int sockfd;
+    struct sockaddr_in my_addr;
+
+    sockfd = socket(PF_INET, SOCK_STREAM, 0);
+    my_addr.sin_family = AF_INET;
+    my_addr.sin_port = htons(MYPORT);
+    my_addr.sin_addr.s_addr = inet_addr(INADDR_ANY);
+
+    memset(my_addr.sin_zero, '\0', sizeof my_addr.sin_zero);
+
+    bind(sockfd, (struct sockaddr *) &my_addr, sizeof my_addr);
+    
     // See if we can bind this socket to this local IP address. This
     // associates the file descriptor (the socket descriptor) that
     // we will read and write on with a specific IP address.
+    */
     if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
       close(sockfd);
       //perror("server: bind");
