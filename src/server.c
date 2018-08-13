@@ -277,7 +277,7 @@ void get_date(int fd)
   // !!!! IMPLEMENT ME
   time_t gmt_format;
   time(&gmt_format);
-  char current[100];
+  char current[26];  // gmtime documentation stated that a user-supplied buffer should have at least 26 bytes.
   sprintf(current, "%s", asctime(gmtime(&gmt_format)));
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", current);
   
