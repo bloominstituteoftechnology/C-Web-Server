@@ -237,7 +237,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "This is the root!");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>This is the root!</h1>");
 }
 
 /**
@@ -246,7 +246,9 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  printf("get_d20 placeholder\n");
+  char die_roll[256];
+  sprintf(die_roll, "<h1>Die roll is %d!</h1>", rand() % 20 + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", die_roll);
 }
 
 /**
