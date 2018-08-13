@@ -192,7 +192,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-
   time_t t1 = time(NULL);
   struct tm *ltime = localtime(&t1);
 
