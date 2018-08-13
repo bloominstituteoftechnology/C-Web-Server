@@ -191,7 +191,23 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  time_t raw_format;
+  time(&raw_format);
+   
+   int content_length = strlen(body);
+  response_length = sprintf(response,
+    "%s\n"
+    "Date: %s\n"
+    "Connection: close\n"
+    "Connection-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header,
+    asctime(gmtime(&raw_format)),
+    content_length,
+    content_type,
+    body); // !!!!  IMPLEMENT ME
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +234,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+ send_response(fd, "HTTP/1.1 200 OK", "text/plain", "<!DOCTYPE html><html><head><title><h1>Hello, World!</h1></title></head></html></>");
 }
 
 /**
@@ -226,7 +242,11 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  srand(time(NULL));
+   char str[4];
+   int random = rand() % 20 + 1;
+  sprintf(str, "%d\n", random);
+   send_response(fd, "HTTP/1.1 200 OK", "text/plain", str);
 }
 
 /**
@@ -287,12 +307,36 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+    if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/data") == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd);
+    }
+  }
+  else
+  {
+    fprintf(stderr, "This server is only equipped to handle GET requests");
+    exit(1);
+  }
 }
 
 /**
@@ -354,4 +398,3 @@ int main(void)
 
   return 0;
 }
-
