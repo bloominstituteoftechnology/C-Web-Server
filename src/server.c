@@ -225,6 +225,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 void resp_404(int fd)
 {
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+
 }
 
 /**
