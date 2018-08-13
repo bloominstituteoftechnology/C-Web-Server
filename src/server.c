@@ -232,7 +232,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>D20 PAGE FOUND</h1>");
+  srand(time(0));
+  int rand_num = rand() % 20 + 1;
+  
+  char body[400];
+
+  sprintf(body, "<h1>You rolled a: %d</h1>", rand_num);
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
 }
 
 /**
