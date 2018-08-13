@@ -252,9 +252,10 @@ void get_date(int fd)
   struct tm *info;
   time(&rawtime);
   info = gmtime(&rawtime);
-  info->tm_hour = (info->tm_hour+7)%24;
   char *gmt_date = asctime(info);
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", gmt_date);
+  char *gmt_bake[sizeof(gmt_date)];
+  strcpy(gmt_bake, gmt_date);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", gmt_bake);
 }
 
 /**
