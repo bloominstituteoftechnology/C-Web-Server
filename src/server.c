@@ -218,7 +218,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>get_root</h1></html>");
 }
 
 /**
@@ -227,6 +227,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  char str[1024];
+  int random_number = rand() % 20;
+  sprintf(str, "%d\n", random_number);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", str);
 }
 
 /**
@@ -235,6 +240,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t start = time(NULL);
+  struct tm *tm = localtime(&start);
+  char mydate[1024];
+  sprintf(mydate, "%s\n", asctime(tm));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", mydate);
 }
 
 /**
@@ -286,7 +296,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
-  // Hint: sscanf()!
+  Hint: sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
