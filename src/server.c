@@ -243,7 +243,9 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, world!</h1></body></html>\n";
 
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -380,6 +382,15 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
+  p = find_start_of_body(header);
+
+  if (p == NULL)
+  {
+    printf("Could not find end of header.\n");
+    exit(1);
+  }
+
+  char *body = p;
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
