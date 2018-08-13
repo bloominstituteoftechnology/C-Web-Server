@@ -386,7 +386,31 @@ void handle_http_request(int fd)
 
   sscanf(first_line, "%s %s %s\n", request_type, request_path, request_protocol);
 
-}
+  if (strcmp(request_type, "GET") == 0)
+  {
+    // First endpoint: "/"
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+
+    // Second endpoint: "/d20"
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+
+    // Third endpoint: "/date"
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
 
   else if (strcmp(request_type, "POST") == 0)
   {
