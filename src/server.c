@@ -191,7 +191,24 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
+  char* status = strtok(header, "");
+
+  char buf[1000];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
+
   // !!!!  IMPLEMENT ME
+  int headerSize = sprintf(response, "%s\n", header);
+  int dateStringSize = sprintf(response, "Date: [%s]\n", buf);
+  int connectionStringSize = sprintf(response, "Connection: close\n");
+  int contentLengthSize = sprintf(response, "Content-Length: %d\n", strlen(body));
+  int contentTypeSize = sprintf(response, "Content-Type: %s\n", content_type);
+  int bodySize = sprintf(response, "%s\n\n", body);
+
+  response_length = (sizeof headerSize + sizeof dateStringSize + sizeof connectionStringSize + 
+    sizeof contentLengthSize + sizeof contentTypeSize + sizeof bodySize) / sizeof(char);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,7 +236,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", <h1>Hello, world!</h1>);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
