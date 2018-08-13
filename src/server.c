@@ -364,7 +364,7 @@ void handle_http_request(int fd)
   else
   {
     fprintf(stderr, "whoops!");
-    return;
+    exit(1);
   }
 }
 
