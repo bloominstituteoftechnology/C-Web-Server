@@ -205,12 +205,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // "\n"
   // "sdfkjsdnbfkjbsf";
 
-  //   char *reply = 
-  // "HTTP/1.1 200 OK\n"
-  // "<h1>Testing: you are in the root</h1>";
-
   sprintf(response,"%s\n%s\n\n%s",header,content_type,body);
-  printf("Response : %s\n", response);
+  // printf("Response : %s\n", response);
   response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -247,6 +243,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(0));
+  int rand_num = rand() % 20 + 1;
+  
+  char body[400];
+
+  sprintf(body, "<h1>You rolled a: %d</h1>", rand_num);
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
 }
 
 /**
@@ -254,7 +258,13 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
+    time_t result = time(NULL);
+    char *body; //Check this is a valid ?
+    if(result != -1)
+        sprintf(body,"<h1>The current time is %s</h1>",
+               asctime(gmtime(&result)));
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", body);
 }
 
 /**
@@ -296,8 +306,6 @@ void handle_http_request(int fd)
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
-  // sscanf( request, "%s %s %d  %d", weekd );
-
   printf("%s\n", request);
 
   if (bytes_recvd < 0) {
@@ -312,13 +320,35 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
+  sscanf( request, "%s%s%s", request_type, request_path, request_protocol);
+  printf("Request type : %s\n%s\n%s\n",request_type, request_path, request_protocol);
+
+
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
 
-  get_root(fd);
+ if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd);
+    }
+  }
 
 }
 
