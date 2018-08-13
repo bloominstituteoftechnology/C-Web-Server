@@ -182,15 +182,15 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
+  time_t t = time(NULL);
   const int max_response_size = 65536;
   char response[max_response_size];
-  time_t currtime = time(NULL);
 
   sprintf(
       response,
       "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
       header,
-      asctime(localtime(&currtime)),
+      asctime(localtime(&t)),
       strlen(body),
       content_type,
       body);
@@ -236,7 +236,13 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  time_t t = time(NULL);
+  struct tm *tm = gmtime(&t);
+  int len = (sizeof(char) * 24) + 1;
+  char date[len];
+  
+  strftime(date, len, "%c", tm);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
