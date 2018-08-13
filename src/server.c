@@ -276,10 +276,10 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  char *p;
   char request_type[8];
   char request_path[1024];
   char request_protocol[128];
+  char *request_body;
 
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -304,9 +304,11 @@ void handle_http_request(int fd)
   }
   else if (strcmp(request_type, "POST") == 0)
   {
-    // TODO: stretch goal
-    // find_start_of_body()
-  } else {
+    request_body = find_start_of_body(request);
+    post_save(fd, request_body);
+  }
+  else
+  {
     resp_404(fd);
   }
 }
