@@ -219,6 +219,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("you found get_root\n");
 }
 
 /**
@@ -227,6 +228,7 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  printf("you found get_d20\n");
 }
 
 /**
@@ -235,6 +237,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  printf("you found get_date\n");
 }
 
 /**
@@ -273,13 +276,16 @@ void handle_http_request(int fd)
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
+  
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
+  // printf("%s \n", request);
   if (bytes_recvd < 0) {
     perror("recv");
     return;
   }
+  // printf("%s \n", request);
 
    // NUL terminate request string
   request[bytes_recvd] = '\0';
@@ -287,12 +293,37 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  // sscanf = first is were the data is coming from, next is the data types you will be taking in, last is the the vars theyt will be put in
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  // this is printing 2 times, first is blank, second had data
+  // printf("request_type = %s, request_path = %s, request_protocol = %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  // strcmp compares 2 strings and returns 0 if they match.
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if(strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if(strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if(strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd)
+    }
+  }
 }
 
 /**
