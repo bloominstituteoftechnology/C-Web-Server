@@ -248,6 +248,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t rawtime;
+  struct tm *info;
+  time(&rawtime);
+  info = gmtime(&rawtime);
+  info->tm_hour = (info->tm_hour+7)%24;
+  char *gmt_date = asctime(info);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", gmt_date);
 }
 
 /**
