@@ -190,17 +190,20 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-  int i = 0; 
-
-  strcat(response, header);
-  strcat(response, "\n");
-  strcat(response, content_type);
-  strcat(response, "\n\n");
-  strcat(response, body);
-
-  response_length = sizeof(header) + sizeof(content_type) + sizeof(body) + 4
+  
   // !!!!  IMPLEMENT ME
-
+  int content_length = strlen(body);
+  response_length = sprintf(response,
+    "%s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header,
+    content_length,
+    content_type,
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -210,6 +213,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   }
 
   return rv;
+
 }
 
 
@@ -228,7 +232,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>")
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello, World!</h1></html>");
 }
 
 /**
@@ -236,6 +240,10 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  char random_number[50];
+  sprintf(random_number, "This is your random number: %d  :)\n", rand() % 21);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_number);
+
   // !!!! IMPLEMENT ME
 }
 
@@ -244,18 +252,23 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  char date_time[100];
+  sprintf(date_time, "now: %d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date_time);
   // !!!! IMPLEMENT ME
 }
 
 /**
  * Post /save endpoint data
  */
-void post_save(int fd, char *body)
-{
+//void post_save(int fd, char *body)
+//{
   // !!!! IMPLEMENT ME
 
   // Save the body and send a response
-}
+//}
 
 /**
  * Search for the start of the HTTP body.
@@ -266,10 +279,10 @@ void post_save(int fd, char *body)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
+//char *find_start_of_body(char *header)
+//{
   // !!!! IMPLEMENT ME
-}
+//}
 
 /**
  * Handle HTTP request and send response
@@ -278,7 +291,7 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  char *p;
+  //char *p;
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
@@ -297,11 +310,22 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  sscanf(request, "%s %s %s",request_type, request_path, request_protocol);
+  
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
+  printf("strcmp: %d\n", strcmp(request_path, "/"));
+  if((strcmp(request_path, "/")) == 0){
+    printf("we are firing!\n");
+    get_root(fd);
+  }
+  else if(strcmp(request_path, "/d20\n") == 0){
+    get_d20(fd);
+  }else if(strcmp(request_path, "/date\n") == 0){
+    get_date(fd);
+  }
   // call the appropriate handler functions, above, with the incoming data
 }
 
