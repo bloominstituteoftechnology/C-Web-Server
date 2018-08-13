@@ -191,7 +191,15 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+    // !!!!  IMPLEMENT ME
+  // found this on stack overflow https://stackoverflow.com/questions/1442116/how-to-get-the-date-and-time-values-in-a-c-program
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  int body_length = strlen(body);
+
+  response_length = sprintf(response, "%s\n""Date: %s""Connection: close\n""Content-Length: %d\n""Content-Type: %s\n""\n""%s", 
+    header, asctime(tm), body_length, content_type, body );
+  
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,7 +227,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  printf("you found get_root\n");
+  // printf("you found get_root\n");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
@@ -228,7 +237,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  printf("you found get_d20\n");
+  // printf("you found get_d20\n");
+  srand(time(0));
+  char rando_num[25];
+  sprintf(rando_num, "<body><h1>%d</h1></body>", (rand()% 20));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", rando_num);
 }
 
 /**
@@ -237,7 +251,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  printf("you found get_date\n");
+  // printf("you found get_date\n");
+
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char date_time[200];
+  // sprintf(date_time, "<h1>%s</h1>", asctime(tm));
+  sprintf(date_time, "<h1>Date and Time: %d-%d-%d %d:%d</h1>", tm->tm_mon + 1, tm->tm_mday, tm->tm_year - 100, tm->tm_hour, tm->tm_min);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", date_time);
 }
 
 /**
@@ -321,7 +342,7 @@ void handle_http_request(int fd)
     }
     else
     {
-      resp_404(fd)
+      resp_404(fd);
     }
   }
 }
