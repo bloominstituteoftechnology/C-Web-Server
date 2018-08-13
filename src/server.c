@@ -250,7 +250,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", "<!DOCTYPE html><html><head><title><h1>Hello, World!</h1></title></head></html></>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h1>Hello, World!</h1></body></html></>");
 }
 
 /**
