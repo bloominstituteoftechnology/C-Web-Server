@@ -32,9 +32,8 @@
 #include <sys/file.h>
 #include <fcntl.h>
 
-#define PORT "3490"  // the port users will be connecting to
-
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define PORT "3490"
+#define BACKLOG 10
 
 /**
  * Handle SIGCHILD signal
@@ -242,7 +241,7 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME - Stretch
 
   // Save the body and send a response
 }
@@ -258,7 +257,7 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME - Stretch
 }
 
 /**
@@ -304,7 +303,7 @@ int main(void)
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
 
-  // Start reaping child processes
+  // Start reaping child processes -- for stretch
   start_reaper();
 
   // Get a listening socket
