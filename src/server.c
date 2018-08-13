@@ -268,11 +268,10 @@ void handle_http_request(int fd)
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
-  char request_type[8]; // GET or POST
-  char request_path[1024]; // /info etc.
-  char request_protocol[128]; // HTTP/1.1
+  char request_type[8];
+  char request_path[1024];
+  char request_protocol[128];
 
-  // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
   if (bytes_recvd < 0) {
@@ -280,18 +279,25 @@ void handle_http_request(int fd)
     return;
   }
 
-   // NUL terminate request string
   request[bytes_recvd] = '\0';
-
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
-  // Hint: sscanf()!
-
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
-
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+      get_root(fd);
+    if (strcmp(request_path, "/d20") == 0)
+      get_d20(fd);
+    if (strcmp(request_path, "/date") == 0)
+      get_date(fd);
+  }
+  else if (strcmp(request_type, "POST") == 0)
+  {
+    // TODO: stretch goal
+    // find_start_of_body()
+  } else {
+    resp_404(fd);
+  }
 }
 
 /**
