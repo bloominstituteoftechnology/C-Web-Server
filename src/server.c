@@ -230,6 +230,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("/ ENPOINT\n\n");
 }
 
 /**
@@ -270,6 +271,7 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  printf("BODY_PARSER: %s\N", strstr(*header, "\n\n"));
 }
 
 /**
@@ -304,21 +306,21 @@ void handle_http_request(int fd)
   printf("%s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  // find_start_of_body(&request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  if (request_type == "GET")
+  if (strcmp(request_type, "GET") == 0)
   {
-    if (request_path == "/")
+    if (strcmp(request_path, "/") == 0)
     {
       get_root(fd);
     }
-    else if (request_path == "/d20")
+    else if (strcmp(request_path, "/d20"))
     {
       get_d20(fd);
     }
-    else if (request_path == "/date")
+    else if (strcmp(request_path, "/date"))
     {
       get_date(fd);
     }
@@ -327,9 +329,9 @@ void handle_http_request(int fd)
       resp_404(fd);
     }
   }
-  else if (request_type == "POST")
+  else if (strcmp(request_type, "POST"))
   {
-    if (request_path == "/save")
+    if (strcmp(request_path, "/save"))
     {
       post_save(fd, &request_body);
     }
