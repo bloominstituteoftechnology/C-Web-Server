@@ -287,6 +287,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  // https://www.tutorialspoint.com/c_standard_library/c_function_sscanf.htm
   sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
@@ -294,6 +295,19 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  printf("strcmp: %d\n", strcmp(request_path, "/"));
+  // if strcmp returns 0, the 2 strings match
+  if((strcmp(request_path, "/")) == 0){
+    printf("root is firing \n");
+    get_root(fd);
+  }
+  else if(strcmp(request_path, "/d20") == 0){
+    printf("random number (d20) is firing\n");
+    get_d20(fd);
+  }else if(strcmp(request_path, "/date") == 0){
+    printf("date is firing\n");
+    get_date(fd);
+  }
 }
 
 /**
