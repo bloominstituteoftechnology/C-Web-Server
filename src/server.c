@@ -240,6 +240,9 @@ void get_date(int fd)
 /**
  * Post /save endpoint data
  */
+
+// ========== Stretch Goal ========== //
+
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
@@ -247,6 +250,7 @@ void post_save(int fd, char *body)
   // Save the body and send a response
 }
 
+// ========== Stretch Goal ========== //
 /**
  * Search for the start of the HTTP body.
  *
@@ -261,6 +265,7 @@ char *find_start_of_body(char *header)
   // !!!! IMPLEMENT ME
 }
 
+// ========== 1.Examine handle HTTP request ========== //
 /**
  * Handle HTTP request and send response
  */
@@ -274,6 +279,10 @@ void handle_http_request(int fd)
   char request_protocol[128]; // HTTP/1.1
 
   // Read request
+  // The fd variable that is passed widely around to all the functions holds a file descriptor.
+  // It's just a number use to represent an open communications path.
+  // Usually they point to regular files on disk, 
+  // but in the case it points to an open socket network connection.
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
   if (bytes_recvd < 0) {
@@ -281,15 +290,18 @@ void handle_http_request(int fd)
     return;
   }
 
-   // NUL terminate request string
+  // NUL terminate request string
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
 
-  // !!!! IMPLEMENT ME (stretch goal)
+
+  // ========== Stretch Goal ========== //
+  // !!!! IMPLEMENT ME 
   // find_start_of_body()
+
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -341,7 +353,8 @@ int main(void)
     // newfd is a new socket descriptor for the new connection.
     // listenfd is still listening for new connections.
 
-    // !!!! IMPLEMENT ME (stretch goal)
+    // ========== Stretch Goal ========== //
+    // !!!! IMPLEMENT ME
     // Convert this to be multiprocessed with fork()
 
     handle_http_request(newfd);
