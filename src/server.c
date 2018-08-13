@@ -202,7 +202,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
+  // Get current date
+  // CODE IDEA/REFERENCE from: https://stackoverflow.com/questions/7548759/generate-a-date-string-in-http-response-date-format-in-c
+  char date[1024];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
   // !!!!  IMPLEMENT ME
+  printf("SEND RESPONSE TEST: ");
+  printf("%s\n", header);
+  response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Legth: %d\nContent-Type: %s\n\n%s\n", header, date, strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
