@@ -259,6 +259,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char buf[1000];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", buf);
 }
 
 /**
