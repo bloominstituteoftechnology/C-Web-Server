@@ -178,30 +178,31 @@ int get_listener_socket(char *port)
 /**
  * Send an HTTP response
  *
- * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
- * content_type: "text/plain", etc.
- * body:         the data to send.
- * 
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  time_t currtime = time(NULL);
 
-  // !!!!  IMPLEMENT ME
+  sprintf(
+      response,
+      "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+      header,
+      asctime(localtime(&currtime)),
+      strlen(body),
+      content_type,
+      body);
 
-  // Send it all!
+  int response_length = strlen(response);
   int rv = send(fd, response, response_length, 0);
 
-  if (rv < 0) {
+  if (rv < 0)
     perror("send");
-  }
 
   return rv;
 }
-
 
 /**
  * Send a 404 response
