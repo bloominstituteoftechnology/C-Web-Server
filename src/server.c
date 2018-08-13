@@ -129,7 +129,7 @@ int get_listener_socket(char *port)
     // Try to make a socket based on this candidate interface
     if ((sockfd = socket(p->ai_family, p->ai_socktype,
         p->ai_protocol)) == -1) {
-      //perror("server: socket");
+      perror("server: socket");
       continue;
     }
 
@@ -148,7 +148,7 @@ int get_listener_socket(char *port)
     // we will read and write on with a specific IP address.
     if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
       close(sockfd);
-      //perror("server: bind");
+      perror("server: bind");
       continue;
     }
 
@@ -168,7 +168,7 @@ int get_listener_socket(char *port)
   // Start listening. This is what allows remote computers to connect
   // to this socket/IP.
   if (listen(sockfd, BACKLOG) == -1) {
-    //perror("listen");
+    perror("listen");
     close(sockfd);
     return -4;
   }
@@ -191,8 +191,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
-
+  response_length = sprintf(response, "%s\nDate: Wed Dec 20\n"
+  "Connection: close\nContent-Length: %lu\nContent-Type:%s\n%s",
+      header,
+      strlen(body),
+      content_type,
+      body);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
