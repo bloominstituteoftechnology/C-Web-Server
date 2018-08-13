@@ -248,7 +248,19 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  printf("/g20 ENDPOINT\n");
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  printf("/g20 ENDPOINT 2\n");
+  int number = (rand() % 20) + 1;
+  printf("/g20 ENDPOINT 3\n");
+
+  char str_number[8];
+  printf("/g20 ENDPOINT 4\n");
+  sprintf(str_number, "%d", number);
+  printf("/g20 ENDPOINT 5\n");
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", str_number);
+  printf("/g20 ENDPOINT 6\n");
 }
 
 /**
@@ -326,11 +338,11 @@ void handle_http_request(int fd)
     {
       get_root(fd);
     }
-    else if (strcmp(request_path, "/d20"))
+    else if (strcmp(request_path, "/d20") == 0)
     {
       get_d20(fd);
     }
-    else if (strcmp(request_path, "/date"))
+    else if (strcmp(request_path, "/date") == 0)
     {
       get_date(fd);
     }
@@ -339,9 +351,9 @@ void handle_http_request(int fd)
       resp_404(fd);
     }
   }
-  else if (strcmp(request_type, "POST"))
+  else if (strcmp(request_type, "POST") == 0)
   {
-    if (strcmp(request_path, "/save"))
+    if (strcmp(request_path, "/save") == 0)
     {
       post_save(fd, &request_body);
     }
