@@ -225,7 +225,10 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  char random[sizeof("20")];
+  sprintf(random, "%d", rand() % 20 + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", random);
 }
 
 /**
