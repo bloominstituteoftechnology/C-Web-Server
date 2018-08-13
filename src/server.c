@@ -230,7 +230,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  printf("/ ENPOINT\n\n");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><head></head><body><h1>Hello, World!</h1></body></html>\n");
 }
 
 /**
