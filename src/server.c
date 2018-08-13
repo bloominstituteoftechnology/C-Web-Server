@@ -259,6 +259,12 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *head;
+  head = strstr(header, "\r\n");
+  if (head == NULL){
+    return head;
+  }
+  return head;
 }
 
 /**
@@ -286,13 +292,27 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
+  char *first = request;
   // Hint: sscanf()!
+  sscanf(first, "%s %s %s", request_protocol, request_type, request_path);
 
+  printf("Req")
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+
+    else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    }
+
+    else {
+      resp_404(fd, request_path);
+    }
 }
 
 /**
