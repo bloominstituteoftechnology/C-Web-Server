@@ -209,19 +209,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   time_t raw_format;
   time(&raw_format);
 
-  
-
   int content_length = strlen(body);
   response_length = sprintf(response,
     "%s\n"
-    "Date: %s\n"
+    "Date: %s"
     "Connection: close\n"
     "Connection-Length: %d\n"
     "Content-Type: %s\n"
     "\n"
     "%s",
     header,
-    asctime(gmtime(&raw_format)),
+    asctime(localtime(&raw_format)),
     content_length,
     content_type,
     body);
@@ -277,6 +275,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t gmt_format;
+  time(&gmt_format);
+  char current[100];
+  sprintf(current, "%s", asctime(gmtime(&gmt_format)));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", current);
+  
 }
 
 /**
@@ -346,7 +350,7 @@ void handle_http_request(int fd)
     {
       get_d20(fd);
     }
-    else if (strcmp(request_path, "/data") == 0)
+    else if (strcmp(request_path, "/date") == 0)
     {
       get_date(fd);
     }
@@ -355,10 +359,16 @@ void handle_http_request(int fd)
       resp_404(fd);
     }
   }
-  else
+  else if (strcmp(request_type, "POST") == 0)
   {
-    fprintf(stderr, "This server is only equipped to handle GET requests");
-    exit(1);
+    if (strcmp(request_path, "/save") == 0)
+    {
+      post_save(fd, request);
+    }
+    else
+    {
+      resp_404(fd);
+    }
   }
 }
 
