@@ -190,8 +190,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int i = 0; 
 
+  strcat(response, header);
+  strcat(response, "\n");
+  strcat(response, content_type);
+  strcat(response, "\n\n");
+  strcat(response, body);
+
+  response_length = sizeof(header) + sizeof(content_type) + sizeof(body) + 4
   // !!!!  IMPLEMENT ME
+
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +228,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>")
 }
 
 /**
