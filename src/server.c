@@ -309,12 +309,13 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  // strcmp() for matching the request method
+  // check the request type if GET or POST
+  // strcmp() for matching the request method, return 0 if matched.
   if (strcmp(request_type, "GET") == 0)
   {
     if (strcmp(request_path, "/") == 0)
     {
-      get_root(fd);
+      get_root(fd);   // pass fd from socket as paramater
     }
     else if (strcmp(request_path, "/d20") == 0)
     {
@@ -324,10 +325,22 @@ void handle_http_request(int fd)
     {
       get_date(fd);
     }
+    else{
+      resp_404(fd);
+    }
   }
+  // else if (strcmp(request_type, "POST") == 0)
+  // {
+  //   if (strcmp(request_path, "/save") == 0)
+  //   {
+  //     post_save(fd, body);
+  //   }
+  //   else{
+  //     resp_404(fd);
+  //   }
+  // }
   else {
-      fprintf(stderr, "error request type: %s\n", request_type);
-      return;
+      resp_404(fd);
   }  
 }
 
