@@ -192,8 +192,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-int body_length = strlen(body);
   // Send it all!
+ int body_length = strlen(body);
+ int header_length = strlen(header);
+  strcat(response, header);
+  strcat(response, "\n");
+  strcat(response, content_type);
+  strcat(response, "\n");
+  strcat(response, body);
+
+  response_length = header_length + body_length;
+
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
@@ -219,6 +228,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>")
 }
 
 /**
