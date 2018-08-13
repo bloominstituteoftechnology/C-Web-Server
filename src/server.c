@@ -264,6 +264,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  // Get current date
+  // CODE IDEA/REFERENCE from: https://stackoverflow.com/questions/7548759/generate-a-date-string-in-http-response-date-format-in-c
+  char date[1024];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
