@@ -287,6 +287,8 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  printf("Request: %s\n", request); 
+  sscanf(request, "%s / %s\nHost:%s", request_type, request_protocol, request_path); 
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
