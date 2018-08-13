@@ -193,6 +193,21 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
 
+  response_length = sprintf(response, 
+    "%s\n"
+    "Date: %s"    
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s\n",
+    header,
+    timestamp,
+    content_length,
+    content_type,
+    body
+  );
+
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -218,7 +233,8 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello World!</h1></html>\n");
+
 }
 
 /**
