@@ -296,6 +296,10 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  // It's supposed to look like this?? `GET /example HTTP/1.1`
+
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("type: %s, path: %s, protocol: %s\n", request_type, request_path, request_protocol);
 
 
   // ========== Stretch Goal ========== //
