@@ -189,9 +189,27 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+
+  time_t raw_format;
+  time(&raw_format);
+
+  int response_length = sprintf(response,
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Connection-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header,
+    asctime(localtime(&raw_format)),
+    strlen(body),
+    content_type,
+    body);
 
   // !!!!  IMPLEMENT ME
+
+  printf("\nMy response is %s\n", response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -209,7 +227,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
  */
 void resp_404(int fd)
 {
-  printf("I should be sending a 404");
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
 }
 
@@ -220,7 +237,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  printf("get_root placeholder\n");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "This is the root!");
 }
 
 /**
