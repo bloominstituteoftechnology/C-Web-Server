@@ -188,7 +188,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   sprintf(
       response,
-      "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+      "%s\nDate: %sConnection: close\nContent-Length: %ld\nContent-Type: %s\n\n%s",
       header,
       asctime(localtime(&t)),
       strlen(body),
@@ -240,7 +240,7 @@ void get_date(int fd)
   struct tm *tm = gmtime(&t);
   int len = (sizeof(char) * 24) + 1;
   char date[len];
-  
+
   strftime(date, len, "%c", tm);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
