@@ -189,9 +189,28 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
+  // timestamp
+  time_t seconds = time(NULL); // get current time at execution
+  // convert to a tm struct
+  struct tm *ltime = localtime(&seconds);
+  // conver struct tm type to a string
+  char *timestamp = asctime(ltime);
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  response_length = sprintf(response,
+    "%s\n"
+    "%s"
+    "Connection:close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "%s\n",
+    header,
+    timestamp,
+    strlen(body),
+    content_type,
+    body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +237,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
@@ -227,6 +246,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int num;
+  char str[8]; // buffer to hold stringified random num
+
+  srand(time(NULL)); // seed rand()
+  num = rand() % 20 + 1;
+  sprintf(str, "%d\n", num);
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", str);
 }
 
 /**
@@ -235,6 +262,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t seconds = time(NULL);
+  struct tm*ltime = localtime(&seconds);
+
+  sprintf(response_body, "%s", asctime(ltime));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -269,7 +302,12 @@ void handle_http_request(int fd)
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
+  char *get = "GET\0";
+  char *post = "POST\0";
   char request_type[8]; // GET or POST
+  char *root = "/\0";
+  char *d20 = "/d20\0";
+  char *date = "/date\0";
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
@@ -281,18 +319,41 @@ void handle_http_request(int fd)
     return;
   }
 
-   // NUL terminate request string
+  // NUL terminate request string
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  p = request;
+
+  sscanf(p, "%7s", request_type);
+
+  if (strcmp(request_type, get) == 0) {
+    sscanf((p + 3), "%1024s", request_path);
+  } else if (strcmp(request_type, post) == 0) {
+    sscanf((p + 5), "%1024s", request_path);
+  }
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+  if (strcmp(request_path, root) == 0) {
+    // / path calls get_root()
+    get_root(fd);
+  } else if (strcmp(request_path, d20) == 0) {
+    // /d20 calls get_d20()
+    get_d20(fd);
+  } else if (strcmp(request_path, date) == 0) {
+    // /date calls get_date()
+    get_date(fd);
+  } else {
+    // unknown paths call resp_404()
+    resp_404(fd);
+  }
 }
 
 /**
