@@ -224,6 +224,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("Blackbird Singing in the Dead of Night...\nTake these Broken Wings and Learn to Fly...\n");
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Here Comes the Sun! Good morning, World!</h1>");
 }
 
@@ -234,6 +235,7 @@ void get_d20(int fd)
 {
   char random[50];
   sprintf(random, "Here is your random number: %d\n", rand()%20 + 1);
+  printf("And another random number from 1 to 20: %d\n", rand() %20 + 1);
   
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", random);
 }
@@ -251,8 +253,8 @@ void get_date(int fd)
     fprintf(stdout, "UTC:       %s", asctime(gmtime(&t)));
     fprintf(stdout, "local:     %s", asctime(localtime(&t)));
     // POSIX-specific
-    putenv("TZ=Asia/Singapore");
-    fprintf(stdout, "Singapore: %s", asctime(localtime(&t)));
+    putenv("TZ=Asia/Seoul");
+    fprintf(stdout, "Korea: %s", asctime(localtime(&t)));
     putenv("TZ=PST8PDT");
  
 
