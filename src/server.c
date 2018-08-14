@@ -190,16 +190,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+ 
   // !!!!  IMPLEMENT ME
 
+  response_length = sprintf(response,
+    "%s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n\n"
+    "%s",
+    header,
+    strlen(body),
+    content_type,
+    body
+  );
+
+  
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
     perror("send");
   }
-
+ 
   return rv;
 }
 
@@ -220,7 +233,7 @@ void get_root(int fd)
   // !!!! IMPLEMENT ME
   //send_response(...
 
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><body>Hello, world!</body></html>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
   
 }
 
@@ -276,6 +289,8 @@ void handle_http_request(int fd)
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
+ 
+
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -290,21 +305,13 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  //  printf(request); // see output below for request to http://localhost:3490/
-
-                  // GET / HTTP/1.1
-                  // Host: localhost:3490
-                  // Connection: keep-alive
-                  // Cache-Control: max-age=0  
-                  // Upgrade-Insecure-Requests: 1
-                  // User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36
-                  // Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
-                  // Accept-Encoding: gzip, deflate, br
-                  // Accept-Language: en-US,en;q=0.9 
       
-  sscanf(request, "%s %s", request_type, request_path);
-  printf("REQUEST TYPE: %s\n", request_type);
-  printf("REQUEST PATH: %s\n", request_path);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("REQUEST: %s %s %s", request_type, request_path, request_protocol);
+  // printf("REQUEST TYPE: %s\n", request_type);
+  // printf("REQUEST PATH: %s\n", request_path);
+  // printf("REQUEST PROTOCOL: %s\n", request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
@@ -312,21 +319,25 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
   if (strcmp(request_type, "GET") == 0) { 
-    if (strcmp(request_path, '/') == 0) {
+    if (strcmp(request_path, "/") == 0) {
       get_root(fd); 
-    }
-    else if (strcmp(request_path, '/d20') == 0) {
+    } else if (strcmp(request_path, "/d20") == 0) {
       get_d20(fd); 
-    }
-    else if (strcmp(request_path, '/date') == 0) {
+    } else if (strcmp(request_path, "/date") == 0) {
       get_date(fd);
-    }
-    else {
+    } else {
       resp_404(fd);
     }
-  }
+  } 
+  else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+      // post_save(fd, body);
+    } else {
+      resp_404(fd);
+    }
+  } 
   else {
-    // TODO: Implement P O S T
+    resp_404(fd);
   }
 }
 
