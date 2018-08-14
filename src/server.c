@@ -295,41 +295,34 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-  sscanf(request, "%s / %s\nHost: %s\r", request_type, request_protocol, request_path);
-  printf("%s %s %s\n", request_type, request_protocol, request_path);
+  // printf("%s\n", request);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("%s %s %s\n", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  char* str1 = "/";
-  int ret = strcmp(str1, request_path);
 
-  if (ret == 0) {
-    printf("yes - root");
-    return get_root(fd);
-  }
-  else if (ret > 0) {
-    str1 = strcpy(str1, "/d20");
-    ret = strcmp(str1, request_path);
-    if (ret == 0) {
-      printf("yes - d20");
-      return get_d20(fd);
-    } 
-    else {
-      str1 = strcpy(str1, "/date");
-      ret = strcmp(str1, request_path);
-      if (ret == 0) {
-        printf("yes - get_date");
-        return get_date(fd);
-      }
-      else {
-        return resp_404(fd);
-      }
+
+  if(strcmp(request_type, "GET") == 0) {
+    if(strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
     }
-  }
-  else {
-    return resp_404(fd);
+  } else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+      // post_save(fd, *body);
+    } else {
+      resp_404(fd);
+    }
+  } else {
+    resp_404(fd);
   }
   
 }
