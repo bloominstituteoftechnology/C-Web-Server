@@ -192,6 +192,25 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  time_t t1 = time(NULL);
+  struct tm *timeinfo = localtime(&t1);
+
+  int content_length = strlen(body);
+  
+  response_length = sprintf(response,
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-length: %d\n"
+    "Content-type: %d\n"
+    "\n"
+    "%s\n",
+    header,
+    asctime(timeinfo),
+    content_length,
+    content_type,
+    body,
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +237,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response("HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h1>Hello, World!</h1></body></html></>");
 }
 
 /**
@@ -227,6 +246,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+   
+  char str[4];
+   
+  int random = rand() % 20 + 1;
+  sprintf(str, "%d\n", random);
+   
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", str);
 }
 
 /**
@@ -235,6 +262,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t gmt_format;
+  time(&gmt_format);
+  char current[26];  
+  sprintf(current, "%s", asctime(gmtime(&gmt_format)));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", current);
 }
 
 /**
@@ -272,6 +304,7 @@ void handle_http_request(int fd)
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
+  char *body;
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -307,17 +340,6 @@ void handle_http_request(int fd)
     else if (strcmp(request_path, "/date") == 0)
     {
       get_date(fd);
-    }
-    else
-    {
-      resp_404(fd);
-    }
-  }
-  else if (strcmp(request_type, "POST") == 0)
-  {
-    if (strcmp(request_path, "/save") == 0)
-    {
-      post_save(fd, request);
     }
     else
     {
