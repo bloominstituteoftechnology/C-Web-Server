@@ -235,7 +235,6 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello World!</h1></html>\n");
-
 }
 
 /**
@@ -244,6 +243,9 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[50];
+  sprintf(response_body, "Random number: %d\n", (rand() % 20) + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -304,6 +306,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
