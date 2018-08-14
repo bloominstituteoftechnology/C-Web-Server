@@ -198,7 +198,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   response_time = localtime (&raw_time);
 
   response_length = sprintf(response, 
-    "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+    "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
     header, asctime(response_time), strlen(body), content_type, body);
 
   // Send it all!
@@ -249,13 +249,13 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  time_t raw_time;
-  struct tm * response_time;
-  time(&raw_time);
+  time_t raw_time = time(NULL);
+  struct tm * response_time = gmtime(&raw_time);
 
   char *response_header = "HTTP/1.1 200 OK";
   char *response_type = "text/html";
-  char *response_body = asctime(response_time);
+  char response_body[128];
+  sprintf(response_body, "%s", asctime(response_time));
   send_response(fd, response_header, response_type, response_body);
 }
 
