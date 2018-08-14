@@ -285,7 +285,19 @@ void handle_http_request(int fd)
   request[bytes_recvd] = '\0';
 
   // Get the request type and path
-  // Hint: sscanf()!
+  // Get the request header (stopping at new line)
+  char *header = request;
+  p = strchr(header, '\n');
+  *p = '\0';
+
+  sscanf(header, "%s %s", request_type, request_path);
+  printf("Request type: %s \nRequest path: %s", request_type, request_path);
+
+  if (strcmp(request_type, "GET") == 0) {
+    printf("GET request");
+  } else {
+    printf("POST request");
+  }
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
