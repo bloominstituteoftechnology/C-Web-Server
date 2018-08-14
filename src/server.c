@@ -32,9 +32,9 @@
 #include <sys/file.h>
 #include <fcntl.h>
 
-#define PORT "3490"  // the port users will be connecting to
+#define PORT "3490"  // The port users will be connecting to.
 
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10	 // The number of pending connections queue will hold.
 
 /**
  * Handle SIGCHILD signal
@@ -232,6 +232,8 @@ void resp_404(int fd, char *path)
 {
   char response_body[1024];
 
+  // The sprintf() C library function sends formatted output to a string.
+  // Similar to printf() but returns formatted string.
   sprintf(response_body, "404: %s not found", path);
 
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
@@ -243,8 +245,8 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
-  char *response_body = "<html><head></head><body><h1>Hello, world!</h1></body></html>\n";
+  // send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, world.</h1><p></p></body></html>\n";
 
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
@@ -334,6 +336,7 @@ char *find_start_of_body(char *header)
   // !!!! IMPLEMENT ME
   char *p;
 
+  // The strstr() C library function returns the first occurence of header.
   p = strstr(header, "\n\n");
 
   if (p != NULL)
@@ -356,6 +359,7 @@ char *find_start_of_body(char *header)
 /**
  * Handle HTTP request and send response
  */
+// "fd" stands for "file discriptor".
 void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
@@ -366,6 +370,8 @@ void handle_http_request(int fd)
   char request_protocol[128]; // HTTP/1.1
 
   // Reads request
+  // The recv() C library function receives messages from sockets.
+  // A socket is a communication channel between processes and is represented by a file descriptor (fd).
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
   if (bytes_recvd < 0) {
@@ -373,16 +379,17 @@ void handle_http_request(int fd)
     return;
   }
 
-  // NUL terminate request string.
+  // NULL terminates request string.
   request[bytes_recvd] = '\0';
 
-  // Initializes character pointer/ parses or analyzes first line of request.
+  // Initializes character pointer first_line/ parses or analyzes first line of request.
   char *first_line = request;
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line.
   // Hint: sscanf()!
   // Looks for new line.
+  // strchr() is a C library function that searches for the first occurence of a character. 
   p = strchr(first_line, '\n');
   *p = '\0';
 
@@ -404,29 +411,33 @@ void handle_http_request(int fd)
   char *body = p;
 
   // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+  // Call the appropriate handler functions above, with the incoming data.
 
+  // The sscanf() C library function reads formatted input from a string.
   // Reads the three components of the first request line.
+  // %s is a format specifier that tells the function, sscanf() in this case, that the content specified in the parameter
+  // is a string.
   sscanf(first_line, "%s %s %s\n", request_type, request_path, request_protocol);
 
   printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
 
-  // String compare, character by character
+  // The strcmp() function compares strings, character by character.
+  // Checks whether the type of request is a "GET".
   if (strcmp(request_type, "GET") == 0)
   {
-    // First endpoint, check for the root: "/"
+    // First endpoint, checks for the root: "/"
     if (strcmp(request_path, "/") == 0)
     {
       get_root(fd);
     }
 
-    // Second endpoint: "/d20"
+    // Second endpoint, checks for "/d20"
     else if (strcmp(request_path, "/d20") == 0)
     {
       get_d20(fd);
     }
 
-    // Third endpoint: "/date"
+    // Third endpoint, checks for: "/date"
     else if (strcmp(request_path, "/date") == 0)
     {
       get_date(fd);
@@ -438,6 +449,7 @@ void handle_http_request(int fd)
     }
   }
 
+  // Checks whether the type of request is a "POST".
   else if (strcmp(request_type, "POST") == 0)
   {
     // Another endpoint: "/save"
