@@ -303,10 +303,16 @@ void handle_http_request(int fd)
       get_root(fd);
     } else if (strcmp(request_path, "/d20") == 0) {
       get_d20(fd);
+    } else {
+      resp_404(fd);
     }
   } else if (strcmp(request_type, "POST") == 0) {
     printf("POST request");
-    post_save(fd, "request body goes here");
+    if (strcmp(request_path, "/save") == 0) {
+      post_save(fd, "request body goes here");
+    } else {
+      resp_404(fd);
+    }
   }
 }
 
