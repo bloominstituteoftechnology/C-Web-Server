@@ -276,8 +276,7 @@ then come back to goal #1 and dig in._
    See the [HTTP](#http) section above for an example of an HTTP response and
    use that to build your own.
 
-   Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
-   content length. `sprintf()` also returns the total number of bytes in the
+   Hint: `sprintf()` for creating the HTTP response. . `sprintf()` also returns the total number of bytes in the
    result string, which might be helpful.
 
    > The HTTP `Content-Length` header only includes the length of the body, not
