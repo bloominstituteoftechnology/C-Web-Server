@@ -296,7 +296,24 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
-  printf("BODY_PARSER: %s\N", strstr(*header, "\n\n"));
+  char *body;
+
+  printf("BODY_PARSER 1:*********\n %s\n", header);
+  if ((body = strstr(header, "\n\n")) == NULL)
+  {
+    printf("BODY_PARSER 2:*********\n %s\n", strstr(header, "\n\n"));
+    if ((body = strstr(header, "\r\r")) == NULL)
+    {
+      printf("BODY_PARSER 3:*********\n %s\n", strstr(header, "\r\r"));
+      if ((body = strstr(header, "\r\n\r\n")) == NULL)
+      {
+        printf("BODY_PARSER 4:*********\n %s\n", strstr(header, "\r\n\r\n"));
+        perror("Body could not be parsed\n");
+      }
+    }
+  }
+  printf("BODY_PARSER 4:*********\n %s\n", body);
+  return body;
 }
 
 /**
@@ -331,7 +348,10 @@ void handle_http_request(int fd)
   printf("%s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body(&request);
+  printf("SCAN BODY 1\n");
+  p = find_start_of_body(request);
+  printf("SCAN BODY body; %s\n", (p + 2));
+  printf("SCAN BODY 2\n");
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
