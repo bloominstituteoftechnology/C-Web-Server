@@ -42,11 +42,9 @@
  *
  * We get this signal when a child process dies. This function wait()s for
  * Zombie processes.
- *
- * This is only necessary if we've implemented a multiprocessed version with
- * fork().
  */
-void sigchld_handler(int s) {
+void sigchld_handler(int s)
+{
   (void)s; // quiet unused variable warning
 
   // waitpid() might overwrite errno, so we save and restore it:
@@ -64,9 +62,6 @@ void sigchld_handler(int s) {
  *
  * Whenever a child process dies, the parent process gets signal
  * SIGCHLD; the handler sigchld_handler() takes care of wait()ing.
- * 
- * This is only necessary if we've implemented a multiprocessed version with
- * fork().
  */
 void start_reaper(void)
 {
@@ -343,7 +338,7 @@ int main(void)
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
 
-  start_reaper(); // for concurrency stretch goal
+  start_reaper();
 
   int listenfd = get_listener_socket(PORT); // will listen for new connections
   if (listenfd < 0) {
@@ -351,7 +346,7 @@ int main(void)
     exit(1);
   }
 
-  printf("webserver: waiting for connections...\n");
+  printf("webserver: parent %d waiting for connections...\n", (int)getpid());
 
   // This is the main loop that accepts incoming connections and
   // fork()s a handler process to take care of it. The main parent
@@ -373,7 +368,14 @@ int main(void)
     );
 
     printf("server: got connection from %s\n", s);
-    handle_http_request(newfd); // TODO: For concurrency stretch goal, convert to multiprocessed with fork()
+
+    if (fork() == 0)
+    {
+      printf("child %d processing request\n", (int)getpid());
+      handle_http_request(newfd);
+      exit(0);
+    }
+
     close(newfd);
   }
 
