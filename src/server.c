@@ -277,6 +277,7 @@ void post_save(int fd, char *body)
   // !!!! IMPLEMENT ME
 
   // Save the body and send a response
+  printf("Body : %s\n",body);
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Testing: you are in the root</h1>");
 }
 
@@ -292,6 +293,21 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *body;
+
+  body = strstr(header, "\n\n");
+  if (body != NULL)
+    return body;
+
+  body = strstr(header, "\r\r");
+  if (body != NULL)
+    return body;
+
+  body = strstr(header, "\r\n\r\n");
+  if (body != NULL)
+    return body;
+  
+  return body;
 }
 
 /**
@@ -329,6 +345,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
+  p = find_start_of_body(request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -356,7 +373,7 @@ void handle_http_request(int fd)
   {
     if (strcmp(request_path, "/save") == 0)
     {
-      post_save(fd,"body");
+      post_save(fd,p);
     }
 
   }
