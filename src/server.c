@@ -217,8 +217,10 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  char *response_header = "HTTP/1.1 200 OK";
+  char *response_type = "text/html";
+  char *response_body = "<html><head></head><body>Response</body></html>";
+  send_response(fd, response_header, response_type, response_body);
 }
 
 /**
