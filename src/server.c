@@ -44,11 +44,9 @@ Type `./server` to run the server.
 /**
  * Handle SIGCHILD signal
  *
- * We get this signal when a child process dies. This function wait()s for
- * Zombie processes.
+ * We get this signal when a child process dies. This function wait()s for Zombie processes.
  *
- * This is only necessary if we've implemented a multiprocessed version with
- * fork().
+ * This is only necessary if we've implemented a multiprocessed version with fork().
  */
 void sigchld_handler(int s)
 {
@@ -65,14 +63,11 @@ void sigchld_handler(int s)
 }
 
 /**
- * Set up a signal handler that listens for child processes to die so
- * they can be reaped with wait()
+ * Set up a signal handler that listens for child processes to die so they can be reaped with wait()
  *
- * Whenever a child process dies, the parent process gets signal
- * SIGCHLD; the handler sigchld_handler() takes care of wait()ing.
+ * Whenever a child process dies, the parent process gets signal SIGCHLD; the handler sigchld_handler() takes care of wait()ing.
  * 
- * This is only necessary if we've implemented a multiprocessed version with
- * fork().
+ * This is only necessary if we've implemented a multiprocessed version with fork().
  */
 void start_reaper(void)
 {
@@ -115,14 +110,14 @@ int get_listener_socket(char *port)
   int yes = 1;
   int rv;
 
-  // This block of code looks at the local network interfaces and
-  // tries to find some that match our requirements (namely either
-  // IPv4 or IPv6 (AF_UNSPEC) and TCP (SOCK_STREAM) and use any IP on
-  // this machine (AI_PASSIVE).
+  // This block of code looks at the local network interfaces and tries to find some that match our requirements:
+  // IPv4 or IPv6 (AF_UNSPEC)
+  // TCP (SOCK_STREAM) 
+  // and use any IP on this machine (AI_PASSIVE).
 
   memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_family = AF_UNSPEC; // allow IPv4 or IPv6
+  hints.ai_socktype = SOCK_STREAM; //Socket Type - maybe TCP?
   hints.ai_flags = AI_PASSIVE; // use my IP
 
   if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0)
@@ -131,9 +126,8 @@ int get_listener_socket(char *port)
     return -1;
   }
 
-  // Once we have a list of potential interfaces, loop through them
-  // and try to set up a socket on each. Quit looping the first time
-  // we have success.
+  // Once we have a list of potential interfaces, loop through them and try to set up a socket on each.
+  // Quit looping the first time we have success.
   for (p = servinfo; p != NULL; p = p->ai_next)
   {
 
@@ -145,8 +139,7 @@ int get_listener_socket(char *port)
       continue;
     }
 
-    // SO_REUSEADDR prevents the "address already in use" errors
-    // that commonly come up when testing servers.
+    // SO_REUSEADDR prevents the "address already in use" errors that commonly come up when testing servers.
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
                    sizeof(int)) == -1)
     {
@@ -156,9 +149,9 @@ int get_listener_socket(char *port)
       return -2;
     }
 
-    // See if we can bind this socket to this local IP address. This
-    // associates the file descriptor (the socket descriptor) that
-    // we will read and write on with a specific IP address.
+    // See if we can bind this socket to this local IP address.
+    // This associates the file descriptor (the socket descriptor) 
+    // that we will read and write on with a specific IP address.
     if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
     {
       close(sockfd);
@@ -193,6 +186,8 @@ int get_listener_socket(char *port)
 }
 
 /**
+ *  WORK STARTS HERE!!!!   
+ * 
  * Send an HTTP response
  *
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
@@ -208,6 +203,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -233,7 +229,7 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
+  // SECOND THING TO DO  !!!! IMPLEMENT ME
   //send_response(...
 }
 
@@ -278,6 +274,7 @@ char *find_start_of_body(char *header)
 }
 
 /**
+ * DO THIS FIRST
  * Handle HTTP request and send response
  */
 void handle_http_request(int fd)
