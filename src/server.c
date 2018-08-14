@@ -192,6 +192,16 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  int content_length = strlen(body);
+  response_length = sprintf(response, 
+    "%s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header, content_length, content_type, body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +229,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>");
 }
 
 /**
@@ -227,6 +238,9 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char rand_num[50];
+  sprintf(rand_num, "Random Number: %d\n", rand() % 21);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand_num);
 }
 
 /**
@@ -235,6 +249,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  char date[50];
+  sprintf(date, "Today's Date: %d-%d-%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
@@ -287,12 +306,27 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  // https://www.tutorialspoint.com/c_standard_library/c_function_sscanf.htm
+  sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  printf("strcmp: %d\n", strcmp(request_path, "/"));
+  // if strcmp returns 0, the 2 strings match
+  if((strcmp(request_path, "/")) == 0){
+    printf("root is firing \n");
+    get_root(fd);
+  }
+  else if(strcmp(request_path, "/d20") == 0){
+    printf("random number (d20) is firing\n");
+    get_d20(fd);
+  }else if(strcmp(request_path, "/date") == 0){
+    printf("date is firing\n");
+    get_date(fd);
+  }
 }
 
 /**
