@@ -278,7 +278,25 @@ void post_save(int fd, char *body)
 
   // Save the body and send a response
   printf("Body : %s\n",body);
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Testing: you are in the root</h1>");
+  char *status;
+  FILE *fp;
+
+  fp = fopen("data.txt", "a+");
+
+  if (fd >= 0)
+  {
+    fwrite(body , 1 , strlen(body) , fp );
+    fclose(fp);
+    status = "ok";
+  } else {
+    status = "fail";
+  }
+
+  char response[128];
+
+  sprintf(response, "{\"status\": \"%s\"}\n", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response);
 }
 
 /**
@@ -325,7 +343,7 @@ void handle_http_request(int fd)
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
-  printf("%s\n", request);
+  // printf("%s\n", request);
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -374,6 +392,10 @@ void handle_http_request(int fd)
     if (strcmp(request_path, "/save") == 0)
     {
       post_save(fd,p);
+    }
+    else
+    {
+      resp_404(fd);
     }
 
   }
