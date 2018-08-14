@@ -11,6 +11,7 @@
  * 
  * Posting Data:
  * 
+ 
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
  * 
  * (Posting data is harder to test from a browser.)
@@ -243,10 +244,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   srand(time(NULL));
-   char str[4];
-   int random = rand() % 20 + 1;
+  char str[4];
+  int random = rand() % 20 + 1;
   sprintf(str, "%d\n", random);
-   send_response(fd, "HTTP/1.1 200 OK", "text/plain", str);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", str);
 }
 
 /**
@@ -254,7 +255,12 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  time_t epoch = time(NULL);
+  struct tm *tm = localtime(&epoch);
+  char mydate[1024];
+  
+  sprintf(mydate, "%s\n", asctime(tm));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", mydate); 
 }
 
 /**
