@@ -269,6 +269,38 @@ void post_save(int fd, char *body)
   // !!!! IMPLEMENT ME
 
   // Save the body and send a response
+  char *status;
+
+  // Open the file
+  int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
+
+  if (file_fd >= 0) {
+    // Exclusive lock to keep processes from trying to write the file at the
+    // same time. This is only necessary if we've implemented a
+    // multiprocessed version with fork().
+    flock(file_fd, LOCK_EX);
+
+    // Write body
+    write(file_fd, body, strlen(body));
+
+    // Unlock
+    flock(file_fd, LOCK_UN);
+
+    // Close
+    close(file_fd);
+
+    status = "ok";
+  } else {
+    status = "fail";
+  }
+
+  // Now send an HTTP response
+
+  char response_body[128];
+
+  sprintf(response_body, "{\"status\": \"%s\"}\n", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -283,6 +315,19 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -308,6 +353,36 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
+  char *first_line = request;
+
+  // Look for newline
+  p = strchr(first_line, '\n');
+  *p = '\0';
+
+  // Remaining header
+  char *header = p + 1; // +1 to skip the '\n'
+
+  // Look for two newlines marking the end of the header
+  p = find_start_of_body(header);
+
+  if (p == NULL) {
+    printf("Could not find end of header\n");
+    exit(1);
+  }
+
+  // And here is the body
+  char *body = p;
+
+  /*
+  * Now that we've assessed the request, we can take actions.
+  */
+
+  // Read the three components of the first request line
+  sscanf(first_line, "%s %s %s", request_type, request_path,
+    request_protocol);
+
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
@@ -316,8 +391,29 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
+
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+    post_save(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else {
+    resp_404(fd);
+  }
+}
 }
 
 /**
