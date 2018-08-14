@@ -1,4 +1,4 @@
-/**
+/** 
  * webserver.c -- A webserver written in C
  * 
  * Test with curl (if you don't have it, install it):
@@ -192,7 +192,23 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  
+  time_t the_time = time(NULL);
+  struct tm *local_time = localtime(&the_time);
 
+  int content_length = strlen(body);
+  response_length = sprintf(response,
+  "%s\n"
+  "Date: %s"
+  "Content-Length: %d\n"
+  "Content-Type: %s\n"
+  "\n"
+  "%s\n",
+  header,
+  asctime(local_time),
+  content_length,
+  content_type,
+  body);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -207,9 +223,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  char response_body[1024];
+  sprintf(response_body, "404: %s not found", path);
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
 }
 
 /**
@@ -218,7 +236,9 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  //char *response_body = "<html><head></head><body><h1>Hello from root</h1></body></html>\n";
+  // extracted out for readability. no difference otherwise.
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><head></head><body><h1>Hello from root</h1></body></html>\n");
 }
 
 /**
@@ -227,14 +247,27 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid()); // getpid allows user to refresh the page in order to get new number.
+  // without adding getpid it will run fine once, if page is refreshed though the server will throw seg fault.
+  char response_body[8]; // number could be up to 20 so need space for 2 integers which are 4 a piece.
+  sprintf(response_body, "%d\n", (rand() % 20 + 1)); //needs srand to work. srand = seed random.
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
  * Send a /date endpoint response
  */
 void get_date(int fd)
+
 {
-  // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t t1 = time(NULL);
+  struct tm *gtime = gmtime(&t1);
+
+  sprintf(response_body, "%s", asctime(gtime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+
 }
 
 /**
@@ -259,6 +292,19 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -286,13 +332,45 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
+  char *first = request;
+  p = strchr(first, '\n');
+  *p = '\0';
+  char *header = p + 1;
+  p = find_start_of_body(header);
+  if (p == NULL) {
+    printf("Could not find end of header\n");
+    exit(1);
+  }
+  
+  // p = strchr(first, '\n'); maybe for stretch
+  // use strchr to find the first isntance of \n in the request
   // Hint: sscanf()!
+  sscanf(first, "%s %s %s", request_type, request_path, request_protocol);
 
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+  // printf("%s\n", request_type);
+  // printf("%s\n", request_path);
+  // printf("%s\n", request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+    if (strcmp(request_type, "GET") == 0) {
+      
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+
+    else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd, request_path);
+    }
+  } // post save for stretch goal goes here strcmp-req_path /save == 0
 }
 
 /**
