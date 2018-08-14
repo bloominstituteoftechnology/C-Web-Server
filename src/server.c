@@ -193,9 +193,17 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // !!!!  IMPLEMENT ME
   // only includes the length of the body, not the header.
   int content_length = strlen(body); 
-  char *current_date = "Tue Aug 14 15:15:15 EST 2018"; 
+  // char *current_date = "Tue Aug 14 15:15:15 EST 2018"; 
+  // from time.h, time_t stores the calendar time
+  // convert to struct with localtime
+  // convert struct to string 
+  // asctime() converts the calendar time into a null-terminated string of the form
+  // "Wed Jun 30 21:49:08 1993\n"
+  time_t seconds = time(NULL);
+  struct tm *current_time = localtime(&seconds);
+  char *current_date = asctime(current_time);
 
-  sprintf(response, 
+  response_length = sprintf(response, 
     "%s\n"
     "Date: %s\n"
     "Connection: close\n"
@@ -206,11 +214,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
     header, 
     current_date, 
     content_length, 
-    content_type, body
+    content_type, 
+    body
   );
-
-  // the total length of both header and body. And pass it to send()
-  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -254,7 +260,7 @@ void get_d20(int fd)
   // rand() %20 yields a result from 0 - 19 so add 1 to become 1 - 20
   int rand_num = (rand() % 20) + 1;
   sprintf(response_body, "%d", rand_num);
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);  
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);  
 }
 
 /**
@@ -263,6 +269,12 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_time[128];
+  time_t seconds = time(NULL);
+  struct tm *current_time = localtime(&seconds);
+  char *current_date = asctime(current_time);
+  sprintf(response_time, "%s", current_date);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_time); 
 }
 
 /**
