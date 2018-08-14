@@ -236,7 +236,10 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char *response_header = "HTTP/1.1 200 OK";
+  char *response_type = "text/html";
+  int response_body = (rand() % 20) + 1;
+  send_response(fd, response_header, response_type, response_body);
 }
 
 /**
