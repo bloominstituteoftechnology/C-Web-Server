@@ -311,7 +311,11 @@ void handle_http_request(int fd)
   else if (strcmp(request_type, "POST") == 0)
   {
     request_body = find_start_of_body(request);
-    post_save(fd, request_body);
+
+    if (strcmp(request_path, "/save") == 0 && request_body)
+      return post_save(fd, request_body);
+
+    resp_404(fd);
   }
   else
   {
