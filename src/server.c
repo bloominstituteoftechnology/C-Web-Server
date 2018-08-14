@@ -257,6 +257,7 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // The srand() C library function is used to initialize the pseudo-random number generator by passing the argument seed.
   srand(time(NULL) + getpid());
 
   char response_body[8];
@@ -274,6 +275,7 @@ void get_date(int fd)
   char response_body[128];
   time_t t1 = time(NULL);
   struct tm *gtime = gmtime(&t1);
+
 
   sprintf(response_body, "%s", asctime(gtime));
 
@@ -293,16 +295,16 @@ void post_save(int fd, char *body)
 
   if (file_fd >= 0)
   {
-    // This prevents the processes from writing the file simultaneously
+    // This prevents the processes from writing the file simultaneously.
     flock(file_fd, LOCK_EX);
 
-    // Writes the body
+    // Writes the body.
     write(file_fd, body, strlen(body));
 
-    // Unlocks
+    // Unlocks.
     flock(file_fd, LOCK_UN);
 
-    // Closes
+    // Closes.
     close(file_fd);
 
     status = "okay";
@@ -374,12 +376,13 @@ void handle_http_request(int fd)
   // A socket is a communication channel between processes and is represented by a file descriptor (fd).
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
+  // If there's no byte received, it will return an error.
   if (bytes_recvd < 0) {
     perror("recv");
     return;
   }
 
-  // NULL terminates request string.
+  // This terminates the request using the null terminator.
   request[bytes_recvd] = '\0';
 
   // Initializes character pointer first_line/ parses or analyzes first line of request.
@@ -414,7 +417,7 @@ void handle_http_request(int fd)
   // Call the appropriate handler functions above, with the incoming data.
 
   // The sscanf() C library function reads formatted input from a string.
-  // Reads the three components of the first request line.
+  // It reads the three components of the first request line.
   // %s is a format specifier that tells the function, sscanf() in this case, that the content specified in the parameter
   // is a string.
   sscanf(first_line, "%s %s %s\n", request_type, request_path, request_protocol);
@@ -428,6 +431,7 @@ void handle_http_request(int fd)
     // First endpoint, checks for the root: "/"
     if (strcmp(request_path, "/") == 0)
     {
+    // Call the appropriate handler function.
       get_root(fd);
     }
 
