@@ -235,6 +235,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char num[100];
+  sprintf(num, "<h1>Random number:</h1>\n <h2>%d</h2>\n", rand() % 21);
+  printf("%s", num);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", num);
 }
 
 /**
@@ -243,6 +247,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char buf[1000];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+  char current_time[100];
+  sprintf(current_time, "Time is: %s\n", buf);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", current_time);
 }
 
 /**
