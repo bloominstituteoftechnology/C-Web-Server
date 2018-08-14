@@ -258,6 +258,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t raw_time;
+  struct tm * response_time;
+  time(&raw_time);
+  response_time = localtime(&raw_time);
+  char *response_header = "HTTP/1.1 200 OK";
+  char *response_type = "text/html";
+  char *response_body = asctime(response_time);
+  send_response(fd, response_header, response_type, response_body);
 }
 
 /**
