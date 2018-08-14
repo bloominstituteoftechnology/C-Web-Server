@@ -242,7 +242,17 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>DATE NOW</h1>");
+  time_t now;
+  time(&now);
+
+  struct tm* now_tm;
+  now_tm = localtime(&now);
+
+  char date[80];
+  strftime (date, 80, "<h1>Now it's %Y-%m-%d</h1>", now_tm);
+  // char response_body[50];
+  // sprintf(response_body, "<h1>Date: %s</h1>\n", getdate("%m/%d/%y"));
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", date);
 }
 
 /**
