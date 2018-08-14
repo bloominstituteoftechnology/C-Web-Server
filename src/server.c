@@ -254,6 +254,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  sprintf(response_body, "%d\n", asctime(localtime(&t)));
+  // returns a pointer to a string which represents the day and 
+  //time of the structure struct timeptr.
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
