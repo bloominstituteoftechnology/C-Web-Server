@@ -3,7 +3,7 @@
  * 
  * Test with curl (if you don't have it, install it):
  * 
- *    curl -D - http://localhost:3490/
+ *    curl -D -http://localhost:3490/ 
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
  * 
@@ -189,9 +189,16 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
-
+  int response_length; 
   // !!!!  IMPLEMENT ME
+  // only includes the length of the body, not the header.
+  int content_length = strlen(body); 
+  char *current_date = "Tue Aug 14 15:15:15 EST 2018";  // check srand() with time(NULL) later
+
+  sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, current_date, content_length, content_type, body);
+
+  // the total length of both header and body. And pass it to send()
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,7 +226,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Welcome!</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
