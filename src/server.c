@@ -287,38 +287,43 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
-  printf("\n\nPOST START\n");
+  printf("\n\n======= POST START\n");
 
   // Save the body and send a response
-  printf("POST 1\n");
-  printf("POST 2\n");
+  // printf("POST 1\n");
+  // printf("POST 2\n");
 
   FILE *post_file = fopen("POST_file.txt", "a+");
   int post_fd = fileno(post_file);
   // Loock file
-  printf("POST 3\n");
+  // printf("POST 3\n");
   int look = flock(post_fd, LOCK_EX);
 
-  printf("POST 4\n");
-  printf("post_fd: %d\n", post_fd);
-  printf("look: %d\n", look);
+  // Make process Sleep for few seconds before continuing -> This aim to help test several access to the same 'post_file'
+  sleep(3);
+
+  // printf("POST 4\n");
+  // printf("post_fd: %d\n", post_fd);
+  // printf("look: %d\n", look);
   if (look == -1) // If error 'looking' the file.
   {
-    printf("POST 5 : look == -1\n");
+    // printf("POST 5 : look == -1\n");
     resp_500(fd);
     fclose(post_file);
+    // printf("POST 7\n");
+    printf("======= POST END - ERROR LOOKING FILE\n");
   }
   else
   {
-    printf("POST 6 : look == 0\n");
+    // printf("POST 6 : look == 0\n");
 
     fprintf(post_file, "%s\n", body);
     fclose(post_file);
 
+    // printf("POST 7\n");
+    printf("======= POST END - SUCCESS WRITING TO FILE\n\n");
     send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>200 ok</h1><p>Content save to server.</p>");
   }
-  printf("POST 7\n");
-  printf("\n\nPOST START\n");
 }
 
 /**
@@ -495,7 +500,7 @@ int main(void)
     {
       printf("CHILD id-%d : Handling request\n", (int)getpid());
       handle_http_request(newfd);
-      printf("CHILD id-%d : Cloisng socket.\n", (int)getpid());
+      printf("CHILD id-%d : Closing socket.\n", (int)getpid());
       close(newfd); // This line ensures that both the Parent and the Child close the open socket.
       exit(0);
     }
