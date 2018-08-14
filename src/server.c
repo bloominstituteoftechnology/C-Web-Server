@@ -37,6 +37,8 @@
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
+#define SAVE_FILE "myjanktext.txt" // file to save to in POST route
+
 /**
  * Handle SIGCHILD signal
  *
@@ -177,6 +179,23 @@ int get_listener_socket(char *port)
   return sockfd;
 }
 
+void whatYearIsIt(char *buf)
+{
+  char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+  char days[7][4] = {
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun",
+  };
+
+  time_t t = time(NULL);
+  struct tm tm = *gmtime(&t);
+  sprintf(buf, "%s %s %i %i:%i:%i GMT %i\n", days[tm.tm_wday], months[tm.tm_mon], tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_year + 1900);
+}
 
 /**
  * Send an HTTP response
@@ -194,12 +213,14 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  // strncpy(response, "Hello world.", max_response_size);
-  // printf("response: %s\n", response);
   // Send it all!
-  response_length = sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %i\nContent-Type: %s\n\n%s\n\n", header, strlen(body), content_type, body);
-  printf("response length: %i\n", response_length);
-  // sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %i\nContent-Type: %s\n\n%s\n\n", header, response_length, content_type, body);
+
+  // Make timestamp string
+  char datebuffer[32];
+  whatYearIsIt(datebuffer);
+
+  response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %li\nContent-Type: %s\n\n%s\n\n", header, datebuffer, strlen(body), content_type, body);
+
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
@@ -208,7 +229,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   return rv;
 }
-
 
 /**
  * Send a 404 response
@@ -225,12 +245,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>ronald</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>I love boobies.</h1>");
 }
-
-
-
-
 
 /**
  * Send a /d20 endpoint response
@@ -241,7 +257,6 @@ void get_d20(int fd)
   srand(time(NULL));
   char randNum[3];
   sprintf(randNum, "%i\n", rand() % 20 + 1);
-  printf("randNum: %s\n", randNum);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", randNum);
 }
 
@@ -250,13 +265,11 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  time_t t = time(NULL);
-  struct tm tm = *gmtime(&t);
-  //tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec
-  // !!!! IMPLEMENT ME
-  char timeStamp[1024];
-  sprintf(timeStamp, "Date: %i %i %i Time GMT: %i:%i:%i\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);  
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", timeStamp);
+  // Make timestamp string
+  char datebuffer[32];
+  whatYearIsIt(datebuffer);
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", datebuffer);
 }
 
 /**
@@ -265,8 +278,30 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  // Copying line by line from `bankers.c` from last week's Processes project
+  int openedFd = open(SAVE_FILE, O_CREAT|O_RDWR, 0644);
+
+  flock(openedFd, LOCK_EX);
+
+  char buffer[1024];
+  int size = sprintf(buffer, "%s", body);
+  // This is explained in `bankers.c`
+  ftruncate(openedFd, 0);
+  lseek(openedFd, 0, SEEK_SET);
 
   // Save the body and send a response
+  int bytes_written = write(openedFd, buffer, size);
+
+  if (bytes_written < 0) {
+    perror("write");
+  }
+
+  // Close the opened file
+  close(openedFd);
+  flock(openedFd, LOCK_UN);
+
+  // Almost forgot we're a web server. Response, please.
+  send_response(fd, "HTTP/1.1 201 CREATED", "application/json", "{\"status\":\"ok\"}\n");
 }
 
 /**
@@ -281,6 +316,37 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  const int newLineLimit = 4; // 4 consecutive '\n' or '\r' characters signify body start.
+                              // Why isn't it 2? Why do birds fly? Why do we exist?
+                              // Magic.
+  int newLineCount = 0;
+  int i = 0;
+  char *current;
+
+  // printf("header:\n%s\n", header);
+  while (1) {
+    current = header + i;
+    // printf("current: %c\n", *current);
+
+    // There may be no body
+    if (*current == '\0') {
+      return NULL;
+    }
+
+    // If there is a body, it has 4 new line characters preceding it.
+    if (newLineCount == newLineLimit) {
+      break;
+    }
+    if (*current == '\n' || *current == '\r') {
+      newLineCount++;
+    }
+    else {
+      newLineCount = 0;
+    }
+    i++;
+  }
+
+  return current;
 }
 
 /**
@@ -310,11 +376,12 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
-  printf("request: %s\n\n", request);
-  printf("type: %s path: %s protocol: %s\n", request_type, request_path, request_protocol);
+  // printf("request: %s\n\n", request);
+  // printf("type: %s path: %s protocol: %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
+  p = find_start_of_body(request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -328,6 +395,14 @@ void handle_http_request(int fd)
     }
     else if (strcmp(request_path, "/date") == 0) {
       get_date(fd);
+    }
+    else {
+      resp_404(fd);
+    }
+  }
+  else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+      post_save(fd, p);
     }
     else {
       resp_404(fd);
@@ -384,14 +459,17 @@ int main(void)
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
-    handle_http_request(newfd);
+    if (fork() == 0) {
+      handle_http_request(newfd);
 
-    // Done with this
-    close(newfd);
+      // Done with this
+      close(newfd);
+      exit(0);
+    }
+
   }
 
   // Unreachable code
 
   return 0;
 }
-
