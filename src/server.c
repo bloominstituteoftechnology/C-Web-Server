@@ -190,8 +190,26 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+  int content_length = strlen(body);
+  time_t seconds = time(NULL);
+  struct tm *localTime = localtime(&seconds); 
+  char *timestamp = asctime(localTime);
   // !!!!  IMPLEMENT ME
+
+  response_length = sprintf(response, 
+    "%s\n"
+    "Date: %s"    
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s\n",
+    header,
+    timestamp,
+    content_length,
+    content_type,
+    body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -210,6 +228,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 void resp_404(int fd)
 {
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+
 }
 
 /**
@@ -218,7 +237,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello World!</h1></html>\n");
 }
 
 /**
@@ -227,6 +246,9 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[50];
+  sprintf(response_body, "Random number: %d\n", (rand() % 20) + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +257,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[1024];
+  time_t seconds = time(NULL);
+  struct tm *localTime = localtime(&seconds);
+  sprintf(response_body, "%s", asctime(localTime));
+  // returns a pointer to a string which represents the day and 
+  //time of the structure struct timeptr.
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -245,6 +274,38 @@ void post_save(int fd, char *body)
   // !!!! IMPLEMENT ME
 
   // Save the body and send a response
+  char *status;
+
+  // Open the file
+  int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
+
+  if (file_fd >= 0) {
+    // Exclusive lock to keep processes from trying to write the file at the
+    // same time. This is only necessary if we've implemented a
+    // multiprocessed version with fork().
+    flock(file_fd, LOCK_EX);
+
+    // Write body
+    write(file_fd, body, strlen(body));
+
+    // Unlock
+    flock(file_fd, LOCK_UN);
+
+    // Close
+    close(file_fd);
+
+    status = "ok";
+  } else {
+    status = "fail";
+  }
+
+  // Now send an HTTP response
+
+  char response_body[128];
+
+  sprintf(response_body, "{\"status\": \"%s\"}\n", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -258,7 +319,12 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT 
+  char *start;
+
+  start = strstr(header, "\n\n");
+
+  if (start != NULL) return start;
 }
 
 /**
@@ -284,16 +350,68 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
+  char *first_line = request;
+
+  // Look for newline
+  p = strchr(first_line, '\n');
+  *p = '\0';
+
+  // Remaining header
+  char *header = p + 1; // +1 to skip the '\n'
+
+  // Look for two newlines marking the end of the header
+  p = find_start_of_body(header);
+
+  if (p == NULL) {
+    printf("Could not find end of header\n");
+    exit(1);
+  }
+
+  // And here is the body
+  char *body = p;
+
+  /*
+  * Now that we've assessed the request, we can take actions.
+  */
+
+  // Read the three components of the first request line
+  sscanf(first_line, "%s %s %s", request_type, request_path,
+    request_protocol);
+
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
+
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else if (strcmp(request_type, "POST") == 0) {
+      if (strcmp(request_path, "/save") == 0) {
+      post_save(fd, body);
+      } else {
+        resp_404(fd);
+      }
+    } else {
+    resp_404(fd);
+  }
 }
+
 
 /**
  * Main
