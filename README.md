@@ -93,7 +93,8 @@ _This is background information. You will not need to use this directly in the
 web server. This code is written for you._
 
 Under Unix-like operating systems, the _sockets API_ is the one used to send
-Internet traffic. It supports both the TCP and UDP protocols, and IPv4 and IPv6.
+Internet traffic. It supports both the TCP (transmission control protocol) 
+and UDP (User Datagram protocol) protocols, and IPv4 and IPv6.
 
 The sockets API gives access to the IP and TCP layers in the diagram above.
 
