@@ -37,6 +37,8 @@
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
+#define SAVE_FILE "myjanktext.txt" // file to save to in POST route
+
 /**
  * Handle SIGCHILD signal
  *
@@ -214,7 +216,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // Send it all!
 
   // Make timestamp string
-  char datebuffer[31];
+  char datebuffer[32];
   whatYearIsIt(datebuffer);
 
   response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %li\nContent-Type: %s\n\n%s\n\n", header, datebuffer, strlen(body), content_type, body);
@@ -263,11 +265,8 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  time_t t = time(NULL);
-  struct tm tm = *gmtime(&t);
-
   // Make timestamp string
-  char datebuffer[31];
+  char datebuffer[32];
   whatYearIsIt(datebuffer);
   
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", datebuffer);
@@ -279,8 +278,26 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  int openedFd = open(SAVE_FILE, O_CREAT|O_RDWR, 0644);
+  char buffer[1024];
+  int size = sprintf(buffer, "%s", body);
+
+  // Copying line by line from `bankers.c` from last week's Processes project
+  ftruncate(openedFd, 0);
+  lseek(openedFd, 0, SEEK_SET);
 
   // Save the body and send a response
+  int bytes_written = write(openedFd, buffer, size);
+
+  if (bytes_written < 0) {
+    perror("write");
+  }
+
+  // Close the opened file
+  close(openedFd);
+
+  // Almost forgot we're a web server. Response, please.
+  send_response(fd, "HTTP/1.1 201 CREATED", "application/json", "{\"status\":\"ok\"}\n");
 }
 
 /**
@@ -295,6 +312,37 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  const int newLineLimit = 4; // 4 consecutive '\n' or '\r' characters signify body start.
+                              // Why isn't it 2? Why do birds fly? Why do we exist?
+                              // Magic.
+  int newLineCount = 0;
+  int i = 0;
+  char *current;
+
+  // printf("header:\n%s\n", header);
+  while (1) {
+    current = header + i;
+    // printf("current: %c\n", *current);
+
+    // There may be no body
+    if (*current == '\0') {
+      return NULL;
+    }
+
+    // If there is a body, it has 4 new line characters preceding it.
+    if (newLineCount == newLineLimit) {
+      break;
+    }
+    if (*current == '\n' || *current == '\r') {
+      newLineCount++;
+    }
+    else {
+      newLineCount = 0;
+    }
+    i++;
+  }
+
+  return current;
 }
 
 /**
@@ -329,6 +377,7 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
+  p = find_start_of_body(request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -342,6 +391,14 @@ void handle_http_request(int fd)
     }
     else if (strcmp(request_path, "/date") == 0) {
       get_date(fd);
+    }
+    else {
+      resp_404(fd);
+    }
+  }
+  else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+      post_save(fd, p);
     }
     else {
       resp_404(fd);
