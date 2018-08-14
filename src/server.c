@@ -278,11 +278,14 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  // Copying line by line from `bankers.c` from last week's Processes project
   int openedFd = open(SAVE_FILE, O_CREAT|O_RDWR, 0644);
+
+  flock(openedFd, LOCK_EX);
+
   char buffer[1024];
   int size = sprintf(buffer, "%s", body);
-
-  // Copying line by line from `bankers.c` from last week's Processes project
+  // This is explained in `bankers.c`
   ftruncate(openedFd, 0);
   lseek(openedFd, 0, SEEK_SET);
 
@@ -295,6 +298,7 @@ void post_save(int fd, char *body)
 
   // Close the opened file
   close(openedFd);
+  flock(openedFd, LOCK_UN);
 
   // Almost forgot we're a web server. Response, please.
   send_response(fd, "HTTP/1.1 201 CREATED", "application/json", "{\"status\":\"ok\"}\n");
@@ -455,10 +459,14 @@ int main(void)
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
-    handle_http_request(newfd);
+    if (fork() == 0) {
+      handle_http_request(newfd);
 
-    // Done with this
-    close(newfd);
+      // Done with this
+      close(newfd);
+      exit(0);
+    }
+
   }
 
   // Unreachable code
