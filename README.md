@@ -4,20 +4,20 @@ In this project, we'll finish the implementation of a web server in C.
 
 What's already there:
 
-* Skeleton code that handles all the network communication
-* The main loop in `main()`
-* Skeleton endpoint handler calls functions
+- Skeleton code that handles all the network communication
+- The main loop in `main()`
+- Skeleton endpoint handler calls functions
 
 What you need to write:
 
-* Code that parses HTTP requests
-* Code that builds HTTP responses
-* Your code will interface with the existing code
+- Code that parses HTTP requests
+- Code that builds HTTP responses
+- Your code will interface with the existing code
 
 What you don't need to write:
 
-* Any system calls, including `send()` and `recv()`
-* Any new functions from scratch--there's a skeleton for all functions you'll
+- Any system calls, including `send()` and `recv()`
+- Any new functions from scratch--there's a skeleton for all functions you'll
   need
 
 ## What is a Web Server?
@@ -110,7 +110,7 @@ system call.
 Once bound, you can read and write data to the socket using the `recv()` and
 `send()` system calls.
 
-* See also [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
+- See also [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
 
 ## HTTP
 
@@ -139,7 +139,6 @@ protocol getting the page `http://lambdaschool.com/example`:
 ```
 GET /example HTTP/1.1
 Host: lambdaschool.com
-
 ```
 
 And here is a sample HTTP response:
@@ -175,28 +174,28 @@ of these headers might look familiar.
 
 Important things to note:
 
-* For HTTP/1.1, the request **must** include the `Host` header.
-* The second word of the first line of the response gives you a success or
+- For HTTP/1.1, the request **must** include the `Host` header.
+- The second word of the first line of the response gives you a success or
   failure indicator.
-* `Content-Length` gives the length of the request or response body, not
+- `Content-Length` gives the length of the request or response body, not
   counting the blank line between the header and the body.
-* `Content-Type` gives you the MIME type of the content in the body. This is how
+- `Content-Type` gives you the MIME type of the content in the body. This is how
   your web browser knows to display a page as plain text, as HTML, as a GIF
   image, or anything else. They all have their own MIME types.
-* Even if your request has no body, a blank line still **must** appear after the
+- Even if your request has no body, a blank line still **must** appear after the
   header.
-* `Connection: close` tells the web browser that the TCP connection will be
+- `Connection: close` tells the web browser that the TCP connection will be
   closed after this response. This should be included.
-* The `Date` should be the date right now, but this field is optional.
+- The `Date` should be the date right now, but this field is optional.
 
 ## Assignment
 
 We will write a simple web server that returns data on three `GET` endpoints:
 
-* `http://localhost:3490/` should contain some HTML, e.g. `<h1>Hello, world!</h1>`.
-* `http://localhost:3490/d20` should return a random number between 1 and 20
+- `http://localhost:3490/` should contain some HTML, e.g. `<h1>Hello, world!</h1>`.
+- `http://localhost:3490/d20` should return a random number between 1 and 20
   inclusive as `text/plain` data.
-* `http://localhost:3490/date` should print the current date and time in GMT as
+- `http://localhost:3490/date` should print the current date and time in GMT as
   `text/plain` data.
 
 Examine the skeleton source code for which pieces you'll need to implement.
@@ -238,7 +237,7 @@ then come back to goal #1 and dig in._
 
    The handler for `GET /` is `get_root()` (search for the skeleton code). The
    handler for `GET /d20` is `get_d20()`, etc.
-   
+
    Hint: `strcmp()` for matching the request method and path. Another hint:
    `strcmp()` returns `0` if the strings are the _same_!
 
@@ -268,7 +267,7 @@ then come back to goal #1 and dig in._
 
    This needs to build a complete HTTP response with the given parameters. It
    should write the response to the string in the `response` variable.
-   
+
    The total length of the header **and** body should be stored in the
    `response_length` variable so that the `send()` call knows how many bytes to
    send out over the wire.

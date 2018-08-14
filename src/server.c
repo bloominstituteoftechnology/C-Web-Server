@@ -32,9 +32,9 @@
 #include <sys/file.h>
 #include <fcntl.h>
 
-#define PORT "3490"  // the port users will be connecting to
+#define PORT "3490" // the port users will be connecting to
 
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10 // how many pending connections queue will hold
 
 /**
  * Handle SIGCHILD signal
@@ -45,14 +45,16 @@
  * This is only necessary if we've implemented a multiprocessed version with
  * fork().
  */
-void sigchld_handler(int s) {
+void sigchld_handler(int s)
+{
   (void)s; // quiet unused variable warning
 
   // waitpid() might overwrite errno, so we save and restore it:
   int saved_errno = errno;
 
   // Wait for all children that have died, discard the exit status
-  while(waitpid(-1, NULL, WNOHANG) > 0);
+  while (waitpid(-1, NULL, WNOHANG) > 0)
+    ;
 
   errno = saved_errno;
 }
@@ -74,7 +76,8 @@ void start_reaper(void)
   sa.sa_handler = sigchld_handler; // Reap all dead processes
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_RESTART; // Restart signal handler if interrupted
-  if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+  if (sigaction(SIGCHLD, &sa, NULL) == -1)
+  {
     perror("sigaction");
     exit(1);
   }
@@ -87,11 +90,12 @@ void start_reaper(void)
  */
 void *get_in_addr(struct sockaddr *sa)
 {
-  if (sa->sa_family == AF_INET) {
-    return &(((struct sockaddr_in*)sa)->sin_addr);
+  if (sa->sa_family == AF_INET)
+  {
+    return &(((struct sockaddr_in *)sa)->sin_addr);
   }
 
-  return &(((struct sockaddr_in6*)sa)->sin6_addr);
+  return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
 /**
@@ -103,7 +107,7 @@ int get_listener_socket(char *port)
 {
   int sockfd;
   struct addrinfo hints, *servinfo, *p;
-  int yes=1;
+  int yes = 1;
   int rv;
 
   // This block of code looks at the local network interfaces and
@@ -116,7 +120,8 @@ int get_listener_socket(char *port)
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_PASSIVE; // use my IP
 
-  if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
+  if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0)
+  {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     return -1;
   }
@@ -124,11 +129,13 @@ int get_listener_socket(char *port)
   // Once we have a list of potential interfaces, loop through them
   // and try to set up a socket on each. Quit looping the first time
   // we have success.
-  for(p = servinfo; p != NULL; p = p->ai_next) {
+  for (p = servinfo; p != NULL; p = p->ai_next)
+  {
 
     // Try to make a socket based on this candidate interface
     if ((sockfd = socket(p->ai_family, p->ai_socktype,
-        p->ai_protocol)) == -1) {
+                         p->ai_protocol)) == -1)
+    {
       //perror("server: socket");
       continue;
     }
@@ -136,7 +143,8 @@ int get_listener_socket(char *port)
     // SO_REUSEADDR prevents the "address already in use" errors
     // that commonly come up when testing servers.
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-        sizeof(int)) == -1) {
+                   sizeof(int)) == -1)
+    {
       perror("setsockopt");
       close(sockfd);
       freeaddrinfo(servinfo); // all done with this structure
@@ -146,7 +154,8 @@ int get_listener_socket(char *port)
     // See if we can bind this socket to this local IP address. This
     // associates the file descriptor (the socket descriptor) that
     // we will read and write on with a specific IP address.
-    if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+    if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+    {
       close(sockfd);
       //perror("server: bind");
       continue;
@@ -160,14 +169,16 @@ int get_listener_socket(char *port)
 
   // If p is NULL, it means we didn't break out of the loop, above,
   // and we don't have a good socket.
-  if (p == NULL)  {
+  if (p == NULL)
+  {
     fprintf(stderr, "webserver: failed to find local address\n");
     return -3;
   }
 
   // Start listening. This is what allows remote computers to connect
   // to this socket/IP.
-  if (listen(sockfd, BACKLOG) == -1) {
+  if (listen(sockfd, BACKLOG) == -1)
+  {
     //perror("listen");
     close(sockfd);
     return -4;
@@ -191,18 +202,28 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
+  // Get current date
+  // CODE IDEA/REFERENCE from: https://stackoverflow.com/questions/7548759/generate-a-date-string-in-http-response-date-format-in-c
+  char date[1024];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
   // !!!!  IMPLEMENT ME
+  // printf("SEND RESPONSE TEST: ");
+  // printf("%s\n", header);
+  response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Legth: %lu\nContent-Type: %s\n\n%s\n", header, date, strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
-  if (rv < 0) {
+  if (rv < 0)
+  {
     perror("send");
   }
 
   return rv;
 }
-
 
 /**
  * Send a 404 response
@@ -210,6 +231,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
 void resp_404(int fd)
 {
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+}
+/**
+ * Send a 500 response (Internal Server Error)
+ */
+void resp_500(int fd)
+{
+  send_response(fd, "HTTP/1.1 500 INTERNAL SERVER ERROR", "text/html", "<h1>500 INTERNAL SERVER ERROR</h1>");
 }
 
 /**
@@ -219,6 +247,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><head></head><body><h1>Hello, World!</h1></body></html>\n");
 }
 
 /**
@@ -227,6 +256,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL));
+  int number = (rand() % 20) + 1;
+
+  char str_number[8];
+  sprintf(str_number, "%d", number);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", str_number);
 }
 
 /**
@@ -235,6 +271,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  // Get current date
+  // CODE IDEA/REFERENCE from: https://stackoverflow.com/questions/7548759/generate-a-date-string-in-http-response-date-format-in-c
+  char date[1024];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
@@ -243,8 +287,43 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  printf("\n\n======= POST START\n");
 
   // Save the body and send a response
+  // printf("POST 1\n");
+  // printf("POST 2\n");
+
+  FILE *post_file = fopen("POST_file.txt", "a+");
+  int post_fd = fileno(post_file);
+  // Loock file
+  // printf("POST 3\n");
+  int look = flock(post_fd, LOCK_EX);
+
+  // Make process Sleep for few seconds before continuing -> This aim to help test several access to the same 'post_file'
+  sleep(3);
+
+  // printf("POST 4\n");
+  // printf("post_fd: %d\n", post_fd);
+  // printf("look: %d\n", look);
+  if (look == -1) // If error 'looking' the file.
+  {
+    // printf("POST 5 : look == -1\n");
+    resp_500(fd);
+    fclose(post_file);
+    // printf("POST 7\n");
+    printf("======= POST END - ERROR LOOKING FILE\n");
+  }
+  else
+  {
+    // printf("POST 6 : look == 0\n");
+
+    fprintf(post_file, "%s\n", body);
+    fclose(post_file);
+
+    // printf("POST 7\n");
+    printf("======= POST END - SUCCESS WRITING TO FILE\n\n");
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>200 ok</h1><p>Content save to server.</p>");
+  }
 }
 
 /**
@@ -259,6 +338,24 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *body;
+
+  // printf("BODY_PARSER 1:*********\n %s\n", header);
+  // printf("BODY_PARSER 2:*********\n %s\n", strstr(header, "\n\n"));
+  if ((body = strstr(header, "\n\n")) == NULL)
+  {
+    // printf("BODY_PARSER 3:*********\n %s\n", strstr(header, "\r\r"));
+    if ((body = strstr(header, "\r\r")) == NULL)
+    {
+      // printf("BODY_PARSER 4:*********\n %s\n", strstr(header, "\r\n\r\n"));
+      if ((body = strstr(header, "\r\n\r\n")) == NULL)
+      {
+        perror("Body could not be parsed\n");
+      }
+    }
+  }
+  // printf("BODY_PARSER 4:*********\n %s\n", body);
+  return body;
 }
 
 /**
@@ -269,30 +366,73 @@ void handle_http_request(int fd)
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
   char *p;
-  char request_type[8]; // GET or POST
-  char request_path[1024]; // /info etc.
+  char request_type[8];       // GET or POST
+  char request_path[1024];    // /info etc.
   char request_protocol[128]; // HTTP/1.1
+  char *request_body;
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
-  if (bytes_recvd < 0) {
+  if (bytes_recvd < 0)
+  {
     perror("recv");
     return;
   }
 
-   // NUL terminate request string
+  // NUL terminate request string
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  printf("REQUEST: %s\n", request);
+  sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
+  printf("REQUEST (frist line); %s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  // printf("SCAN BODY 1\n");
+  p = find_start_of_body(request);
+  request_body = (p + 2);
+  // printf("SCAN BODY body; %s\n", (p + 2));
+  // printf("SCAN BODY 2\n");
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else
+    {
+      resp_404(fd);
+    }
+  }
+  else if (strcmp(request_type, "POST") == 0)
+  {
+    if (strcmp(request_path, "/save") == 0)
+    {
+      post_save(fd, request_body);
+    }
+    else
+    {
+      resp_404(fd);
+    }
+  }
+  else
+  {
+    resp_404(fd);
+  }
 }
 
 /**
@@ -300,7 +440,7 @@ void handle_http_request(int fd)
  */
 int main(void)
 {
-  int newfd;  // listen on sock_fd, new connection on newfd
+  int newfd;                          // listen on sock_fd, new connection on newfd
   struct sockaddr_storage their_addr; // connector's address information
   char s[INET6_ADDRSTRLEN];
 
@@ -310,7 +450,8 @@ int main(void)
   // Get a listening socket
   int listenfd = get_listener_socket(PORT);
 
-  if (listenfd < 0) {
+  if (listenfd < 0)
+  {
     fprintf(stderr, "webserver: fatal error getting listening socket\n");
     exit(1);
   }
@@ -320,38 +461,63 @@ int main(void)
   // This is the main loop that accepts incoming connections and
   // fork()s a handler process to take care of it. The main parent
   // process then goes back to waiting for new connections.
-  
-  while(1) {
+
+  while (1)
+  {
     socklen_t sin_size = sizeof their_addr;
 
     // Parent process will block on the accept() call until someone
     // makes a new connection:
     newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
-    if (newfd == -1) {
+    if (newfd == -1)
+    {
       perror("accept");
       continue;
     }
 
     // Print out a message that we got the connection
     inet_ntop(their_addr.ss_family,
-      get_in_addr((struct sockaddr *)&their_addr),
-      s, sizeof s);
+              get_in_addr((struct sockaddr *)&their_addr),
+              s, sizeof s);
     printf("server: got connection from %s\n", s);
-    
+
     // newfd is a new socket descriptor for the new connection.
     // listenfd is still listening for new connections.
 
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
-    handle_http_request(newfd);
+    printf("\n\n\n========== MULTI PROCESS START ==========\n\n");
+    int forked_process = fork();
+
+    if (forked_process < 0)
+    {
+      resp_500(newfd);
+      printf("FORK failed. Sended a 500 status code\n");
+      close(newfd); // This line ensures that both the Parent and the Child close the open socket.
+    }
+    else if (forked_process == 0)
+    {
+      printf("CHILD id-%d : Handling request\n", (int)getpid());
+      handle_http_request(newfd);
+      printf("CHILD id-%d : Closing socket.\n", (int)getpid());
+      close(newfd); // This line ensures that both the Parent and the Child close the open socket.
+      exit(0);
+    }
+    else
+    {
+      printf("PARENT id-%d : Awaitng for Child death.\n", (int)getpid());
+      waitpid(forked_process, NULL, 0);
+      printf("PARENT : Child wiped up (RIP).\n");
+      printf("PARENT id-%d : Cloisng socket.\n", (int)getpid());
+      close(newfd); // This line ensures that both the Parent and the Child close the open socket.
+    }
 
     // Done with this
-    close(newfd);
+    printf("\nPROCESS id-%d : MULTI PROCESS END ==========\n\n", (int)getpid());
   }
 
   // Unreachable code
 
   return 0;
 }
-
