@@ -457,10 +457,11 @@ int main(void)
     {
       resp_500(newfd);
       printf("FORK failed. Sended a 500 status code\n");
+      close(newfd); // This line ensures that both the Parent and the Child close the open socket.
     }
     else if (forked_process == 0)
     {
-      printf("CHILD id-%d\nHandling request\n", (int)getpid());
+      printf("CHILD id-%d : Handling request\n", (int)getpid());
       handle_http_request(newfd);
       printf("CHILD id-%d : Cloisng socket.\n", (int)getpid());
       close(newfd); // This line ensures that both the Parent and the Child close the open socket.
@@ -476,7 +477,7 @@ int main(void)
     }
 
     // Done with this
-    printf("PROCESS id-%d : ========== MULTI PROCESS END ==========\n\n", (int)getpid());
+    printf("\nPROCESS id-%d : MULTI PROCESS END ==========\n\n", (int)getpid());
   }
 
   // Unreachable code
