@@ -3,7 +3,7 @@
  * 
  * Test with curl (if you don't have it, install it):
  * 
- *    curl -D - http://localhost:3490/
+ *    curl -D -http://localhost:3490/ 
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
  * 
@@ -189,9 +189,36 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  int response_length; 
 
   // !!!!  IMPLEMENT ME
+  // only includes the length of the body, not the header.
+  int content_length = strlen(body); 
+
+  // char *current_date = "Tue Aug 14 15:15:15 EST 2018"; 
+  // from time.h, time_t stores the calendar time
+  // convert to struct with localtime
+  // convert struct to string 
+  // asctime() converts the calendar time into a null-terminated string of the form
+  // "Wed Jun 30 21:49:08 1993\n"
+  time_t seconds = time(NULL);
+  struct tm *current_time = localtime(&seconds);
+  char *current_date = asctime(current_time);
+
+  response_length = sprintf(response, 
+    "%s\n"
+    "Date: %s"   // not need \n because asctime() breaks the line automatically
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s\n", 
+    header, 
+    current_date, 
+    content_length, 
+    content_type, 
+    body
+  );
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +246,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
 /**
@@ -227,6 +255,16 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // use current calendar time as seed for random generator
+  // it gives different seed for every call.
+  // from the solution lecture, add getpid() too
+  srand(time(NULL) + getpid());
+  // set buffer size. Int(1-20 in this case) normally takes 4 bytes
+  char response_body[8];
+  // rand() %20 yields a result from 0 - 19 so add 1 to become 1 - 20
+  int rand_num = (rand() % 20) + 1;
+  sprintf(response_body, "%d\n", rand_num);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);  
 }
 
 /**
@@ -235,11 +273,20 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_time[128];
+  time_t seconds = time(NULL);
+  struct tm *current_time = localtime(&seconds);
+  char *current_date = asctime(current_time);
+  sprintf(response_time, "%s", current_date);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_time); 
 }
 
 /**
  * Post /save endpoint data
  */
+
+// ========== Stretch Goal ========== //
+
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
@@ -247,6 +294,7 @@ void post_save(int fd, char *body)
   // Save the body and send a response
 }
 
+// ========== Stretch Goal ========== //
 /**
  * Search for the start of the HTTP body.
  *
@@ -261,6 +309,7 @@ char *find_start_of_body(char *header)
   // !!!! IMPLEMENT ME
 }
 
+// ========== 1.Examine handle HTTP request ========== //
 /**
  * Handle HTTP request and send response
  */
@@ -274,6 +323,10 @@ void handle_http_request(int fd)
   char request_protocol[128]; // HTTP/1.1
 
   // Read request
+  // The fd variable that is passed widely around to all the functions holds a file descriptor.
+  // It's just a number use to represent an open communications path.
+  // Usually they point to regular files on disk, 
+  // but in the case it points to an open socket network connection.
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
   if (bytes_recvd < 0) {
@@ -281,18 +334,58 @@ void handle_http_request(int fd)
     return;
   }
 
-   // NUL terminate request string
+  // NUL terminate request string
   request[bytes_recvd] = '\0';
 
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  // It's supposed to look like this?? `GET /example HTTP/1.1`
 
-  // !!!! IMPLEMENT ME (stretch goal)
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("type: %s, path: %s, protocol: %s\n", request_type, request_path, request_protocol);
+
+
+  // ========== Stretch Goal ========== //
+  // !!!! IMPLEMENT ME 
   // find_start_of_body()
+
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  // check the request type if GET or POST
+  // strcmp() for matching the request method, return 0 if matched.
+  if (strcmp(request_type, "GET") == 0)
+  {
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);   // pass fd from socket as paramater
+    }
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+    else{
+      resp_404(fd);
+    }
+  }
+  // else if (strcmp(request_type, "POST") == 0)
+  // {
+  //   if (strcmp(request_path, "/save") == 0)
+  //   {
+  //     post_save(fd, body);
+  //   }
+  //   else{
+  //     resp_404(fd);
+  //   }
+  // }
+  else {
+      resp_404(fd);
+  }  
 }
 
 /**
@@ -341,7 +434,8 @@ int main(void)
     // newfd is a new socket descriptor for the new connection.
     // listenfd is still listening for new connections.
 
-    // !!!! IMPLEMENT ME (stretch goal)
+    // ========== Stretch Goal ========== //
+    // !!!! IMPLEMENT ME
     // Convert this to be multiprocessed with fork()
 
     handle_http_request(newfd);
