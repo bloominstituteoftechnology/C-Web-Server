@@ -210,8 +210,8 @@ int send_response(int fd, char *header, char *content_type, char *body)
   strftime(date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", &tm);
 
   // !!!!  IMPLEMENT ME
-  printf("SEND RESPONSE TEST: ");
-  printf("%s\n", header);
+  // printf("SEND RESPONSE TEST: ");
+  // printf("%s\n", header);
   response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Legth: %d\nContent-Type: %s\n\n%s\n", header, date, strlen(body), content_type, body);
 
   // Send it all!
@@ -231,6 +231,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
 void resp_404(int fd)
 {
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+}
+/**
+ * Send a 500 response (Internal Server Error)
+ */
+void resp_500(int fd)
+{
+  send_response(fd, "HTTP/1.1 500 INTERNAL SERVER ERROR", "text/html", "<h1>500 INTERNAL SERVER ERROR</h1>");
 }
 
 /**
@@ -298,21 +305,21 @@ char *find_start_of_body(char *header)
   // !!!! IMPLEMENT ME
   char *body;
 
-  printf("BODY_PARSER 1:*********\n %s\n", header);
+  // printf("BODY_PARSER 1:*********\n %s\n", header);
+  // printf("BODY_PARSER 2:*********\n %s\n", strstr(header, "\n\n"));
   if ((body = strstr(header, "\n\n")) == NULL)
   {
-    printf("BODY_PARSER 2:*********\n %s\n", strstr(header, "\n\n"));
+    // printf("BODY_PARSER 3:*********\n %s\n", strstr(header, "\r\r"));
     if ((body = strstr(header, "\r\r")) == NULL)
     {
-      printf("BODY_PARSER 3:*********\n %s\n", strstr(header, "\r\r"));
+      // printf("BODY_PARSER 4:*********\n %s\n", strstr(header, "\r\n\r\n"));
       if ((body = strstr(header, "\r\n\r\n")) == NULL)
       {
-        printf("BODY_PARSER 4:*********\n %s\n", strstr(header, "\r\n\r\n"));
         perror("Body could not be parsed\n");
       }
     }
   }
-  printf("BODY_PARSER 4:*********\n %s\n", body);
+  // printf("BODY_PARSER 4:*********\n %s\n", body);
   return body;
 }
 
@@ -345,13 +352,13 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
-  printf("%s %s %s\n", request_type, request_path, request_protocol);
+  // printf("%s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  printf("SCAN BODY 1\n");
+  // printf("SCAN BODY 1\n");
   p = find_start_of_body(request);
-  printf("SCAN BODY body; %s\n", (p + 2));
-  printf("SCAN BODY 2\n");
+  // printf("SCAN BODY body; %s\n", (p + 2));
+  // printf("SCAN BODY 2\n");
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -443,10 +450,33 @@ int main(void)
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
 
-    handle_http_request(newfd);
+    printf("\n\n\n========== MULTI PROCESS START ==========\n\n");
+    int forked_process = fork();
+
+    if (forked_process < 0)
+    {
+      resp_500(newfd);
+      printf("FORK failed. Sended a 500 status code\n");
+    }
+    else if (forked_process == 0)
+    {
+      printf("CHILD id-%d\nHandling request\n", (int)getpid());
+      handle_http_request(newfd);
+      printf("CHILD id-%d : Cloisng socket.\n", (int)getpid());
+      close(newfd); // This line ensures that both the Parent and the Child close the open socket.
+      exit(0);
+    }
+    else
+    {
+      printf("PARENT id-%d : Awaitng for Child death.\n", (int)getpid());
+      waitpid(forked_process, NULL, 0);
+      printf("PARENT : Child wiped up (RIP).\n");
+      printf("PARENT id-%d : Cloisng socket.\n", (int)getpid());
+      close(newfd); // This line ensures that both the Parent and the Child close the open socket.
+    }
 
     // Done with this
-    close(newfd);
+    printf("PROCESS id-%d : ========== MULTI PROCESS END ==========\n\n", (int)getpid());
   }
 
   // Unreachable code
