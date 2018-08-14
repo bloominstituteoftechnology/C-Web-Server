@@ -232,7 +232,6 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
   
 }
@@ -243,6 +242,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int random_num[sizeof(int)];
+  srand(time(NULL)); /* Intializes random number generator */
+   
+  sprintf(random_num, "%d\n", rand() % 20 +1); // TODO: why does rand() % 21 only choose btwn 5, 12, 19
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", random_num);
+   
 }
 
 /**
