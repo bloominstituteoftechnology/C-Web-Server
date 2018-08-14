@@ -190,9 +190,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; 
+
   // !!!!  IMPLEMENT ME
   // only includes the length of the body, not the header.
   int content_length = strlen(body); 
+
   // char *current_date = "Tue Aug 14 15:15:15 EST 2018"; 
   // from time.h, time_t stores the calendar time
   // convert to struct with localtime
@@ -205,7 +207,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   response_length = sprintf(response, 
     "%s\n"
-    "Date: %s\n"
+    "Date: %s"   // not need \n because asctime() breaks the line automatically
     "Connection: close\n"
     "Content-Length: %d\n"
     "Content-Type: %s\n"
@@ -255,11 +257,13 @@ void get_d20(int fd)
   // !!!! IMPLEMENT ME
   // use current calendar time as seed for random generator
   // it gives different seed for every call.
-  srand(time(NULL));
+  // from the solution lecture, add getpid() too
+  srand(time(NULL) + getpid());
+  // set buffer size. Int(1-20 in this case) normally takes 4 bytes
   char response_body[8];
   // rand() %20 yields a result from 0 - 19 so add 1 to become 1 - 20
   int rand_num = (rand() % 20) + 1;
-  sprintf(response_body, "%d", rand_num);
+  sprintf(response_body, "%d\n", rand_num);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);  
 }
 
