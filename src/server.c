@@ -232,8 +232,10 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand() % (20) + 1);
+  char random[50];
+  sprintf(random, "Here is your random number: %d\n", rand()%20 + 1);
+  
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", random);
 }
 
 /**
@@ -246,22 +248,15 @@ void get_date(int fd)
 {
  
     time_t t = time(NULL);
-    printf("UTC:       %s", asctime(gmtime(&t)));
-    printf("local:     %s", asctime(localtime(&t)));
+    fprintf(stdout, "UTC:       %s", asctime(gmtime(&t)));
+    fprintf(stdout, "local:     %s", asctime(localtime(&t)));
     // POSIX-specific
     putenv("TZ=Asia/Singapore");
-    printf("Singapore: %s", asctime(localtime(&t)));
+    fprintf(stdout, "Singapore: %s", asctime(localtime(&t)));
     putenv("TZ=PST8PDT");
  
-#ifdef __STDC_LIB_EXT1__
-    struct tm buf;
-    char str[26];
-    asctime_s(str,sizeof str,gmtime_s(&t, &buf));
-    printf("UTC:   %s", str);
-    asctime_s(str,sizeof str,localtime_s(&t, &buf));
-    printf("local: %s", str);
-#endif
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", localtime(&t));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", asctime(localtime(&t)));
   
 }
 
@@ -312,6 +307,7 @@ void handle_http_request(int fd)
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+  char *first_line = request;
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -320,24 +316,23 @@ void handle_http_request(int fd)
 
   request[bytes_recvd] = '\0';
 
-  char *first_line = request;
   sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
   printf("%s %s %s\n", request_type, request_path, request_protocol);
   
   if(strcmp(request_type, "GET") == 0){
-    if(strcmp(request_path, "/") == 0) {
+    if(strcmp(request_path, "/") == 0){
       get_root(fd);
     } 
-    else if (strcmp(request_path, "/d20") == 0) {
+    else if(strcmp(request_path, "/d20") == 0){
       get_d20(fd);
-      }
+    }
       
-    else if (strcmp(request_path, "/date") == 0) {
+    else if (strcmp(request_path, "/date") == 0){
       get_date(fd);
-      }
+    }
     else {
         resp_404(fd);
-      }
+    }
   }
   else{
     if(strcmp(request_type, "POST")== 0){
