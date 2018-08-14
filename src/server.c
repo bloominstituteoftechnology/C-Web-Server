@@ -32,9 +32,9 @@
 #include <sys/file.h>
 #include <fcntl.h>
 
-#define PORT "3490"  // the port users will be connecting to
+#define PORT "3490"  // The port users will be connecting to.
 
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10	 // The number of pending connections queue will hold.
 
 /**
  * Handle SIGCHILD signal
@@ -189,9 +189,30 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  // Get current time for the HTTP header
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  // How many bytes in the body
+  int content_length = strlen(body);
+
+  // Total length of header plus body
+  int response_length = sprintf(response,
+    "%s\n"
+    "Date: %s"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s\n",
+    
+    header,
+    asctime(ltime),
+    content_length,
+    content_type,
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -207,8 +228,14 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
+  char response_body[1024];
+
+  // The sprintf() C library function sends formatted output to a string.
+  // Similar to printf() but returns formatted string.
+  sprintf(response_body, "404: %s not found", path);
+
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
 }
 
@@ -218,7 +245,10 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  // send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, world.</h1><p></p></body></html>\n";
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -227,6 +257,13 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // The srand() C library function is used to initialize the pseudo-random number generator by passing the argument seed.
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d\n", (rand()%20)+1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -235,6 +272,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t t1 = time(NULL);
+  struct tm *gtime = gmtime(&t1);
+
+
+  sprintf(response_body, "%s", asctime(gtime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -243,8 +288,40 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  char *status;
 
-  // Save the body and send a response
+  // This opens the file
+  int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
+
+  if (file_fd >= 0)
+  {
+    // This prevents the processes from writing the file simultaneously.
+    flock(file_fd, LOCK_EX);
+
+    // Writes the body.
+    write(file_fd, body, strlen(body));
+
+    // Unlocks.
+    flock(file_fd, LOCK_UN);
+
+    // Closes.
+    close(file_fd);
+
+    status = "okay";
+  }
+
+  else
+  {
+    status = "fail";
+  }
+
+  // Saves the body and sends an HTTP response
+
+  char response_body[128];
+
+  sprintf(response_body, "{\"status\": \"%s\"}\n", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -259,11 +336,32 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *p;
+
+  // The strstr() C library function returns the first occurence of header.
+  p = strstr(header, "\n\n");
+
+  if (p != NULL)
+  {
+    return p;
+  }
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL)
+  {
+    return p;
+  }
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
  * Handle HTTP request and send response
  */
+// "fd" stands for "file discriptor".
 void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
@@ -273,26 +371,107 @@ void handle_http_request(int fd)
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
-  // Read request
+  // Reads request
+  // The recv() C library function receives messages from sockets.
+  // A socket is a communication channel between processes and is represented by a file descriptor (fd).
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
+  // If there's no byte received, it will return an error.
   if (bytes_recvd < 0) {
     perror("recv");
     return;
   }
 
-   // NUL terminate request string
+  // This terminates the request using the null terminator.
   request[bytes_recvd] = '\0';
 
+  // Initializes character pointer first_line/ parses or analyzes first line of request.
+  char *first_line = request;
+
   // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
+  // Get the request type and path from the first line.
   // Hint: sscanf()!
+  // Looks for new line.
+  // strchr() is a C library function that searches for the first occurence of a character. 
+  p = strchr(first_line, '\n');
+  *p = '\0';
+
+  // Remaining header.
+  char *header = p + 1; // The +1 increment skips the new line (\n).
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
+  // Looks for two new lines, which marks the end of the header.
+  p = find_start_of_body(header);
+
+  if (p == NULL)
+  {
+    printf("Could not find end of header.\n");
+    exit(1);
+  }
+
+  // This is the body.
+  char *body = p;
 
   // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+  // Call the appropriate handler functions above, with the incoming data.
+
+  // The sscanf() C library function reads formatted input from a string.
+  // It reads the three components of the first request line.
+  // %s is a format specifier that tells the function, sscanf() in this case, that the content specified in the parameter
+  // is a string.
+  sscanf(first_line, "%s %s %s\n", request_type, request_path, request_protocol);
+
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  // The strcmp() function compares strings, character by character.
+  // Checks whether the type of request is a "GET".
+  if (strcmp(request_type, "GET") == 0)
+  {
+    // First endpoint, checks for the root: "/"
+    if (strcmp(request_path, "/") == 0)
+    {
+    // Call the appropriate handler function.
+      get_root(fd);
+    }
+
+    // Second endpoint, checks for "/d20"
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+
+    // Third endpoint, checks for: "/date"
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
+
+  // Checks whether the type of request is a "POST".
+  else if (strcmp(request_type, "POST") == 0)
+  {
+    // Another endpoint: "/save"
+    if (strcmp(request_path, "/save") == 0)
+    {
+      post_save(fd, body);
+    }
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
+
+  else
+  {
+    fprintf(stderr, "Unknown request type \"%s\"\n", request_type);
+    return;
+  }
 }
 
 /**
@@ -343,10 +522,25 @@ int main(void)
 
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
+    if (fork() == 0)
+    {
+      // This is the child process.
+      // The child process doesn't need the listening socket.
+      // The parent process' listenfd is still open; we just close it in the child process.
+      close(listenfd);
 
-    handle_http_request(newfd);
+      // This does the heavy lifting, recv() the HTTP request and send() the HTTP response.
+      handle_http_request(newfd);
 
-    // Done with this
+      // This exist the child process.
+      exit(0);
+    }
+
+    // The parent process is still here.
+
+    // The parent doesn't need this so we close it.
+    // The child process' copy of newfd is still open.
+    // Done with this.
     close(newfd);
   }
 
@@ -354,4 +548,3 @@ int main(void)
 
   return 0;
 }
-
