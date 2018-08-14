@@ -189,9 +189,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
+  // int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  int content_length = strlen(body);
+  int response_length = sprintf(response, " %s\n Connection: close\n Content-length: %d\n Content-type: %s\n\n%s\n", header, content_length, content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -219,6 +221,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>ROOT</h1>");
 }
 
 /**
@@ -227,6 +230,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid());
+  char response_body[35];
+  sprintf(response_body, "<h1>Random number 1-20: %d</h1>\n", (rand()%20)+1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -235,6 +242,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>DATE NOW</h1>");
 }
 
 /**
