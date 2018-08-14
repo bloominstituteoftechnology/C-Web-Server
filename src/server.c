@@ -257,16 +257,22 @@ void post_save(int fd, char *body)
 
 /**
  * Search for the start of the HTTP body.
- *
- * The body is after the header, separated from it by a blank line (two newlines
- * in a row).
- *
- * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
- * (newline) or \r (carriage return).
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME - Stretch
+  char *nn = "\n\n";
+  char *rr = "\r\r";
+  char *rn = "\r\n";
+  char *pos;
+
+  if ((pos = strstr(header, nn)) != NULL)
+    return pos;
+  if ((pos = strstr(header, rr)) != NULL)
+    return pos;
+  if ((pos = strstr(header, rn)) != NULL)
+    return pos;
+
+  return NULL;
 }
 
 /**
