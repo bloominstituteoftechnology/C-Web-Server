@@ -229,7 +229,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<html><h1>Hello, World!</h1></html>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>");
 }
 
 /**
@@ -238,6 +238,9 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char rand_num;
+  rand_num = rand() % 21;
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand_num);
 }
 
 /**
@@ -246,6 +249,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  char date[100];
+  sprintf(date, "Today's Date: %d-%d-%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
