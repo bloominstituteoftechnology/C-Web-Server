@@ -112,13 +112,13 @@ int get_listener_socket(char *port)
 
   // This block of code looks at the local network interfaces and tries to find some that match our requirements:
   // IPv4 or IPv6 (AF_UNSPEC)
-  // TCP (SOCK_STREAM) 
+  // TCP (SOCK_STREAM)
   // and use any IP on this machine (AI_PASSIVE).
 
   memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC; // allow IPv4 or IPv6
+  hints.ai_family = AF_UNSPEC;     // allow IPv4 or IPv6
   hints.ai_socktype = SOCK_STREAM; //Socket Type - maybe TCP?
-  hints.ai_flags = AI_PASSIVE; // use my IP
+  hints.ai_flags = AI_PASSIVE;     // use my IP
 
   if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0)
   {
@@ -150,7 +150,7 @@ int get_listener_socket(char *port)
     }
 
     // See if we can bind this socket to this local IP address.
-    // This associates the file descriptor (the socket descriptor) 
+    // This associates the file descriptor (the socket descriptor)
     // that we will read and write on with a specific IP address.
     if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
     {
@@ -204,7 +204,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // !!!!  IMPLEMENT ME
 
-
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -231,6 +230,7 @@ void get_root(int fd)
 {
   // SECOND THING TO DO  !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h1>Hello, World!</h1></body></html></>");
 }
 
 /**
