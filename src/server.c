@@ -293,17 +293,21 @@ void handle_http_request(int fd)
   sscanf(header, "%s %s", request_type, request_path);
   printf("Request type: %s \nRequest path: %s", request_type, request_path);
 
-  if (strcmp(request_type, "GET") == 0) {
-    printf("GET request");
-  } else {
-    printf("POST request");
-  }
-
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
-  // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) {
+    printf("GET request");
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+  } else if (strcmp(request_type, "POST") == 0) {
+    printf("POST request");
+    post_save(fd, "request body goes here");
+  }
 }
 
 /**
