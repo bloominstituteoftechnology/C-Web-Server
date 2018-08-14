@@ -254,9 +254,10 @@ void get_date(int fd)
   // printf("you found get_date\n");
 
   time_t t = time(NULL);
-  struct tm *tm = localtime(&t);
+  struct tm *tm = gmtime(&t);
   char date_time[200];
   // sprintf(date_time, "<h1>%s</h1>", asctime(tm));
+  // !!!!! BUG FOUND zeros are just do not show up. so if the time is 18:02, you will only see 18:2
   sprintf(date_time, "<h1>Date and Time: %d-%d-%d %d:%d</h1>", tm->tm_mon + 1, tm->tm_mday, tm->tm_year - 100, tm->tm_hour, tm->tm_min);
   send_response(fd, "HTTP/1.1 200 OK", "text/html", date_time);
 }
@@ -269,6 +270,22 @@ void post_save(int fd, char *body)
   // !!!! IMPLEMENT ME
 
   // Save the body and send a response
+  char *status;
+  char response_body[128];
+  int file_d = open("data.txt", O_CREAT|O_WRONLY, 0644);
+
+  if(file_d < 0)
+  {
+    status = "failed";
+  }else
+  {
+    write(file_d, body, strlen(body));
+    close(file_d);
+    status = "ok";
+  }
+  
+  sprintf(response_body, "{\"status\": \"%s\"}\n",status);
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -283,6 +300,13 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  // printf("inside find_start:\n%s\n", header);
+  char *body_start;
+  body_start = strstr(header, "\r\n\r\n");
+  printf("%s\n", body_start + 3);
+
+
+  return body_start + 2;
 }
 
 /**
@@ -292,7 +316,7 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  char *p;
+  // char *p;
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
@@ -317,11 +341,12 @@ void handle_http_request(int fd)
   // sscanf = first is were the data is coming from, next is the data types you will be taking in, last is the the vars theyt will be put in
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
+  // printf("REQUEST: %s %s %s", request_type, request_path, request_protocol);
   // this is printing 2 times, first is blank, second had data
   // printf("request_type = %s, request_path = %s, request_protocol = %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  // find_start_of_body(request);
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
@@ -344,6 +369,11 @@ void handle_http_request(int fd)
     {
       resp_404(fd);
     }
+  }
+  else if(strcmp(request_type, "POST") == 0)
+  {
+    char *body = find_start_of_body(request);
+    post_save(fd, body);
   }
 }
 
