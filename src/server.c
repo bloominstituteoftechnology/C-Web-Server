@@ -202,16 +202,15 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
   int content_length = strlen(body);
-  time_t t1 = time(NULL);
-  struct tm *ltime = localtime(&t1);
-  char *timestamp = asctime(ltime);
+  // time_t t1 = time(NULL);
+  // struct tm *ltime = localtime(&t1);
+  // char *timestamp = asctime(ltime);
 
   // !!!!  IMPLEMENT ME
   response_length = sprintf(response,
                             "%s\n"
                             "content-length: %d\n"
                             "Content_type: %s\n"
-                            "Date: %s"
                             "Connection: close\n"
                             "\n"
                             "%s",
@@ -219,7 +218,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
                             header,
                             content_length,
                             content_type,
-                            timestamp,
                             body);
 
   // Send it all!
@@ -248,7 +246,7 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  char *response_body = "<html><body><h1>Hello World!</h1></body></html>";
+  char response_body[2048] = "<html><body><h1>Hello World!</h1></body></html>";
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
@@ -259,7 +257,7 @@ void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
   srand(time(NULL) + getpid());
-  char response_body[8];
+  char response_body[128];
   sprintf(response_body, "%d", (rand() % 20) + 1);
   send_response(fd, "HTTP/1.1 OK", "text/plain", response_body);
 }
@@ -270,11 +268,11 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  char response_body[128];
+  char response_body[1024];
   time_t t1 = time(NULL);
   struct tm *gtime = gmtime(&t1);
   sprintf(response_body, "%s", asctime(gtime));
-  send_response(fd, "HTTP/1.1 OK", "text/html", response_body);
+  send_response(fd, "HTTP/1.1 OK", "text/plain", response_body);
 }
 
 /**
@@ -284,9 +282,9 @@ void get_date(int fd)
 // {
 //   // !!!! IMPLEMENT ME
 //   // Save the body and send a response
-//   char *response_body = body;
-//   send_response(fd, "HTTP/1.1 OK"
-//                     "text/html" response_body);
+//   char response_body[2048];
+//   response_body = body;
+//   send_response(fd, "HTTP/1.1 OK", "text/html", response_body);
 // }
 
 /**
@@ -381,7 +379,7 @@ void handle_http_request(int fd)
   // {
   //   if (strcmp(request_path, "/save") == 0)
   //   {
-  //     post_save(fd, body);
+  //     post_save(fd);
   //   }
   //   else
   //   {
