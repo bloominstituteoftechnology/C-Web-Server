@@ -225,8 +225,12 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>I love boobies.</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>ronald</h1>");
 }
+
+
+
+
 
 /**
  * Send a /d20 endpoint response
