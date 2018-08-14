@@ -193,9 +193,21 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // !!!!  IMPLEMENT ME
   // only includes the length of the body, not the header.
   int content_length = strlen(body); 
-  char *current_date = "Tue Aug 14 15:15:15 EST 2018";  // check srand() with time(NULL) later
+  char *current_date = "Tue Aug 14 15:15:15 EST 2018"; 
 
-  sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, current_date, content_length, content_type, body);
+  sprintf(response, 
+    "%s\n"
+    "Date: %s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s\n", 
+    header, 
+    current_date, 
+    content_length, 
+    content_type, body
+  );
 
   // the total length of both header and body. And pass it to send()
   response_length = strlen(response);
@@ -235,6 +247,14 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  // use current calendar time as seed for random generator
+  // it gives different seed for every call.
+  srand(time(NULL));
+  char response_body[8];
+  // rand() %20 yields a result from 0 - 19 so add 1 to become 1 - 20
+  int rand_num = (rand() % 20) + 1;
+  sprintf(response_body, "%d", rand_num);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);  
 }
 
 /**
