@@ -34,6 +34,8 @@
 
 #define PORT "3490"
 #define BACKLOG 10
+#define POST_FILENAME "data.txt"
+#define REQ_BUFFER_SIZE 65536
 
 /**
  * Handle SIGCHILD signal
@@ -183,7 +185,7 @@ int get_listener_socket(char *port)
 int send_response(int fd, char *header, char *content_type, char *body)
 {
   time_t t = time(NULL);
-  const int max_response_size = 65536;
+  const int max_response_size = REQ_BUFFER_SIZE;
   char response[max_response_size];
 
   sprintf(
@@ -250,9 +252,25 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME - Stretch
+  if(body)
+  {
+    char buffer[REQ_BUFFER_SIZE];
+    int len = sprintf(buffer, "%s", body);
+    int pfd = open(POST_FILENAME, O_CREAT | O_RDWR, 0644);
+    ftruncate(pfd, 0);
+    int bytes_written = write(pfd, buffer, len);
 
-  // Save the body and send a response
+    if(bytes_written < 0)
+      perror("write"); // TODO: Send appropriate response
+
+    close(pfd);
+    send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\" : \"ok\"}");
+  }
+  else
+  {
+    // TODO: Send more appropriate response
+    resp_404(fd);
+  }
 }
 
 /**
@@ -262,15 +280,15 @@ char *find_start_of_body(char *header)
 {
   char *nn = "\n\n";
   char *rr = "\r\r";
-  char *rn = "\r\n";
+  char *rn = "\r\n\r\n";
   char *pos;
 
   if ((pos = strstr(header, nn)) != NULL)
-    return pos;
+    return pos + strlen(nn);
   if ((pos = strstr(header, rr)) != NULL)
-    return pos;
+    return pos + strlen(rr);
   if ((pos = strstr(header, rn)) != NULL)
-    return pos;
+    return pos + strlen(rn);
 
   return NULL;
 }
@@ -280,7 +298,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd)
 {
-  const int request_buffer_size = 65536; // 64K
+  const int request_buffer_size = REQ_BUFFER_SIZE;
   char request[request_buffer_size];
   char request_type[8];
   char request_path[1024];
