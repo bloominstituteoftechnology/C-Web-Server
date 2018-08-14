@@ -250,7 +250,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><h1>Hello, World!</h1></body></html></>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<!DOCTYPE html><html><head><title>Hello, World!</title></head><body><center><h1>Hello, World!</h1></center></body></html></>");
 }
 
 /**
@@ -288,9 +288,24 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME
 
+
+  // !!!! IMPLEMENT ME  
+  int file = open("data.txt", O_CREAT|O_RDWR, 0644);
+
+  char buffer[1024];
+  int size = sprintf(buffer, "%s", body);
+
+  int bytes_written = write(file, buffer, size);
+  
+  if (bytes_written < 0)
+  {
+    perror("write");
+  }
+  
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\": \"okay\"}");
   // Save the body and send a response
+  close(file);
 }
 
 /**
@@ -304,7 +319,29 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  char *start;
+  
+  if ((start = strstr(header, "\r\n\r\n")) != NULL)
+  {
+    printf("Start in \\r\\n twice is %s", start);
+    return start;
+  }
+
+  else if ((start = strstr(header, "\n\n")) != NULL)
+  {
+    printf("Start in \\n\\n is %s", start);
+    return start;
+  }
+  else if ((start = strstr(header, "\r\r")) != NULL)
+  {
+    printf("Start in \\r\\r is %s", start);
+    return start;
+  }
+  else
+  {
+    start = strstr(header, "\r\n\r\n");
+    return start;
+  }
 }
 
 /**
@@ -336,7 +373,9 @@ void handle_http_request(int fd)
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
   
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  
+  p = find_start_of_body(request);
+  char *body = p;
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data  
@@ -363,7 +402,7 @@ void handle_http_request(int fd)
   {
     if (strcmp(request_path, "/save") == 0)
     {
-      post_save(fd, request);
+      post_save(fd, body);
     }
     else
     {
