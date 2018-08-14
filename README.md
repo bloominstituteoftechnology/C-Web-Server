@@ -42,7 +42,7 @@ web server._
 A _protocol_ is an agreement between two programs about how they will
 communicate. For the Internet, most protocols take the form of "If you send me
 _x_, I'll send you back _y_." Internet-related protocols are clearly written
-down in specifications, known as an _RFC_.
+down in specifications, known as an _RFC_ (request for comment).
 
 When you send some data out on the network, that data is wrapped up in several
 layers of additional data that provide information about data integrity,
