@@ -189,14 +189,16 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  // int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  // Get current time for the HTTP header
   time_t t1 = time(NULL);
   struct tm *ltime = localtime(&t1);
 
+  // How many bytes in the body
   int content_length = strlen(body);
 
+  // Total length of header plus body
   int response_length = sprintf(response,
     "%s\n"
     "Date: %s"
@@ -284,16 +286,21 @@ void post_save(int fd, char *body)
   // !!!! IMPLEMENT ME
   char *status;
 
+  // This opens the file
   int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
 
   if (file_fd >= 0)
   {
+    // This prevents the processes from writing the file simultaneously
     flock(file_fd, LOCK_EX);
 
+    // Writes the body
     write(file_fd, body, strlen(body));
 
+    // Unlocks
     flock(file_fd, LOCK_UN);
 
+    // Closes
     close(file_fd);
 
     status = "okay";
@@ -304,7 +311,7 @@ void post_save(int fd, char *body)
     status = "fail";
   }
 
-  // Save the body and send a response
+  // Saves the body and sends an HTTP response
 
   char response_body[128];
 
@@ -358,7 +365,7 @@ void handle_http_request(int fd)
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
-  // Read request
+  // Reads request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
   if (bytes_recvd < 0) {
@@ -366,21 +373,25 @@ void handle_http_request(int fd)
     return;
   }
 
-   // NUL terminate request string
+  // NUL terminate request string.
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
-  // Hint: sscanf()!
+  // Initializes character pointer/ parses or analyzes first line of request.
   char *first_line = request;
 
+  // !!!! IMPLEMENT ME
+  // Get the request type and path from the first line.
+  // Hint: sscanf()!
+  // Looks for new line.
   p = strchr(first_line, '\n');
   *p = '\0';
 
-  char *header = p + 1;
+  // Remaining header.
+  char *header = p + 1; // The +1 increment skips the new line (\n).
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
+  // Looks for two new lines, which marks the end of the header.
   p = find_start_of_body(header);
 
   if (p == NULL)
@@ -389,16 +400,21 @@ void handle_http_request(int fd)
     exit(1);
   }
 
+  // This is the body.
   char *body = p;
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
 
+  // Reads the three components of the first request line.
   sscanf(first_line, "%s %s %s\n", request_type, request_path, request_protocol);
 
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  // String compare, character by character
   if (strcmp(request_type, "GET") == 0)
   {
-    // First endpoint: "/"
+    // First endpoint, check for the root: "/"
     if (strcmp(request_path, "/") == 0)
     {
       get_root(fd);
@@ -424,7 +440,7 @@ void handle_http_request(int fd)
 
   else if (strcmp(request_type, "POST") == 0)
   {
-    // Endpoint: "/save"
+    // Another endpoint: "/save"
     if (strcmp(request_path, "/save") == 0)
     {
       post_save(fd, body);
@@ -492,14 +508,23 @@ int main(void)
     // Convert this to be multiprocessed with fork()
     if (fork() == 0)
     {
+      // This is the child process.
+      // The child process doesn't need the listening socket.
+      // The parent process' listenfd is still open; we just close it in the child process.
       close(listenfd);
 
+      // This does the heavy lifting, recv() the HTTP request and send() the HTTP response.
       handle_http_request(newfd);
 
+      // This exist the child process.
       exit(0);
     }
 
-    // Done with this
+    // The parent process is still here.
+
+    // The parent doesn't need this so we close it.
+    // The child process' copy of newfd is still open.
+    // Done with this.
     close(newfd);
   }
 
@@ -507,4 +532,3 @@ int main(void)
 
   return 0;
 }
-
