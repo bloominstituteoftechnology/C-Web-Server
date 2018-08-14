@@ -249,10 +249,12 @@ void post_save(int fd, char *body)
   if (*body)
   {
     int pfd = open(POST_FILENAME, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    flock(pfd, LOCK_EX);
     int bytes_written = write(pfd, body, strlen(body));
     char *status = bytes_written < 0 ? "{\"status\" : \"failed\"}" : "{\"status\" : \"ok\"}";
 
     close(pfd);
+    flock(pfd, LOCK_UN);
     send_response(fd, "HTTP/1.1 200 OK", "application/json", status);
   } else {
     resp_404(fd, "<h1>Cannot POST /save</h1>");
