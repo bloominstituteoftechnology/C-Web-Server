@@ -264,15 +264,22 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
-  printf("%s", body);
-  int file = open('save.txt', O_CREAT|O_RDWR, 0644);
-  char buffer[1024];
-  int size = sprintf(buffer, "%s", body);
-  int success = write(file, buffer, size);
-  close(file);
+  char *status;
 
+  // printf("%s", body);
+  int file = open("save.txt", O_CREAT|O_WRONLY, 0644);
+  if (file < 0) {
+    status = "failed";
+  } else {
+    write(file, body, strlen(body));
+    close(file);
+    status = "ok";
+  }
+
+  char response_body[128];
   // Save the body and send a response
-  if (success) send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\":\"ok\"}");
+  sprintf(response_body, "{\"status\": \"%s\"}\n", status);
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
