@@ -177,6 +177,34 @@ int get_listener_socket(char *port)
   return sockfd;
 }
 
+// void get_date(int fd)
+// {
+//   time_t t = time(NULL);
+//   struct tm tm = *gmtime(&t);
+//   //tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec
+//   // !!!! IMPLEMENT ME
+//   char timeStamp[1024];
+//   sprintf(timeStamp, "Date: %i %i %i Time GMT: %i:%i:%i\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);  
+//   send_response(fd, "HTTP/1.1 200 OK", "text/plain", timeStamp);
+// }
+
+void whatYearIsIt(char *buf)
+{
+  char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+  char days[7][4] = {
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+    "Sun",
+  };
+
+  time_t t = time(NULL);
+  struct tm tm = *gmtime(&t);
+  sprintf(buf, "%s %s %i %i:%i:%i GMT %i\n", days[tm.tm_wday], months[tm.tm_mon], tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_year + 1900);
+}
 
 /**
  * Send an HTTP response
@@ -189,17 +217,16 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
+  char datebuffer[31];
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
-  // strncpy(response, "Hello world.", max_response_size);
-  // printf("response: %s\n", response);
   // Send it all!
-  response_length = sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %i\nContent-Type: %s\n\n%s\n\n", header, strlen(body), content_type, body);
-  printf("response length: %i\n", response_length);
-  // sprintf(response, "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %i\nContent-Type: %s\n\n%s\n\n", header, response_length, content_type, body);
+  whatYearIsIt(datebuffer);
+  response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %li\nContent-Type: %s\n\n%s\n\n", header, datebuffer, strlen(body), content_type, body);
+
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
@@ -237,7 +264,6 @@ void get_d20(int fd)
   srand(time(NULL));
   char randNum[3];
   sprintf(randNum, "%i\n", rand() % 20 + 1);
-  printf("randNum: %s\n", randNum);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", randNum);
 }
 
@@ -250,9 +276,9 @@ void get_date(int fd)
   struct tm tm = *gmtime(&t);
   //tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec
   // !!!! IMPLEMENT ME
-  char timeStamp[1024];
-  sprintf(timeStamp, "Date: %i %i %i Time GMT: %i:%i:%i\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);  
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", timeStamp);
+  char datebuffer[31];
+  whatYearIsIt(datebuffer);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", datebuffer);
 }
 
 /**
@@ -306,8 +332,8 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
-  printf("request: %s\n\n", request);
-  printf("type: %s path: %s protocol: %s\n", request_type, request_path, request_protocol);
+  // printf("request: %s\n\n", request);
+  // printf("type: %s path: %s protocol: %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
