@@ -190,7 +190,10 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+  int content_length = strlen(body);
+  time_t seconds = time(NULL);
+  struct tm *localTime = localtime(&seconds); 
+  char *timestamp = asctime(localTime);
   // !!!!  IMPLEMENT ME
 
   response_length = sprintf(response, 
@@ -255,7 +258,9 @@ void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
   char response_body[1024];
-  sprintf(response_body, "%d\n", asctime(localtime(&t)));
+  time_t seconds = time(NULL);
+  struct tm *localTime = localtime(&seconds);
+  sprintf(response_body, "%s", asctime(localTime));
   // returns a pointer to a string which represents the day and 
   //time of the structure struct timeptr.
   send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
@@ -315,19 +320,6 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
-  char *p;
-
-  p = strstr(header, "\n\n");
-
-  if (p != NULL) return p;
-
-  p = strstr(header, "\r\n\r\n");
-
-  if (p != NULL) return p;
-
-  p = strstr(header, "\r\r");
-
-  return p;
 }
 
 /**
@@ -406,7 +398,7 @@ void handle_http_request(int fd)
     }
   } else if (strcmp(request_type, "POST") == 0) {
     if (strcmp(request_path, "/save") == 0) {
-    post_save(fd);
+    post_save(fd, body);
     } else {
       resp_404(fd);
     }
@@ -414,7 +406,7 @@ void handle_http_request(int fd)
     resp_404(fd);
   }
 }
-}
+
 
 /**
  * Main
