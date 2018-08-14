@@ -232,8 +232,8 @@ void get_d20(int fd)
   // !!!! IMPLEMENT ME
   srand(time(NULL) + getpid());
   char response_body[35];
-  sprintf(response_body, "<h1>Random number 1-20: %d</h1>\n", (rand()%20)+1);
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+  sprintf(response_body, "Random number 1-20: %d\n", (rand()%20)+1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -249,10 +249,8 @@ void get_date(int fd)
   now_tm = localtime(&now);
 
   char date[80];
-  strftime (date, 80, "<h1>Now it's %Y-%m-%d</h1>", now_tm);
-  // char response_body[50];
-  // sprintf(response_body, "<h1>Date: %s</h1>\n", getdate("%m/%d/%y"));
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", date);
+  strftime (date, 80, "Now it's %Y-%m-%d", now_tm);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
 
 /**
