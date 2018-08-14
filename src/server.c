@@ -199,7 +199,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   int len = strlen(body);
 
-  response_length = sprintf(response, "%s\n %s\nConnection: close\nContent-Length: %s\nContent-Type: text/html\n\n%s", header, buf, len, body);
+  response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: text/html\n\n%s\n\n", header, buf, len, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -207,7 +207,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   if (rv < 0) {
     perror("send");
   }
-  printf("%s", rv);
+
   return rv;
 }
 
@@ -302,6 +302,35 @@ void handle_http_request(int fd)
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  char* str1 = "/";
+  int ret = strcmp(str1, request_path);
+
+  if (ret == 0) {
+    printf("yes - root");
+    return get_root(fd);
+  }
+  else if (ret > 0) {
+    str1 = strcpy(str1, "/d20");
+    ret = strcmp(str1, request_path);
+    if (ret == 0) {
+      printf("yes - d20");
+      return get_d20(fd);
+    } 
+    else {
+      str1 = strcpy(str1, "/date");
+      ret = strcmp(str1, request_path);
+      if (ret == 0) {
+        printf("yes - get_date");
+        return get_date(fd);
+      }
+      else {
+        return resp_404(fd);
+      }
+    }
+  }
+  else {
+    return resp_404(fd);
+  }
   
 }
 
