@@ -319,7 +319,12 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT 
+  char *start;
+
+  start = strstr(header, "\n\n");
+
+  if (start != NULL) return start;
 }
 
 /**
@@ -397,12 +402,12 @@ void handle_http_request(int fd)
       resp_404(fd);
     }
   } else if (strcmp(request_type, "POST") == 0) {
-    if (strcmp(request_path, "/save") == 0) {
-    post_save(fd, body);
+      if (strcmp(request_path, "/save") == 0) {
+      post_save(fd, body);
+      } else {
+        resp_404(fd);
+      }
     } else {
-      resp_404(fd);
-    }
-  } else {
     resp_404(fd);
   }
 }
