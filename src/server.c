@@ -190,16 +190,23 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
+  int content_length = strlen(body);
+  
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char *current_date = asctime(tm);
 
   // !!!!  IMPLEMENT ME
+  sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\r\n", header, current_date, content_length, content_type, body);
 
+  response_length = strlen(response);
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
     perror("send");
   }
-
+  
   return rv;
 }
 
@@ -219,6 +226,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!<h1>");
 }
 
 /**
@@ -227,6 +235,11 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char nstr[8];
+  srand( time(NULL) );
+  int randnum = ( rand() % 20 ) + 1;
+  sprintf(nstr, "%d", randnum);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", nstr);
 }
 
 /**
@@ -235,6 +248,14 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  time_t rawtime;
+  struct tm *info;
+  time(&rawtime);
+  info = gmtime(&rawtime);
+  char *gmt_date = asctime(info);
+  char *gmt_bake[sizeof(gmt_date)];
+  strcpy(gmt_bake, gmt_date);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", gmt_bake);
 }
 
 /**
@@ -243,8 +264,15 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  printf("%s", body);
+  int file = open('save.txt', O_CREAT|O_RDWR, 0644);
+  char buffer[1024];
+  int size = sprintf(buffer, "%s", body);
+  int success = write(file, buffer, size);
+  close(file);
 
   // Save the body and send a response
+  if (success) send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\":\"ok\"}");
 }
 
 /**
@@ -259,6 +287,19 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  while (*header != '\0') {
+    if (*header == '\r') {
+      if ( *(header + 1) == '\n') {
+        if ( *(header + 2) == '\r') {
+          if ( *(header + 3) == '\n') {
+            return (header + 4);
+          }
+        }
+      }
+    }
+    header++;
+  }
+  return "Unsuccessful";
 }
 
 /**
@@ -287,12 +328,33 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf( request, "%s %s %s", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if ( strcmp(request_type, "GET") == 0 ) 
+  {
+    if ( strcmp(request_path, "/") == 0 ) {
+      get_root(fd);
+    } else if ( strcmp(request_path, "/d20") == 0 ) {
+      get_d20(fd);
+    } else if ( strcmp(request_path, "/date") == 0 ) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } 
+  else if ( strcmp(request_type, "POST") == 0 ) 
+  {
+    if ( strcmp(request_path, "/save") == 0 ) {
+      // printf("%s", request);
+      p = find_start_of_body(request);
+      post_save(fd, p);
+    }
+  }
 }
 
 /**
