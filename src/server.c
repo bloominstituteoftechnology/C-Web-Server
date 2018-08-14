@@ -185,8 +185,7 @@ int get_listener_socket(char *port)
 int send_response(int fd, char *header, char *content_type, char *body)
 {
   time_t t = time(NULL);
-  const int max_response_size = REQ_BUFFER_SIZE;
-  char response[max_response_size];
+  char response[REQ_BUFFER_SIZE];
 
   sprintf(
       response,
@@ -209,9 +208,9 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *body)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", body);
 }
 
 /**
@@ -252,24 +251,16 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  if(body)
+  if (*body)
   {
-    char buffer[REQ_BUFFER_SIZE];
-    int len = sprintf(buffer, "%s", body);
-    int pfd = open(POST_FILENAME, O_CREAT | O_RDWR, 0644);
-    ftruncate(pfd, 0);
-    int bytes_written = write(pfd, buffer, len);
-
-    if(bytes_written < 0)
-      perror("write"); // TODO: Send appropriate response
+    int pfd = open(POST_FILENAME, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    int bytes_written = write(pfd, body, strlen(body));
+    char *status = bytes_written < 0 ? "{\"status\" : \"failed\"}" : "{\"status\" : \"ok\"}";
 
     close(pfd);
-    send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\" : \"ok\"}");
-  }
-  else
-  {
-    // TODO: Send more appropriate response
-    resp_404(fd);
+    send_response(fd, "HTTP/1.1 200 OK", "application/json", status);
+  } else {
+    resp_404(fd, "<h1>Cannot POST /save</h1>");
   }
 }
 
@@ -298,14 +289,14 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd)
 {
-  const int request_buffer_size = REQ_BUFFER_SIZE;
-  char request[request_buffer_size];
+  char request[REQ_BUFFER_SIZE];
   char request_type[8];
   char request_path[1024];
   char request_protocol[128];
+  char resp_404_body[1066];
   char *request_body;
 
-  int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+  int bytes_recvd = recv(fd, request, REQ_BUFFER_SIZE - 1, 0);
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -324,7 +315,8 @@ void handle_http_request(int fd)
     if (strcmp(request_path, "/date") == 0)
       return get_date(fd);
 
-    resp_404(fd);
+    sprintf(resp_404_body, "<h1>Cannot GET %s</h1>", request_path);
+    resp_404(fd, resp_404_body);
   }
   else if (strcmp(request_type, "POST") == 0)
   {
@@ -333,13 +325,13 @@ void handle_http_request(int fd)
       request_body = find_start_of_body(request);
       return post_save(fd, request_body);
     }
-  
-    resp_404(fd);
+
+    sprintf(resp_404_body, "<h1>Cannot POST %s</h1>", request_path);
+    resp_404(fd, resp_404_body);
   }
-  else
-  {
-    resp_404(fd);
-  }
+
+  sprintf(resp_404_body, "<h1>Cannot %s %s</h1>", request_type, request_path);
+  resp_404(fd, resp_404_body);
 }
 
 /**
