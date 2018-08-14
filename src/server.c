@@ -191,24 +191,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
-  char* status = strtok(header, "");
 
   char buf[1000];
-  time_t now = time(0);
+  time_t now = time(NULL);
   struct tm tm = *gmtime(&now);
   strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
 
 
   // !!!!  IMPLEMENT ME
-  int headerSize = sprintf(response, "%s\n", header);
-  int dateStringSize = sprintf(response, "Date: [%s]\n", buf);
-  int connectionStringSize = sprintf(response, "Connection: close\n");
-  int contentLengthSize = sprintf(response, "Content-Length: %d\n", strlen(body));
-  int contentTypeSize = sprintf(response, "Content-Type: %s\n", content_type);
-  int bodySize = sprintf(response, "%s\n\n", body);
+  // int headerSize = sprintf(response, "%s\n", header);
+  // int dateStringSize = sprintf(response, "Date: [%s]\n", buf);
+  // int connectionStringSize = sprintf(response, "Connection: close\n");
+  // int contentLengthSize = sprintf(response, "Content-Length: %d\n", strlen(body));
+  // int contentTypeSize = sprintf(response, "Content-Type: %s\n", content_type);
+  // int bodySize = sprintf(response, "%s\n\n", body);
 
-  response_length = (sizeof headerSize + sizeof dateStringSize + sizeof connectionStringSize + 
-    sizeof contentLengthSize + sizeof contentTypeSize + sizeof bodySize) / sizeof(char);
+  sprintf(response, "%s\n%s\n\n%s", header, content_type, body);
+
+  //printf("\n%s\n", response);
+
+  // response_length = sizeof headerSize + sizeof connectionStringSize + 
+  //   sizeof contentLengthSize + sizeof contentTypeSize + sizeof bodySize + sizeof dateStringSize;
+
+  response_length = strlen(response);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -236,6 +241,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  printf("get worked");
   send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
 }
 
@@ -245,12 +251,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  #define RAND_MAX = 20;
+  //#define RAND_MAX = 20;
   srand(time(0));
-  int number = rand();
-  char numberBuffer[2];
+  int number = rand() %20 + 1;
+  char numberBuffer[1000];
   sprintf(numberBuffer, "%d", number);
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", numberBuffer);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", numberBuffer);
 }
 
 /**
@@ -297,7 +303,7 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  char *p;
+  char *p = "p";
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
@@ -317,23 +323,25 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("%s\n", request_type);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
-  if (strcmp('GET', request_type) == 0) {
-    if (strcmp('http://localhost:3490/', request_path) == 0) {
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      printf("%s %s\n", request_type, request_path);
       get_root(fd);
-    } else if (strcmp('http://localhost:3490/d20', request_path) == 0) {
+    } else if (strcmp(request_path, "/d20") == 0) {
       get_d20(fd);
-    } else if (strcmp('http://localhost:3490/date', request_path) == 0) {
+    } else if (strcmp(request_path, "/date") == 0) {
       get_date(fd);
     } else {
       resp_404(fd);
     }
-  } else if (strcmp('POST', request_type) == 0) {
+  } else if (strcmp(request_type, "POST") == 0) {
       post_save(fd, p);
   } else {
     resp_404(fd);
