@@ -238,7 +238,8 @@ void get_d20(int fd)
 {
   char *response_header = "HTTP/1.1 200 OK";
   char *response_type = "text/html";
-  int response_body = (rand() % 20) + 1;
+  char response_body[2];
+  sprintf(response_body, "%d", (rand() % 20) + 1);
   send_response(fd, response_header, response_type, response_body);
 }
 
@@ -247,7 +248,14 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  time_t raw_time;
+  struct tm * response_time;
+  time(&raw_time);
+
+  char *response_header = "HTTP/1.1 200 OK";
+  char *response_type = "text/html";
+  char *response_body = asctime(response_time);
+  send_response(fd, response_header, response_type, response_body);
 }
 
 /**
@@ -256,8 +264,11 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
-
   // Save the body and send a response
+  char *response_header = "HTTP/1.1 200 OK";
+  char *response_type = "text/html";
+  char *response_body = body;
+  send_response(fd, response_header, response_type, response_body);
 }
 
 /**
@@ -269,10 +280,10 @@ void post_save(int fd, char *body)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-  // !!!! IMPLEMENT ME
-}
+// char *find_start_of_body(char *header)
+// {
+//   // !!!! IMPLEMENT ME
+// }
 
 /**
  * Handle HTTP request and send response
@@ -284,7 +295,6 @@ void handle_http_request(int fd)
   char *p;
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
-  char request_protocol[128]; // HTTP/1.1
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
