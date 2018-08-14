@@ -238,8 +238,8 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
-  char rand_num;
-  rand_num = rand() % 21;
+  char rand_num[50];
+  sprintf(rand_num, "Random Number: %d\n", rand() % 21);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand_num);
 }
 
@@ -251,7 +251,7 @@ void get_date(int fd)
   // !!!! IMPLEMENT ME
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
-  char date[100];
+  char date[50];
   sprintf(date, "Today's Date: %d-%d-%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", date);
 }
