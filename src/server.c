@@ -36,6 +36,8 @@
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
+
+
 /**
  * Handle SIGCHILD signal
  *
@@ -256,6 +258,18 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  struct tm *ptm;
+
+  time_t rawtime;
+  rawtime = NULL;
+
+  char *GMT_Time[100];
+
+
+  rawtime = time(NULL);
+  ptm = gmtime(&rawtime);
+  sprintf(GMT_Time, "%2d:%02d\n", (ptm->tm_hour)%24, ptm->tm_min);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", GMT_Time);
 }
 
 /**
