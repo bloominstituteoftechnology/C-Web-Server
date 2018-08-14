@@ -239,6 +239,7 @@ void get_d20(int fd)
   char *response_header = "HTTP/1.1 200 OK";
   char *response_type = "text/html";
   char response_body[2];
+  srand(time(NULL));
   sprintf(response_body, "%d", (rand() % 20) + 1);
   send_response(fd, response_header, response_type, response_body);
 }
