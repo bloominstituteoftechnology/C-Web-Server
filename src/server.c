@@ -36,6 +36,8 @@
 
 #define BACKLOG 10	 // how many pending connections queue will hold
 
+
+
 /**
  * Handle SIGCHILD signal
  *
@@ -190,16 +192,29 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
+ 
   // !!!!  IMPLEMENT ME
 
+  response_length = sprintf(response,
+    "%s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n\n"
+    "%s",
+    header,
+    strlen(body),
+    content_type,
+    body
+  );
+
+  
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
   if (rv < 0) {
     perror("send");
   }
-
+ 
   return rv;
 }
 
@@ -219,6 +234,8 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, world!</h1>");
+  
 }
 
 /**
@@ -227,6 +244,12 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  int random_num[sizeof(int)];
+  srand(time(NULL)); /* Intializes random number generator */
+   
+  sprintf(random_num, "%d\n", rand() % 20 +1); // TODO: why does rand() % 21 only choose btwn 5, 12, 19
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", random_num);
+   
 }
 
 /**
@@ -235,6 +258,18 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  struct tm *ptm;
+
+  time_t rawtime;
+  rawtime = NULL;
+
+  char *GMT_Time[100];
+
+
+  rawtime = time(NULL);
+  ptm = gmtime(&rawtime);
+  sprintf(GMT_Time, "%2d:%02d\n", (ptm->tm_hour)%24, ptm->tm_min);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", GMT_Time);
 }
 
 /**
@@ -273,6 +308,8 @@ void handle_http_request(int fd)
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
 
+ 
+
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -287,12 +324,40 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+      
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("REQUEST: %s %s %s", request_type, request_path, request_protocol);
+  // printf("REQUEST TYPE: %s\n", request_type);
+  // printf("REQUEST PATH: %s\n", request_path);
+  // printf("REQUEST PROTOCOL: %s\n", request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  if (strcmp(request_type, "GET") == 0) { 
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd); 
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd); 
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } 
+  else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+      // post_save(fd, body);
+    } else {
+      resp_404(fd);
+    }
+  } 
+  else {
+    resp_404(fd);
+  }
 }
 
 /**
