@@ -197,7 +197,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char *current_date = asctime(tm);
 
   // !!!!  IMPLEMENT ME
-  sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, current_date, content_length, content_type, body);
+  sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\r\n", header, current_date, content_length, content_type, body);
 
   response_length = strlen(response);
   // Send it all!
@@ -206,7 +206,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   if (rv < 0) {
     perror("send");
   }
-
+  
   return rv;
 }
 
@@ -264,8 +264,15 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  printf("%s", body);
+  int file = open('save.txt', O_CREAT|O_RDWR, 0644);
+  char buffer[1024];
+  int size = sprintf(buffer, "%s", body);
+  int success = write(file, buffer, size);
+  close(file);
 
   // Save the body and send a response
+  if (success) send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\":\"ok\"}");
 }
 
 /**
@@ -280,6 +287,19 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  while (*header != '\0') {
+    if (*header == '\r') {
+      if ( *(header + 1) == '\n') {
+        if ( *(header + 2) == '\r') {
+          if ( *(header + 3) == '\n') {
+            return (header + 4);
+          }
+        }
+      }
+    }
+    header++;
+  }
+  return "Unsuccessful";
 }
 
 /**
@@ -329,7 +349,11 @@ void handle_http_request(int fd)
   } 
   else if ( strcmp(request_type, "POST") == 0 ) 
   {
-    // !!!! Stretch Goal (I think)
+    if ( strcmp(request_path, "/save") == 0 ) {
+      // printf("%s", request);
+      p = find_start_of_body(request);
+      post_save(fd, p);
+    }
   }
 }
 
