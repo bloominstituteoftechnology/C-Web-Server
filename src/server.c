@@ -190,10 +190,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
-
-  response_length = sprintf(response, "%s\nDate: Wed Dec 20\n"
-  "Connection: close\nContent-Length: %lu\nContent-Type:%s\n%s",
+  time_t t = time(NULL);
+  response_length = sprintf(response, "%s\nDate: %s"
+  "Connection: close\nContent-Length: %lu\nContent-Type:%s\n\n%s",
       header,
+      asctime(localtime(&t)),
       strlen(body),
       content_type,
       body);
@@ -223,6 +224,7 @@ void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
   //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Here Comes the Sun! Good morning, World!</h1>");
 }
 
 /**
@@ -231,24 +233,54 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand() % (20) + 1);
 }
 
 /**
  * Send a /date endpoint response
  */
+
+    
+
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+ 
+    time_t t = time(NULL);
+    printf("UTC:       %s", asctime(gmtime(&t)));
+    printf("local:     %s", asctime(localtime(&t)));
+    // POSIX-specific
+    putenv("TZ=Asia/Singapore");
+    printf("Singapore: %s", asctime(localtime(&t)));
+    putenv("TZ=PST8PDT");
+ 
+#ifdef __STDC_LIB_EXT1__
+    struct tm buf;
+    char str[26];
+    asctime_s(str,sizeof str,gmtime_s(&t, &buf));
+    printf("UTC:   %s", str);
+    asctime_s(str,sizeof str,localtime_s(&t, &buf));
+    printf("local: %s", str);
+#endif
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", localtime(&t));
+  
 }
 
 /**
  * Post /save endpoint data
  */
-void post_save(int fd, char *body)
+void post_save()
 {
   // !!!! IMPLEMENT ME
+// HTTP/1.1 200 OK
+// Date: Wed Dec 20 13:05:11 PST 2017
+// Connection: close
+// Content-Length: 41749
+// Content-Type: application/json
+
+// <!DOCTYPE html><html><head><title>Lambda School ...
 
   // Save the body and send a response
+  printf("this is a post");
 }
 
 /**
@@ -262,7 +294,8 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME 
+  printf("I'm a placeholder %s", header);
 }
 
 /**
@@ -272,7 +305,7 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  char *p;
+  // char *p;
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
@@ -285,15 +318,48 @@ void handle_http_request(int fd)
     return;
   }
 
-   // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
-  // Hint: sscanf()!
-
+  char *first_line = request;
+  sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
+  printf("%s %s %s\n", request_type, request_path, request_protocol);
+  
+  if(strcmp(request_type, "GET") == 0){
+    if(strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } 
+    else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+      }
+      
+    else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+      }
+    else {
+        resp_404(fd);
+      }
+  }
+  else{
+    if(strcmp(request_type, "POST")== 0){
+      if(strcmp(request_path, "/") == 0){
+        post_save();
+      } 
+      else if(strcmp(request_path, "/d20") == 0){
+        post_save();
+      }
+      else if(strcmp(request_path,"/date") == 0){
+        post_save();
+      }
+      else {
+        resp_404(fd);
+      }
+    }
+  }
+  
+  
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
+
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
