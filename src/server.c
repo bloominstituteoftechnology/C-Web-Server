@@ -177,17 +177,6 @@ int get_listener_socket(char *port)
   return sockfd;
 }
 
-// void get_date(int fd)
-// {
-//   time_t t = time(NULL);
-//   struct tm tm = *gmtime(&t);
-//   //tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec
-//   // !!!! IMPLEMENT ME
-//   char timeStamp[1024];
-//   sprintf(timeStamp, "Date: %i %i %i Time GMT: %i:%i:%i\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);  
-//   send_response(fd, "HTTP/1.1 200 OK", "text/plain", timeStamp);
-// }
-
 void whatYearIsIt(char *buf)
 {
   char months[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -217,14 +206,17 @@ void whatYearIsIt(char *buf)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  char datebuffer[31];
   const int max_response_size = 65536;
   char response[max_response_size];
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
   // Send it all!
+
+  // Make timestamp string
+  char datebuffer[31];
   whatYearIsIt(datebuffer);
+
   response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %li\nContent-Type: %s\n\n%s\n\n", header, datebuffer, strlen(body), content_type, body);
 
   int rv = send(fd, response, response_length, 0);
@@ -235,7 +227,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   return rv;
 }
-
 
 /**
  * Send a 404 response
@@ -274,10 +265,11 @@ void get_date(int fd)
 {
   time_t t = time(NULL);
   struct tm tm = *gmtime(&t);
-  //tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec
-  // !!!! IMPLEMENT ME
+
+  // Make timestamp string
   char datebuffer[31];
   whatYearIsIt(datebuffer);
+  
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", datebuffer);
 }
 
