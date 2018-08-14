@@ -212,7 +212,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // !!!!  IMPLEMENT ME
   // printf("SEND RESPONSE TEST: ");
   // printf("%s\n", header);
-  response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Legth: %d\nContent-Type: %s\n\n%s\n", header, date, strlen(body), content_type, body);
+  response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Legth: %lu\nContent-Type: %s\n\n%s\n", header, date, strlen(body), content_type, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -287,8 +287,38 @@ void get_date(int fd)
 void post_save(int fd, char *body)
 {
   // !!!! IMPLEMENT ME
+  printf("\n\nPOST START\n");
 
   // Save the body and send a response
+  printf("POST 1\n");
+  printf("POST 2\n");
+
+  FILE *post_file = fopen("POST_file.txt", "a+");
+  int post_fd = fileno(post_file);
+  // Loock file
+  printf("POST 3\n");
+  int look = flock(post_fd, LOCK_EX);
+
+  printf("POST 4\n");
+  printf("post_fd: %d\n", post_fd);
+  printf("look: %d\n", look);
+  if (look == -1) // If error 'looking' the file.
+  {
+    printf("POST 5 : look == -1\n");
+    resp_500(fd);
+    fclose(post_file);
+  }
+  else
+  {
+    printf("POST 6 : look == 0\n");
+
+    fprintf(post_file, "%s\n", body);
+    fclose(post_file);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>200 ok</h1><p>Content save to server.</p>");
+  }
+  printf("POST 7\n");
+  printf("\n\nPOST START\n");
 }
 
 /**
@@ -334,7 +364,7 @@ void handle_http_request(int fd)
   char request_type[8];       // GET or POST
   char request_path[1024];    // /info etc.
   char request_protocol[128]; // HTTP/1.1
-  char request_body[64376];
+  char *request_body;
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -351,12 +381,14 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  printf("REQUEST: %s\n", request);
   sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
-  // printf("%s %s %s\n", request_type, request_path, request_protocol);
+  printf("REQUEST (frist line); %s %s %s\n", request_type, request_path, request_protocol);
 
   // !!!! IMPLEMENT ME (stretch goal)
   // printf("SCAN BODY 1\n");
   p = find_start_of_body(request);
+  request_body = (p + 2);
   // printf("SCAN BODY body; %s\n", (p + 2));
   // printf("SCAN BODY 2\n");
 
@@ -385,7 +417,7 @@ void handle_http_request(int fd)
   {
     if (strcmp(request_path, "/save") == 0)
     {
-      post_save(fd, &request_body);
+      post_save(fd, request_body);
     }
     else
     {
