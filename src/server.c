@@ -211,7 +211,6 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
   // body
 
-
   time_t current_time;
   time(&current_time);
   struct tm *tm = gmtime(&current_time);
@@ -297,7 +296,7 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME
+  // !!!! IMPLEMENT ME (STRETCH)
 
   // Save the body and send a response
 }
@@ -314,6 +313,27 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
   // !!!! IMPLEMENT ME
+  char *nn = "\n\n";
+  char *rr = "\r\r";
+  char *rnrn = "\r\n\r\n";
+  char *pointer;
+
+  if ((pointer = strstr(header, nn)) != NULL)
+  {
+    return pointer + strlen(nn);
+  }
+  else if ((pointer = strstr(header, rr)) != NULL)
+  {
+    return pointer + strlen(rr);
+  }
+  else if ((pointer = strstr(header, rnrn)) != NULL)
+  {
+    return pointer + strlen(rnrn);
+  }
+  else
+  {
+    return NULL;
+  }
 }
 
 /**
