@@ -306,8 +306,10 @@ char *status;
   if (file < 0) {
     status = "failed";
   } else {
+    flock(file, LOCK_EX);
     write(file, body, size);
     close(file);
+    flock(file, LOCK_UN);
     status = "ok";
   }
   
@@ -333,20 +335,19 @@ char *find_start_of_body(char *header)
   
   if ((start = strstr(header, "\r\n\r\n")) != NULL)
   {
-    return start;
+    return start + 2;
   }
 
   else if ((start = strstr(header, "\n\n")) != NULL)
   {
-    return start;
+    return start + 2;
   }
   else if ((start = strstr(header, "\r\r")) != NULL)
   {
-    return start;
+    return start + 2;
   }
   else
   {
-    start = strstr(header, "\r\n\r\n");
     return start;
   }
 }
@@ -383,7 +384,7 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME (stretch goal)
   
   p = find_start_of_body(request);
-  char *body = p;
+  char *body = p + 1;
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data  
@@ -400,7 +401,7 @@ void handle_http_request(int fd)
     else if (strcmp(request_path, "/date") == 0)
     {
       get_date(fd);
-    }
+    } 
     else
     {
       resp_404(fd);
@@ -477,11 +478,13 @@ int main(void)
    else if (rc == 0)
    {
      handle_http_request(newfd);
+     printf("Child process: %d\n", getpid());
      exit(1);
    }
    else
    {
      wait(NULL);
+     printf("Parent process: %d\n", getpid());
      close(newfd);
      continue;
    }
