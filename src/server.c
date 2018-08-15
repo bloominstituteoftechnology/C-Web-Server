@@ -191,8 +191,11 @@ int send_response(int fd, char *header, char *content_type, char *body)
   char response[max_response_size];
   int response_length; // Total length of header plus body
   time_t t = time(NULL);
-  response_length = sprintf(response, "%s\nDate: %s"
-  "Connection: close\nContent-Length: %lu\nContent-Type:%s\n\n%s",
+  response_length = sprintf(response, 
+  "%s\nDate: %s"
+  "Connection: close\n"
+  "Content-Length: %lu\n"
+  "Content-Type:%s\n\n%s\n\n",
       header,
       asctime(localtime(&t)),
       strlen(body),
@@ -225,7 +228,7 @@ void get_root(int fd)
   // !!!! IMPLEMENT ME
   //send_response(...
   printf("Blackbird Singing in the Dead of Night...\nTake these Broken Wings and Learn to Fly...\n");
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Here Comes the Sun! Good morning, World!</h1>");
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Here Comes the Sun! Good morning, World!</h1>\n");
 }
 
 /**
@@ -233,6 +236,7 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
+  srand(time(NULL) + getpid());
   char random[50];
   sprintf(random, "Here is your random number: %d\n", rand()%20 + 1);
   printf("And another random number from 1 to 20: %d\n", rand() %20 + 1);
@@ -250,13 +254,13 @@ void get_date(int fd)
 {
  
     time_t t = time(NULL);
-    fprintf(stdout, "UTC:       %s", asctime(gmtime(&t)));
-    fprintf(stdout, "local:     %s", asctime(localtime(&t)));
+    char* local = asctime(localtime(&t));
     // POSIX-specific
-    putenv("TZ=Asia/Seoul");
-    fprintf(stdout, "Korea: %s", asctime(localtime(&t)));
-    putenv("TZ=PST8PDT");
- 
+    printf("Today is: %s", local);
+
+    // putenv("TZ=Asia/Seoul");
+    // fprintf(stdout, "Korea: %s", asctime(localtime(&t)));
+    // putenv("TZ=EST5EDT");
 
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", asctime(localtime(&t)));
   
@@ -265,8 +269,8 @@ void get_date(int fd)
 /**
  * Post /save endpoint data
  */
-void post_save()
-{
+void post_save(char* body)
+ {
   // !!!! IMPLEMENT ME
 // HTTP/1.1 200 OK
 // Date: Wed Dec 20 13:05:11 PST 2017
@@ -276,8 +280,25 @@ void post_save()
 
 // <!DOCTYPE html><html><head><title>Lambda School ...
 
-  // Save the body and send a response
-  printf("this is a post");
+    char *status = NULL;
+    char response_body[128];
+
+    if (body == NULL){
+      status = "failed";
+  }
+  sprintf(response_body, "{\"status\": \"%s\"\n}", status);
+
+  FILE *fp;
+  fp = fopen("server_data.txt", "w+");
+
+  if(fp == NULL){
+    status = "failed";
+  }  
+  else {
+    int fd=0;
+    write(fd, fp, strlen(body));
+    status = "ok";
+}
 }
 
 /**
@@ -291,8 +312,20 @@ void post_save()
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME 
-  printf("I'm a placeholder %s", header);
+  char *data_body;
+  data_body = strstr(header, "\n\n");
+  if (data_body != NULL) return data_body;
+
+  data_body = strstr(header, "\r\n\r\n");
+
+  if (data_body != NULL) return data_body;
+
+  data_body = strstr(header, "\r\r");
+
+  if (data_body != NULL){
+  return data_body;
+  }
+  return data_body;
 }
 
 /**
@@ -302,7 +335,6 @@ void handle_http_request(int fd)
 {
   const int request_buffer_size = 65536; // 64K
   char request[request_buffer_size];
-  // char *p;
   char request_type[8]; // GET or POST
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1
@@ -310,6 +342,7 @@ void handle_http_request(int fd)
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
   char *first_line = request;
+  
 
   if (bytes_recvd < 0) {
     perror("recv");
@@ -338,15 +371,8 @@ void handle_http_request(int fd)
   }
   else{
     if(strcmp(request_type, "POST")== 0){
-      if(strcmp(request_path, "/") == 0){
-        post_save();
+      if(strcmp(request_path, "/save") == 0){
       } 
-      else if(strcmp(request_path, "/d20") == 0){
-        post_save();
-      }
-      else if(strcmp(request_path,"/date") == 0){
-        post_save();
-      }
       else {
         resp_404(fd);
       }
@@ -355,11 +381,12 @@ void handle_http_request(int fd)
   
   
   // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
-
+   char*body = find_start_of_body(request);
+  
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+  post_save(body);
 }
 
 /**
