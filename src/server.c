@@ -192,6 +192,14 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  char buf[1000];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
+  int len = strlen(body);
+
+  response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: text/html\n\n%s\n\n", header, buf, len, body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -218,7 +226,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>GET Success</h1>");
 }
 
 /**
@@ -227,6 +235,10 @@ void get_root(int fd)
 void get_d20(int fd)
 {
   // !!!! IMPLEMENT ME
+  char num[100];
+  sprintf(num, "<h1>Random number:</h1>\n <h2>%d</h2>\n", rand() % 21);
+  printf("%s", num);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", num);
 }
 
 /**
@@ -235,6 +247,13 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
+  char buf[1000];
+  time_t now = time(0);
+  struct tm tm = *gmtime(&now);
+  strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+  char current_time[100];
+  sprintf(current_time, "Time is: %s\n", buf);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", current_time);
 }
 
 /**
@@ -287,12 +306,36 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
-
+  // printf("%s\n", request);
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("%s %s %s\n", request_type, request_path, request_protocol);
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
+
+
+  if(strcmp(request_type, "GET") == 0) {
+    if(strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+      // post_save(fd, *body);
+    } else {
+      resp_404(fd);
+    }
+  } else {
+    resp_404(fd);
+  }
+  
 }
 
 /**
