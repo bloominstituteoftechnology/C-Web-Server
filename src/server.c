@@ -288,24 +288,34 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-
+char *status;
 
   // !!!! IMPLEMENT ME  
-  int file = open("data.txt", O_CREAT|O_RDWR, 0644);
+  int file = open("data.txt", O_CREAT|O_WRONLY|O_APPEND, 0644);
 
   char buffer[1024];
   int size = sprintf(buffer, "%s", body);
 
-  int bytes_written = write(file, buffer, size);
-  
-  if (bytes_written < 0)
-  {
-    perror("write");
+  // lseek(file, SEEK_SET, SEEK_DATA);
+
+  // int bytes_written = write(file, buffer, size);
+  // if (bytes_written < 0)
+  // {
+  //   perror("write");
+  // }
+  if (file < 0) {
+    status = "failed";
+  } else {
+    write(file, body, size);
+    close(file);
+    status = "ok";
   }
   
-  send_response(fd, "HTTP/1.1 200 OK", "application/json", "{\"status\": \"okay\"}");
+  char response_body[128];
+  sprintf(response_body, "{\"status\": \"%s\"}\n", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
   // Save the body and send a response
-  close(file);
 }
 
 /**
@@ -323,18 +333,15 @@ char *find_start_of_body(char *header)
   
   if ((start = strstr(header, "\r\n\r\n")) != NULL)
   {
-    printf("Start in \\r\\n twice is %s", start);
     return start;
   }
 
   else if ((start = strstr(header, "\n\n")) != NULL)
   {
-    printf("Start in \\n\\n is %s", start);
     return start;
   }
   else if ((start = strstr(header, "\r\r")) != NULL)
   {
-    printf("Start in \\r\\r is %s", start);
     return start;
   }
   else
@@ -371,6 +378,7 @@ void handle_http_request(int fd)
   // Get the request type and path from the first line
   // Hint: sscanf()!
   sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+  printf("Request: %s %s %s From: %d\n", request_type, request_path, request_protocol, getpid());
   
   // !!!! IMPLEMENT ME (stretch goal)
   
@@ -459,11 +467,24 @@ int main(void)
 
     // !!!! IMPLEMENT ME (stretch goal)
     // Convert this to be multiprocessed with fork()
-
-    handle_http_request(newfd);
-
-    // Done with this
-    close(newfd);
+   int rc = fork();
+  //  printf("The process that handled this was %d\n", getpid());
+   if (rc < 0)
+   {
+     fprintf(stderr, "Fork failed\n");
+     close(newfd);
+   }
+   else if (rc == 0)
+   {
+     handle_http_request(newfd);
+     exit(1);
+   }
+   else
+   {
+     wait(NULL);
+     close(newfd);
+     continue;
+   }
   }
 
   // Unreachable code
