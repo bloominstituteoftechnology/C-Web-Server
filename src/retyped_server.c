@@ -30,3 +30,22 @@ void sigchld_handler(int s)
     // I believe this is errno is restored shold waitpid() overwrites it. 
     errno = saved_errno;
 }
+
+// Set up a signal handler that listens for child proccesses to die so
+// they can be reaped with wait(). Whenever a child process dies, the parent
+// process gets signal SIGCHILD; the handler sigchld_handler() takes care of
+// wait()ing. This is only necessary if we've implemented a multiprocessed
+// version with fork().
+void start_reaper(void)
+{
+    struct sigaction sa;
+
+    sa.sa_handler = sigchld_handler; // reap all dead processes.
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART; // restart signal handler if interrupted
+    if (sigaction(SIGCHLD, &sa, NULL) == -1)
+    {
+        perror("sigaction");
+        exit(1);
+    }
+}
