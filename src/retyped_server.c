@@ -243,5 +243,56 @@ void handle_http_request(int fd)
 
 int main(void)
 {
-    
+    int newfd; // listen on sock_fd, new connections on newfd
+    struct sockaddr_storage their_addr; // connector's address info
+    char s[INET6_ADDRSTRLEN];
+
+    // start reaping child processes
+    start_reaper();
+
+    // get a listening socket
+    int listenfd = get_listener_socket(PORT);
+
+    if(listenfd < 0)
+    {
+        fprintf(stderr, "webserver: fatal error gettting listenign socket\n");
+        exit(1);
+    }
+
+    printf("webserver: waiting for connections...");
+
+    // this is the main loop that accepts incoming connetions and
+    // fork()s a handler process to take care of it. Tthe main parent
+    // process then goes back to waiting for new connections. 
+
+    while(1)
+    {
+        socklen_t sin_size = sizeof their_addr;
+
+        // parent process will block on the accept() call until someone
+        // makes a new connection.
+        newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
+        if (newfd == -1)
+        {
+            perror("accept");
+            continue;
+        }
+
+        inet_ntop(their_addr.ss_family,
+            get_in_addr((struct sockaddr *)&their_addr),
+            s, sizeof s);
+        printf("server: got connection from %s\n", s);
+
+        // newfd is a new socket descriptor for the new connection.
+        // listenfd is still listening for new connections.
+
+        // !!!!! IMPPLMENT me! (stretch)-convert this to be multiprocessed with fork()
+
+        handle_http_request(newfd);
+
+        // done with this
+        close(newfd);
+    }
+    //unreachable code
+    return 0;
 }
