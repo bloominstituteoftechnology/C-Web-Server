@@ -217,4 +217,31 @@ void handle_http_request(int fd)
     char request_type[8]; // GET or POST
     char request_path[1024]; // /info etc.
     char request_protocol[128]; // HTTP/1.1
+
+    // read request
+    int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+
+    if(bytes_recvd < 0)
+    {
+        perror("recv");
+        return;
+    }
+
+    // NULL terminate request string
+    request[bytes_recvd] = '\0';
+
+  // !!!! IMPLEMENT ME
+  // Get the request type and path from the first line
+  // Hint: sscanf()!
+
+  // !!!! IMPLEMENT ME (stretch goal)
+  // find_start_of_body()
+
+  // !!!! IMPLEMENT ME
+  // call the appropriate handler functions, above, with the incoming data
+}
+
+int main(void)
+{
+    
 }
