@@ -229,7 +229,7 @@ body);
 void resp_404(int fd, char *path)
 {
   char response_body[1024];
-  
+
   sprintf(response_body, "404: %s not found", path);
 
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
@@ -241,6 +241,9 @@ void resp_404(int fd, char *path)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
+  char *response_body = "<htm><head></head><body><h1>Hello, World!</h1></body></html>\n":
+
+  send_response(f)
   //send_response(...
 }
 
