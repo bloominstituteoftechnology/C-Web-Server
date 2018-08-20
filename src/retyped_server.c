@@ -1,18 +1,23 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/file.h>
-#include <fcntl.h>
+#include <stdio.h> // standard input/output
+#include <stdlib.h> // standard library
+#include <unistd.h> // standard symbolic constants and types
+#include <errno.h> // system error numbers
+#include <string.h> // string operations
+#include <sys/types.h> // data types
+#include <sys/socket.h> // makes available a type, socklen_t, which is an 
+// unsigned opaque integral type of length of at least 32 bits. To forestall 
+// portability problems, it is recommended that applications should not use 
+// values larger than 232 - 1.
+#include <netinet/in.h> // defines the sockaddr_in structure
+#include <netdb.h> // definitions for network database operations
+#include <arpa/inet.h> // definitions for internet operations
+#include <sys/wait.h> // waitpid()
+#include <signal.h> //  defines symbolic constants, each of which 
+// expands to a distinct constant expression of the type
+#include <time.h> // declares the structure tm, that has subtypes like
+// seconds, minutes, hours, days, months, years, etc.
+#include <sys/file.h> // TODO: not sure what this is.
+#include <fcntl.h> // file control options
 #define PORT "3490" // the local host users will connect to
 #define BACKLOG 10 // capacity for pending connections queue
 
@@ -21,8 +26,8 @@
 // implemented a multiproccessed version with fork().
 void sigchld_handler(int s)
 {
-    (void)s; // quiet unused variable warning
-
+    // quiet unused variable warning
+    (void)s; 
     // waitpid() might overwrite errno, so we save and restore it:
     int saved_errno = errno;
     // wait for all the children that have died, discard the exit status
