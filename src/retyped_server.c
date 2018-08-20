@@ -168,3 +168,53 @@ int send_response(int fd, char *header, char *content_type, char *body)
 
     return rv;
 }
+
+// send a 404
+void resp_404(int fd)
+{
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+}
+
+// TODO: send a / endpoint response
+void get_root(int fd)
+{
+    // !!!!! implement me!!!!!
+}
+
+// TODO: send a /d20 endpoint response
+void get_d20(int fd)
+{
+    // 20-sided die RNG COMING SOON
+}
+
+// TODO: send a /date endpoint response
+void get_date(int fd)
+{
+    // !!!! implement me
+}
+
+// TODO: post /save enpoint data
+void post_save(int fd, char *body)
+{
+    // save the body and send a response
+}
+
+// TODO: search for the start of the HTTP body. The body is after
+// the header, seperated from it by a blank line,(2 newlines in a row).
+// "newlines" om HTTP can be \r\n (carriage return followed by newline) 
+// or \n (newline) or \r (carriage return)
+char *find_start_of_body(char *header)
+{
+    //!!!!!implement me!!!!!!!
+}
+
+// Handle HTTP request and send response
+void handle_http_request(int fd)
+{
+    const int request_buffer_size = 65536; // 64K
+    char request[request_buffer_size];
+    char *p;
+    char request_type[8]; // GET or POST
+    char request_path[1024]; // /info etc.
+    char request_protocol[128]; // HTTP/1.1
+}
