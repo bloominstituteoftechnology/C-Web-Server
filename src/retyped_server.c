@@ -157,12 +157,33 @@ int get_listener_socket(char *port)
 // return the value from the send() function.
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-    // 
     const int max_response_size = 65536;
     char response[max_response_size];
     int response_length; // total length of header+body;
 
-    // !!!!!! IMPLEMENT ME !!!!!!!!!
+    // http header
+    // date
+    time_t t1 = time(NULL);
+    struct tm *gtime = gmtime(&t1);
+    // connection: close
+    // content-type
+    // content-length
+    int content_length = strlen(body);
+    //body
+    response_length = sprintf(response,
+        "%s\n",
+        "Date: %s",
+        "Connection: close\n",
+        "Content-Length: %d\n",
+        "Content-Type: %s\n",
+        "\n",
+        "%s\n",
+        header,
+        asctime(gmtime),
+        content_length,
+        content_type,
+        body
+        );
 
     // send it all
     int rv = send(fd, response, response_length, 0);
@@ -185,25 +206,59 @@ void resp_404(int fd)
 void get_root(int fd)
 {
     // !!!!! implement me!!!!!
-    send_response(fd, "HTTP/1.1 200 NOT OK", "text/html", "<h1>Hello World!</h1>");
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello World!</h1>");
 }
 
 // TODO: send a /d20 endpoint response
 void get_d20(int fd)
 {
-    // 20-sided die RNG COMING SOON
+    // 1-20 RNG
+    srand(time(NULL) + getpid());
+    // allocate a buffer for the response
+    char response_body[8];
+    // first argument for sprintf() is the response body buffer
+    // we then format the buffer as a digit, then we get the random number 
+    // between 1-20 
+    sprintf(response_body, "%d\n", (rand()%20)+1);
+    // send the response in the proper format
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 // TODO: send a /date endpoint response
 void get_date(int fd)
 {
-    // !!!! implement me
+    // allocate mem for the response
+    char response_body[128];
+    // populates time_t struct with the system time
+    time_t t1 = time(NULL);
+    // gmtime = Grenwich* Mean time?
+    struct tm *gtime = gmtime(&t1);
+    // format the resonse
+    sprintf(response_body, "%s", asctime(gtime));
+    // send it up
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 // TODO: post /save enpoint data
 void post_save(int fd, char *body)
 {
+    char *status;
     // save the body and send a response
+    // create the file if it doesn't exist
+    int file_d = open("data.txt", O_CREAT|O_WRONLY, 0644);
+
+    if (file_d < 0)
+    {
+        status = "failed";
+    }
+    else
+    {
+        write(file_d, body, strlen(body));
+        close(file_d);
+        status = "OK";
+    }
+    char response_body[128];
+    sprintf(response_body, "{\"status\": \"%s\"\n", status);
 }
 
 // TODO: search for the start of the HTTP body. The body is after
@@ -213,6 +268,18 @@ void post_save(int fd, char *body)
 char *find_start_of_body(char *header)
 {
     //!!!!!implement me!!!!!!!
+    char *p;
+    p = strstr(header, "\n\n");
+
+    if (p != NULL) return p;
+
+    p = strstr(header, "\r\n\r\n");
+
+    if (p != NULL) return p;
+
+    p = strstr(header, "\r\r");
+
+    return p;
 }
 
 // Handle HTTP request and send response
@@ -224,6 +291,7 @@ void handle_http_request(int fd)
     char request_type[8]; // GET or POST
     char request_path[1024]; // /info etc.
     char request_protocol[128]; // HTTP/1.1
+    char *body = NULL;
 
     // read request, fd=File Descriptor, the 0 is 
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -277,7 +345,7 @@ void handle_http_request(int fd)
     {
         if (strcmp(request_path, "/save") == 0)
         {
-            // post_save(fd);
+            post_save(fd, body);
         }
         else
         {
