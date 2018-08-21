@@ -127,16 +127,88 @@ int get_listener_socket(char *port)
   for(p = servinfo; p != NULL; p = p->ai_next){
       //try to make a socket based on this candidate interface
 
-      if ((sockfd = socket(p->ai_family, p->ai_socktype,
+   if ((sockfd = socket(p->ai_family, p->ai_socktype,
       p->ai_protocol  ))== -1){
           //perror("server:socket");
           continue;
-      }
+      }   
       // SO_REUSEADDR prevents the "address already in use" errors
 
     // that commonly come up when testing servers.
 
-     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR.))
+     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+         sizeof(int))== -1){
+         perrpr("setsockopt");
+         close(sockfd);
+         freeaddrinfo(servinfo);// all done wth this
+         
+     }
   }
  
+ // See if we can bind this socket to this local IP address. 
+ //asccociates the file descriptor(the socket descriptor) that
+ //we will read and write on with a specific IP address.
+
+ if (bind(sockfd, p->ai_addr, p->ai_addrlen)){
+     close(sockfd);
+     //perror("server: bind");
+     continue;
+ }
+ //If we got here, we got a bound socket and we're done
+ break;
+}
+
+freeaddrinfo(servinfo); all done with this structure
+// If p is NUll, it means we didnt break break out of loop, above,
+//and we dont have a good socket.
+ if (p == NULL){
+     fprint(stderr, "webserver: failed to find local address\n");
+     return -3;
  
+ }
+ //start listening. this is what allows remote computer to connect
+ //to this socket/IP
+ if (listen(sockfd, BACKLOG)== -1){
+     //perror("listen");
+     close(sockfd);
+     return -4;
+ }
+ return sockfd;
+
+ //**
+  * send an HTTP response
+  * 
+  * header: "HTTP/1.1 404 Not Found" or "HTTP/1.1 200 ok, etc. "
+  * content_type:"text/plain", etc.
+  * body: the data to send.
+  * 
+  * Return the vlue from the send()function.
+  * /
+   int send_response(int fd, char *header, char* *content_type, char *content_type, char *body){
+
+   }
+
+    const int max_response_size = 65536;
+    char response[max_response_size];
+    //int response_length; // total length of header plus body
+
+    //get current time for the HTTP
+    time_t t1 time(NULL);
+    struct tm *ltime = localtime(&t1);
+
+    //how many bytes in the body
+
+    int content_lenght = sprintf(response,
+    "%s\n"
+    "Date: %s" //asctime adds it own newlind)
+    "connection: close\n"
+    "content-Lenght:%d\n"
+    "content-Type:%s\n"
+    "\n"//end of HTTP header
+    "%s\n",
+
+    header,
+    asctime(ltime),
+    content_length,
+    content_type,
+    body);

@@ -135,13 +135,27 @@ int get_listener_socket(char *port)
 
     // SO_REUSEADDR prevents the "address already in use" errors
     // that commonly come up when testing servers.
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-        sizeof(int)) == -1) {
-      perror("setsockopt");
-      close(sockfd);
-      freeaddrinfo(servinfo); // all done with this structure
-      return -2;
-    }
+    for(p = servinfo; p !=NULL; p = p->ai_next){
+      //try to make a socket based on this candidate interface
+
+      if((sockfd = socket(p->ai_family, p->ai_next){
+        p->ai_protocol ))== -1){
+          //perror("server:socket");
+          continue;
+        }
+        //SO_REUSEADDR prevents the "address already in use" errors
+        // that commonly come up when testing servers.
+
+        of(setsockopt(sockfd, SQL_SOCKET, SQL_REUSEADDR, &yes,
+           sizesof(int))== -1){
+             perror("setsockopt");
+             close(sockfd);
+             freeaddrinfo(servinfo);//all done with this
+           }
+      }
+
+  
+    
 
     // See if we can bind this socket to this local IP address. This
     // associates the file descriptor (the socket descriptor) that
@@ -186,6 +200,7 @@ int get_listener_socket(char *port)
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, char *body)
+
 {
   const int max_response_size = 65536;
   char response[max_response_size];
