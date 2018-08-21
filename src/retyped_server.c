@@ -157,6 +157,7 @@ int get_listener_socket(char *port)
 // return the value from the send() function.
 int send_response(int fd, char *header, char *content_type, char *body)
 {
+    // 
     const int max_response_size = 65536;
     char response[max_response_size];
     int response_length; // total length of header+body;
@@ -184,6 +185,7 @@ void resp_404(int fd)
 void get_root(int fd)
 {
     // !!!!! implement me!!!!!
+    send_response(fd, "HTTP/1.1 200 NOT OK", "text/html", "<h1>Hello World!</h1>");
 }
 
 // TODO: send a /d20 endpoint response
@@ -223,7 +225,7 @@ void handle_http_request(int fd)
     char request_path[1024]; // /info etc.
     char request_protocol[128]; // HTTP/1.1
 
-    // read request
+    // read request, fd=File Descriptor, the 0 is 
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if(bytes_recvd < 0)
@@ -235,15 +237,57 @@ void handle_http_request(int fd)
     // NULL terminate request string
     request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
-  // Hint: sscanf()!
+    // !!!! IMPLEMENT ME
+    // Get the request type and path from the first line
 
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+    // parse the first line of the HTTP request, we want to see if we 
+    // have a GET or POST request, we also want to see what the path is.
+    char *first_line = request;
 
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+    // Hint: sscanf()!
+    sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
+    // print it out cause I enjoy seeing tangible information
+    printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+    
+    // !!!! IMPLEMENT ME (stretch goal)
+    // find_start_of_body()
+
+    // !!!! IMPLEMENT ME
+    // call the appropriate handler functions, above, with the incoming data
+    if (strcmp(request_type, "GET") == 0)
+    {
+        if (strcmp(request_path, "/") == 0)
+        {
+            get_root(fd);
+        }
+        else if (strcmp(request_path, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else if (strcmp(request_path, "/date") == 0)
+        {
+            get_date(fd);
+        }
+        else
+        {
+            resp_404(fd);
+        }
+    }
+    else if (strcmp(request_type, "POST") == 0)
+    {
+        if (strcmp(request_path, "/save") == 0)
+        {
+            // post_save(fd);
+        }
+        else
+        {
+            resp_404(fd);
+        }
+    }
+    else
+    {
+        resp_404(fd);
+    }
 }
 
 int main(void)
