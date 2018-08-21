@@ -1,42 +1,49 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/file.h>
-#include <fcntl.h>
+#include <stdio.h>    //Enables the use of input and output functions
+#include <stdlib.h>   // Enables the use of several general purpose functions, including dynamic memory management, random number generation, communication with the environment, integer arithmetics, searching, sorting and converting.
+#include <unistd.h> //Header defines miscellaneous symbolic constants and types, and declares miscellaneous functions
+#include <errno.h>//Header defines many system error
+#include <string.h>// Header defines one variable type, one macro, and various functions for manipulating arrays of characters.
+#include <sys/types.h>// Header includes many defininations for data types that are used related to the directory
+#include <sys/socket.h>//Header defines Internet Protocols
+#include <netinet/in.h>//Header defines Internet Protocols related to ports
+#include <netdb.h>// Definitions for network database operations
+#include <arpa/inet.h>//Definitions for internet operations
+#include <sys/wait.h>//Declarations for waitin
+#include <signal.h>//Signals? TODO learn what this does
+#include <time.h>//Define Time type
+#include <sys/file.h>//Cant find any good defines or even whats included in this library but I would assume it defines file/os calls TODO research more about this library
+#include <fcntl.h>//Defines file control options
 
-#define PORT "3490"
+#define PORT "3490" //Port that the users will connect too
 
-#define BACKLOG 10
+#define BACKLOG 10//How many connections that will be hold in the queue
 
-void sigchld_handler(int s)
+void sigchld_handler(int s)//This is a reaper for the child process, it signals when a child process termanates.
 {
-    (void)s;
+    (void)s; //Quiet unused variable warning
 
-    int saved_errno = errno;
+    int saved_errno = errno; //Waitpid() might overwrite errno, so we save and restore it:
 
-    while (waitpid(-1, NULL, WNOHANG) > 0)
-        ;
-
+    while (waitpid(-1, NULL, WNOHANG) > 0);
+    // Wait for all children that have died, discard the exit status
     errno = saved_errno;
 }
 
+/*
+ * Whenever a child process dies, the parent process gets signal
+ * SIGCHLD; the handler sigchld_handler() takes care of wait()ing.
+ * This is only necessary if we've implemented a multiprocessed version with
+ * fork().
+ */
 void start_reaper(void)
 {
     struct sigaction sa;
 
     sa.sa_handler = sigchld_handler;
+    // Reap all dead processes
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
+    // Restart signal handler if interrupted
     if (sigaction(SIGCHLD, &sa, NULL) == -1)
     {
         perror("sigaction");
@@ -44,6 +51,11 @@ void start_reaper(void)
     }
 }
 
+/**
+ * This gets an Internet address, either IPv4 or IPv6
+ *
+ * Helper function to make printing easier.
+ */
 void *get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET)
@@ -53,50 +65,65 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
+/**
+ * Return the main listening socket
+ *
+ * Returns -1 or error
+ */
 int get_listener_socket(char *port)
 {
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
     int yes = 1;
     int rv;
-
+    //This block of code is looking at the local network and trying to match our requirements(IPv4 or IPv6 and use the IP address on this machine)
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+    hints.ai_flags = AI_PASSIVE;//Local IP Addess
 
     if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0)
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return -1;
     }
-
+    //Looping through the list of interfaces trying to set a socket for each one. Quit looping on the first success
     for (p = servinfo; p != NULL; p = p->ai_next)
     {
+        // Try to make a socket based on this candidate interface
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
         {
             continue;
         }
+        // SO_REUSEADDR prevents the "address already in use" errors
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
         {
             perror("setsockopt");
             close(sockfd);
-            freeaddrinfo(servinfo);
+            freeaddrinfo(servinfo);//Freeing the memory
             return -2;
         }
+        // See if we can bind this socket to this local IP address. This
+        // associates the file descriptor (the socket descriptor) that
+        // we will read and write on with a specific IP address.
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
         {
             close(sockfd);
+             //perror("server: bind");
             continue;
         }
+         // If we got here, we got a bound socket and we're done
         break;
     }
-    freeaddrinfo(servinfo);
+    freeaddrinfo(servinfo); //Free from memory
+    //If NULL the loop didnt break and we had no sussessful sockets
     if (p == NULL)
     {
         fprintf(stderr, "webserver: failed to find local address\n");
         return -3;
     }
+    // Start listening. This is what allows remote computers to connect
+  // to this socket/IP.
     if (listen(sockfd, BACKLOG) == -1)
     {
         close(sockfd);
