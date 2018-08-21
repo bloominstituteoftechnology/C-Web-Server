@@ -268,7 +268,7 @@ void get_d20(int fd)
 void get_date(int fd)
 {
   // !!!! IMPLEMENT ME
-  char response_body[128]  // initialize char array for response body passing in 128 to accomodate a longer string
+  char response_body[128];  // initialize char array for response body passing in 128 to accomodate a longer string
   time_t t1 = time(NULL);  //get current time using system clock then populate the current time with t1 by calling the time_t1 function
   struct tm *timeinfo = localtime(&t1); // initialize the tm struct passing in localtime and t1
   sprintf(response_body, "%s", asctime(timeinfo));  // convert time into string and print it
@@ -354,17 +354,17 @@ void handle_http_request(int fd) // fd means file descriptor; sockets are treate
   if (strcmp(request_type, "GET") == 0) { 
     if (strcmp(request_path, "/") == 0) {
       get_root(fd);
-    } else if (strcmp*request_path, "/d20") == 0) {
+    } else if (strcmp(request_path, "/d20") == 0) {
       get_d20(fd);
     } else if (strcmp(request_path, "/date") == 0) {
       get_date(fd);
     } else {
       resp_404(fd);
-    }
+    } 
   } else if (strcmp(request_type, "POST") == 0) {
     if (strcmp(request_path, "/save") == 0) {
       post_save(fd);
-    } else {
+  }  else {
       resp_404(fd);
     }
   } else {
