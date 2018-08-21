@@ -122,7 +122,40 @@ int get_listener_socket(char *port)
     }
 
     // Once we have a list of potential interfaces, loop through them
-    // and try to set up  
+    // and try to set up a socket on each. Quit looping the first time
+    // we have success.
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+
+        // Try to make a socket based on this candidate interface
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, 
+              p->ai_protocol)) == -1) {
+            // perror("server: socket");
+            continue;
+        }
+
+        // SO_REUSEADDR prevents the "address already in use" errors
+        // that commmonly come up when testing servers.
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+              sizeof(int) == -1) {
+            perror("setsockopt"):
+            close(sockfd);
+            freeaddrinfo(servinfo); // all done with this structure
+            return -2;
+        }
+        
+        // See if we can bind this socket to this local IP address. This
+        // associates the file descriptor (the socket descriptor) that 
+        // we will read and write on with a specific IP address.
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            //perror("server: bind");
+            continue;
+        }
+
+        
+        )
+
+    }
 
 }
 
