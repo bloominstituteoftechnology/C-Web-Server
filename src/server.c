@@ -16,21 +16,21 @@
  * (Posting data is harder to test from a browser.)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/file.h>
-#include <fcntl.h>
+#include <stdio.h>      // printf function access
+#include <stdlib.h>     // exit() function access
+#include <unistd.h>     // system calls (fork, exec)
+#include <errno.h>      // The <errno.h> header file defines the integer variable errno, which is set by system calls and some library functions in the event of an error to indicate what went wrong.
+#include <string.h>     // needed to use built-in functions that manipulate strings (strlen, etc.)
+#include <sys/types.h>  // various data types used elsewhere
+#include <sys/socket.h> // Main Berkley sockets header
+#include <netinet/in.h> // Defines Internet protocol and address family (needed with sockets)
+#include <netdb.h>      // Translating protocol and host names into numeric addresses (needed with sockets)
+#include <arpa/inet.h>  // Functions for manipulating numeric IP addresses (needed with sockets)
+#include <sys/wait.h>   // needed for use with waitpid()
+#include <signal.h>     // signal processing in C
+#include <time.h>       //contains various functions for manipulating date and time
+#include <sys/file.h>   // defines file manipulation constants.
+#include <fcntl.h>      // file opening and locking, amongst other operations
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -238,9 +238,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  char response_body[1024];
+
+  sprintf(response_body, "404: %s not found", path);
+
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
 }
 
 /**
@@ -248,8 +252,9 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, World!</h1></body></html>\n";
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -257,7 +262,12 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d\n", (rand() % 20) + 1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -265,7 +275,13 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t t1 = time(NULL);
+  struct tm *gtime = gmtime(&t1);
+
+  sprintf(response_body, "%s", asctime(gtime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -273,9 +289,41 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME
+  char *status;
 
-  // Save the body and send a response
+  // Open the file
+  int file_fd = open("data.txt", O_CREAT | O_WRONLY, 0644);
+
+  if (file_fd >= 0)
+  {
+    // Exclusive lock to keep processes from trying to write the file at the
+    // same time. This is only necessary if we've implemented a
+    // multiprocessed version with fork().
+    flock(file_fd, LOCK_EX);
+
+    // Write body
+    write(file_fd, body, strlen(body));
+
+    // Unlock
+    flock(file_fd, LOCK_UN);
+
+    // Close
+    close(file_fd);
+
+    status = "ok";
+  }
+  else
+  {
+    status = "fail";
+  }
+
+  // Now send an HTTP response
+
+  char response_body[128];
+
+  sprintf(response_body, "{\"status\": \"%s\"}\n", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
@@ -289,7 +337,21 @@ void post_save(int fd, char *body)
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL)
+    return p;
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL)
+    return p;
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -302,12 +364,12 @@ void handle_http_request(int fd)
   char *p;
   char request_type[8];       // GET or POST
   char request_path[1024];    // /info etc.
-  char request_protocol[128]; // HTTP/1.1
+  char request_protocol[128]; // HTTP/1.1 - hard coded effectively
 
   // Read request
-  int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+  int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0); // takes in a socket file descriptor, buffer, length of buffer, and number of flags
 
-  if (bytes_recvd < 0)
+  if (bytes_recvd < 0) // error handling to see if recv went through
   {
     perror("recv");
     return;
@@ -316,15 +378,73 @@ void handle_http_request(int fd)
   // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
-  // Hint: sscanf()!
+  // Look for two newlines marking the end of the header
+  p = find_start_of_body(request);
 
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  if (p == NULL)
+  {
+    printf("Could not find end of header\n");
+    exit(1);
+  }
 
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+  // And here is the body
+  char *body = p;
+
+  /*
+  * Now that we've assessed the request, we can take actions.
+  */
+
+  // Read the three components of the first request line
+  sscanf(request, "%s %s %s", request_type, request_path,
+         request_protocol);
+
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0)
+  {
+
+    // Endpoint "/"
+    if (strcmp(request_path, "/") == 0)
+    {
+      get_root(fd);
+    }
+
+    // Endpoint "/d20"
+    else if (strcmp(request_path, "/d20") == 0)
+    {
+      get_d20(fd);
+    }
+
+    // Endpoint "/date"
+    else if (strcmp(request_path, "/date") == 0)
+    {
+      get_date(fd);
+    }
+
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
+
+  else if (strcmp(request_type, "POST") == 0)
+  {
+    // Endpoint "/save"
+    if (strcmp(request_path, "/save") == 0)
+    {
+      post_save(fd, body);
+    }
+    else
+    {
+      resp_404(fd, request_path);
+    }
+  }
+
+  else
+  {
+    fprintf(stderr, "unknown request type \"%s\"\n", request_type);
+    return;
+  }
 }
 
 /**
