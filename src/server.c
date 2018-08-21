@@ -189,9 +189,28 @@ int send_response(int fd, char *header, char *content_type, char *body)
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
 
-  // !!!!  IMPLEMENT ME
+  // Get current time for the HTTP header
+  time_t t1 = time(NULL);
+  struct tm *ltime = localtime(&t1);
+
+  // How many bytes in the body
+  int content_length = strlen(body);
+
+  int response_length = sprintf(response,
+    "%s\n"
+    "Date: %s" // asctime adds its own newline
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n" // End of HTTP header
+    "%s\n",
+
+    header,
+    asctime(ltime),
+    content_length,
+    content_type,
+    body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -207,9 +226,13 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
+  char response_body[1024];
+
+  sprintf(response_body, "404: %s not found", path);
+
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
 }
 
 /**
@@ -217,8 +240,9 @@ void resp_404(int fd)
  */
 void get_root(int fd)
 {
-  // !!!! IMPLEMENT ME
-  //send_response(...
+  char *response_body = "<html><head></head><body><h1>Hello, World!</h1></body></html>\n";
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
 }
 
 /**
@@ -226,7 +250,12 @@ void get_root(int fd)
  */
 void get_d20(int fd)
 {
-  // !!!! IMPLEMENT ME
+  srand(time(NULL) + getpid());
+
+  char response_body[8];
+  sprintf(response_body, "%d\n", (rand()%20)+1);
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -234,7 +263,13 @@ void get_d20(int fd)
  */
 void get_date(int fd)
 {
-  // !!!! IMPLEMENT ME
+  char response_body[128];
+  time_t t1 = time(NULL);
+  struct tm *gtime = gmtime(&t1);
+
+  sprintf(response_body, "%s", asctime(gtime));
+
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 }
 
 /**
@@ -242,23 +277,61 @@ void get_date(int fd)
  */
 void post_save(int fd, char *body)
 {
-  // !!!! IMPLEMENT ME
+  char *status;
 
-  // Save the body and send a response
+  // Open the file
+  int file_fd = open("data.txt", O_CREAT|O_WRONLY, 0644);
+
+  if (file_fd >= 0) {
+    // Exclusive lock to keep processes from trying to write the file at the
+    // same time. This is only necessary if we've implemented a
+    // multiprocessed version with fork().
+    flock(file_fd, LOCK_EX);
+
+    // Write body
+    write(file_fd, body, strlen(body));
+
+    // Unlock
+    flock(file_fd, LOCK_UN);
+
+    // Close
+    close(file_fd);
+
+    status = "ok";
+  } else {
+    status = "fail";
+  }
+
+  // Now send an HTTP response
+
+  char response_body[128];
+
+  sprintf(response_body, "{\"status\": \"%s\"}\n", status);
+
+  send_response(fd, "HTTP/1.1 200 OK", "application/json", response_body);
 }
 
 /**
- * Search for the start of the HTTP body.
- *
- * The body is after the header, separated from it by a blank line (two newlines
- * in a row).
- *
+ * Search for the end of the HTTP header
+ * 
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
 char *find_start_of_body(char *header)
 {
-  // !!!! IMPLEMENT ME
+  char *p;
+
+  p = strstr(header, "\n\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\n\r\n");
+
+  if (p != NULL) return p;
+
+  p = strstr(header, "\r\r");
+
+  return p;
 }
 
 /**
@@ -284,15 +357,63 @@ void handle_http_request(int fd)
    // NUL terminate request string
   request[bytes_recvd] = '\0';
 
-  // !!!! IMPLEMENT ME
-  // Get the request type and path from the first line
-  // Hint: sscanf()!
+  // Look for two newlines marking the end of the header
+  p = find_start_of_body(request);
 
-  // !!!! IMPLEMENT ME (stretch goal)
-  // find_start_of_body()
+  if (p == NULL) {
+    printf("Could not find end of header\n");
+    exit(1);
+  }
 
-  // !!!! IMPLEMENT ME
-  // call the appropriate handler functions, above, with the incoming data
+  // And here is the body
+  char *body = p;
+
+  /*
+  * Now that we've assessed the request, we can take actions.
+  */
+
+  // Read the three components of the first request line
+  sscanf(request, "%s %s %s", request_type, request_path,
+    request_protocol);
+
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0) {
+
+    // Endpoint "/"
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    }
+
+    // Endpoint "/d20"
+    else if (strcmp(request_path, "/d20") == 0) {
+      get_d20(fd);
+    }
+
+    // Endpoint "/date"
+    else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    }
+
+    else {
+      resp_404(fd, request_path);
+    }
+  }
+
+  else if (strcmp(request_type, "POST") == 0) {
+    // Endpoint "/save"
+    if (strcmp(request_path, "/save") == 0) {
+      post_save(fd, body);
+
+    } else {
+      resp_404(fd, request_path);
+    }
+  }
+
+  else {
+    fprintf(stderr, "unknown request type \"%s\"\n", request_type);
+    return;
+  }
 }
 
 /**
@@ -341,12 +462,31 @@ int main(void)
     // newfd is a new socket descriptor for the new connection.
     // listenfd is still listening for new connections.
 
-    // !!!! IMPLEMENT ME (stretch goal)
-    // Convert this to be multiprocessed with fork()
+    // For the non-fork() solution, remove this block of code and replace it with the one liner:
+    //
+    //     handle_http_request(newfd);
+    //
+    if (fork() == 0) {
+      // We're the child process
 
-    handle_http_request(newfd);
+      // We don't need the listening socket. The parent
+      // process's listenfd is still open--we just close it in the
+      // child.
+      close(listenfd);
 
-    // Done with this
+      // This does the heavy lifting, recv() the HTTP request and
+      // send() the HTTP response.
+      handle_http_request(newfd);
+
+      // And this child is done! Bye bye!
+      exit(0);
+    }
+
+    // Parent process out here, still
+
+    // Parent doesn't need this. We need to close them as we get
+    // them so we don't fill up the parent's file descriptor table.
+    // The child's copy of newfd remains open.
     close(newfd);
   }
 
@@ -354,4 +494,3 @@ int main(void)
 
   return 0;
 }
-
