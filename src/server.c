@@ -335,6 +335,9 @@ void handle_http_request(int fd) // fd means file descriptor; sockets are treate
   // Hint: sscanf()!
 
   sscanf(first_line, "%s %s %s\n", request_type, request_path, request_protocol); // tokenized the first line; // sscanf provides a source string and format; it picks the string placing it into the format specified and stores it in the variable 
+  
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);  // echo back the request received; server will log the request responding to 
+
   // printf("%s\n", request_type);
   // printf("%s\n", request_path);
   // printf("%s\n", request_protocol);
@@ -344,7 +347,29 @@ void handle_http_request(int fd) // fd means file descriptor; sockets are treate
 
   // !!!! IMPLEMENT ME
   // call the appropriate handler functions, above, with the incoming data
- 
+
+  // checking if paths and endpoints match; 0 means they match!
+  // otherwise send response 404
+  // strcmp means string compare
+  if (strcmp(request_type, "GET") == 0) { 
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp*request_path, "/d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else if (strcmp(request_type, "POST") == 0) {
+    if (strcmp(request_path, "/save") == 0) {
+      post_save(fd);
+    } else {
+      resp_404(fd);
+    }
+  } else {
+    resp_404(fd); 
+  }
 }
 
 /**
