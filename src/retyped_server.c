@@ -196,7 +196,7 @@ int get_listener_socket(char *port)
  */
 int send_response(int fd, char *header, char *content_type, char *body)
 {
-  const int max_response_size = 65536;
+  const int max_response_size = 65536; // the largest value permitted in the declaration, 65536 = 2^16
   char response[max_response_size];
 
   // Get current time for the HTTP header
@@ -206,6 +206,7 @@ int send_response(int fd, char *header, char *content_type, char *body)
   // How many bytes in the body
   int content_length = strlen(body);
 
+  // Total length of header plus body
   int response_length = sprintf(response,
                                 "%s\n"
                                 "Date: %s" // asctime adds its own newline
@@ -369,7 +370,7 @@ void handle_http_request(int fd)
     return;
   }
 
-  // NUL terminate request string
+  // NULL terminate request string
   request[bytes_recvd] = '\0';
 
   // Look for two newlines marking the end of the header
