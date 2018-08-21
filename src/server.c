@@ -135,13 +135,27 @@ int get_listener_socket(char *port)
 
     // SO_REUSEADDR prevents the "address already in use" errors
     // that commonly come up when testing servers.
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-        sizeof(int)) == -1) {
-      perror("setsockopt");
-      close(sockfd);
-      freeaddrinfo(servinfo); // all done with this structure
-      return -2;
-    }
+    for(p = servinfo; p !=NULL; p = p->ai_next){
+      //try to make a socket based on this candidate interface
+
+      if((sockfd = socket(p->ai_family, p->ai_next){
+        p->ai_protocol ))== -1){
+          //perror("server:socket");
+          continue;
+        }
+        //SO_REUSEADDR prevents the "address already in use" errors
+        // that commonly come up when testing servers.
+
+        of(setsockopt(sockfd, SQL_SOCKET, SQL_REUSEADDR, &yes,
+           sizesof(int))== -1){
+             perror("setsockopt");
+             close(sockfd);
+             freeaddrinfo(servinfo);//all done with this
+           }
+      }
+
+  
+    
 
     // See if we can bind this socket to this local IP address. This
     // associates the file descriptor (the socket descriptor) that
@@ -186,12 +200,32 @@ int get_listener_socket(char *port)
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, char *body)
+
 {
   const int max_response_size = 65536;
   char response[max_response_size];
-  int response_length; // Total length of header plus body
-
+  // int response_length; // Total length of header plus body
+ 
   // !!!!  IMPLEMENT ME
+// Get current time for the HTTP
+time_t t1 = time(NULL);
+struct tm *ltime = localtime(&t1);
+
+//how many bytes in the body
+int content_length = sprintf(response,
+"%s\n"
+"Date: %s" //asctime adds its own newlind
+"Connection: close\n"
+"Content-Length:%d\n"
+"Content-Type: %s\n"
+"\n"// end of HTTP header
+"%s\n",
+
+header,
+asctime(ltime),
+content_length,
+content_type,
+body);
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -207,8 +241,12 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd)
+void resp_404(int fd, char *path)
 {
+  char response_body[1024];
+
+  sprintf(response_body, "404: %s not found", path);
+
   send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", "<h1>404 Page Not Found</h1>");
 }
 
@@ -218,6 +256,9 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
+  char *response_body = "<htm><head></head><body><h1>Hello, World!</h1></body></html>\n":
+
+  send_response(f)
   //send_response(...
 }
 
