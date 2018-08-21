@@ -237,36 +237,36 @@ int send_response(int fd, char *header, char *content_type, char *body)
 /**
  * Send a 404 response
  */
-void resp_404(int fd, char *path)
+void resp_404(int fd, char *path) // creates a function that handles 404 errors when the endpoint cannot be reached
 {
-  char response_body[1024];
+  char response_body[1024]; // sets a char to 1024 bytes of memory
 
-  sprintf(response_body, "404: %s not found", path);
+  sprintf(response_body, "404: %s not found", path); // uses sprintf to create a 404 error in the response_body and the path
 
-  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body);
+  send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/html", response_body); // same as above but prints the error in the terminal
 }
 
 /**
  * Send a / endpoint response
  */
-void get_root(int fd)
+void get_root(int fd) // function that when the root endpoint is used it will exec the code below
 {
-  char *response_body = "<html><head></head><body><h1>Hello, World!</h1></body></html>\n";
+  char *response_body = "<html><head></head><body><h1>Hello, World!</h1></body></html>\n"; // in the response_body hello world will be logged
 
-  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", response_body); // this will respond with the previous within terminal
 }
 
 /**
  * Send a /d20 endpoint response
  */
-void get_d20(int fd)
+void get_d20(int fd) // creates a virtual 20 sided dice
 {
-  srand(time(NULL) + getpid());
+  srand(time(NULL) + getpid()); //calls the srand function on time concats tyhe pid with the getpid function
 
   char response_body[8];
-  sprintf(response_body, "%d\n", (rand() % 20) + 1);
+  sprintf(response_body, "%d\n", (rand() % 20) + 1); // prints a random number between 1-20 using the rand function
 
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body); // same as previous get_root func.
 }
 
 /**
@@ -276,11 +276,11 @@ void get_date(int fd)
 {
   char response_body[128];
   time_t t1 = time(NULL);
-  struct tm *gtime = gmtime(&t1);
+  struct tm *gtime = gmtime(&t1); // creates a tm type called gtime which passes time(null)
 
-  sprintf(response_body, "%s", asctime(gtime));
+  sprintf(response_body, "%s", asctime(gtime)); // prints a string for time to response_body
 
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body); // redundant comment
 }
 
 /**
