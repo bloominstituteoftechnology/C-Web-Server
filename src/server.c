@@ -270,7 +270,7 @@ void get_date(int fd)
   // !!!! IMPLEMENT ME
   char response_body[128];  // initialize char array for response body passing in 128 to accomodate a longer string
   time_t t1 = time(NULL);  //get current time using system clock then populate the current time with t1 by calling the time_t1 function
-  struct tm *timeinfo = localtime(&t1); // initialize the tm struct passing in localtime and t1
+  struct tm *timeinfo = gmtime(&t1); // initialize the tm struct passing in gmtime and t1
   sprintf(response_body, "%s", asctime(timeinfo));  // convert time into string and print it
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body); // send response  
 }
@@ -310,6 +310,7 @@ void handle_http_request(int fd) // fd means file descriptor; sockets are treate
   char request_type[8]; // GET or POST; tokenize 
   char request_path[1024]; // /info etc.
   char request_protocol[128]; // HTTP/1.1; constant
+  char *body = NULL;
 
   // Read request
   int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
