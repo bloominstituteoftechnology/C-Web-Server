@@ -42,7 +42,7 @@ web server._
 A _protocol_ is an agreement between two programs about how they will
 communicate. For the Internet, most protocols take the form of "If you send me
 _x_, I'll send you back _y_." Internet-related protocols are clearly written
-down in specifications, known as an _RFC_.
+down in specifications, known as an _RFC_ (request for comment).
 
 When you send some data out on the network, that data is wrapped up in several
 layers of additional data that provide information about data integrity,
@@ -93,7 +93,8 @@ _This is background information. You will not need to use this directly in the
 web server. This code is written for you._
 
 Under Unix-like operating systems, the _sockets API_ is the one used to send
-Internet traffic. It supports both the TCP and UDP protocols, and IPv4 and IPv6.
+Internet traffic. It supports both the TCP (transmission control protocol) 
+and UDP (User Datagram protocol) protocols, and IPv4 and IPv6.
 
 The sockets API gives access to the IP and TCP layers in the diagram above.
 
