@@ -192,7 +192,24 @@ int send_response(int fd, char *header, char *content_type, char *body)
   int response_length; // Total length of header plus body
 
   // !!!!  IMPLEMENT ME
+  sprintf(response,
+  //format
+  //header
+  "%s\n"
+  "Date: %s"
+  "Connection: close\n"
+  "Content_Length: %d\n"
+  "content-Type: %s\n"
+  "\n"
+  //body
+  "%s\n",
+  header,
+  time,
+  content-length,
+  content-type,
+  body
 
+  );
   // Send it all!
   int rv = send(fd, response, response_length, 0);
 
@@ -218,7 +235,8 @@ void resp_404(int fd)
 void get_root(int fd)
 {
   // !!!! IMPLEMENT ME
-  //send_response(...
+ 
+  send_response(fd, "HTTP/1.1 200 OK", "text/html", "<h1>Hello, World!</h1>");
 }
 
 /**
@@ -287,6 +305,36 @@ void handle_http_request(int fd)
   // !!!! IMPLEMENT ME
   // Get the request type and path from the first line
   // Hint: sscanf()!
+  sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+  printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+  if (strcmp(request_type, "GET") == 0) {
+    if (strcmp(request_path, "/") == 0) {
+      get_root(fd);
+    } else if (strcmp(request_path, "/d20") ==0 ) {
+      get_d20(fd);
+    } else if (strcmp(request_path, "/date") == 0) {
+      get_date(fd);
+    }else {
+      resp_404(fd);
+    }
+    } else {
+      fprintf(stderr, "unimplemented request type %s\n", request_type);
+      return;
+   } 
+  }
+  //REWATCH Q&A LECTURE FOR MORE INFO HERE
+  // //get first line in its own variable
+  // char *first_line = request;
+  // //cut off everything after the first line
+  // //look for the new line character
+  // p = strchr(first_line, '\n');
+  // //truncate(shorten?) off everything else after this point
+  // *p = '\0';
+  // //REWATCH LECTURE VIDEO FOR MORE INFO HERE
+
+
 
   // !!!! IMPLEMENT ME (stretch goal)
   // find_start_of_body()
