@@ -3,3 +3,4 @@
 *.dSYM
 src/server
 src/data.txt
+*.o
