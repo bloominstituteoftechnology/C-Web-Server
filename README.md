@@ -25,10 +25,7 @@ What's already there:
 ## What is a Web Server?
 
 A web server is a piece of software that accepts HTTP requests (e.g. GET
-requests for HTML pages), and returns responses (e.g. HTML pages). Other common
-uses are GET requests for getting data from RESTful API endpoints, images within
-web pages, and POST requests to upload data to the server (e.g. a form
-submission or file upload).
+requests for HTML pages), and returns responses (e.g. HTML pages). Other common uses are GET requests for getting data from RESTful API endpoints, images within web pages, and POST requests to upload data to the server (e.g. a form submission or file upload).
 
 ## Reading
 
@@ -83,9 +80,7 @@ overall view, then come back to goal #1 and dig in._
 
 1. Examine `handle_http_request()` in the file `server.c`.
 
-   You'll want to parse the first line of the HTTP request header to see if this
-   is a `GET` or `POST` request, and to see what the path is. You'll use this
-   information to decide which handler function to call.
+   You'll want to parse the first line of the HTTP request header to see if this is a `GET` or `POST` request, and to see what the path is. You'll use this information to decide which handler function to call.
 
    The variable `request` in `handle_http_request()` holds the entire HTTP
    request once the `recv()` call returns.
@@ -100,8 +95,7 @@ overall view, then come back to goal #1 and dig in._
    Hint: `strcmp()` for matching the request method and path. Another hint:
    `strcmp()` returns `0` if the strings are the _same_!
 
-   > Note: you can't `switch()` on strings in C since it will compare the string
-   > pointer values instead of the string contents. You have to use an
+   > Note: you can't `switch()` on strings in C since it will compare the string pointer values instead of the string contents. You have to use an
    > `if`-`else` block with `strcmp()` to get the job done.
 
    If you can't find an appropriate handler, call `resp_404()` instead to give
@@ -115,16 +109,11 @@ overall view, then come back to goal #1 and dig in._
    If you need a hint as to what the `send_response()` call should look like,
    check out the usage of it in `resp_404()`, just above there.
 
-   Note that unlike the other responses that send back file contents, the `d20`
-   endpoint will simply compute a random number and send it back. It does not
-   read the number from a file.
+   Note that unlike the other responses that send back file contents, the `d20` endpoint will simply compute a random number and send it back. It does not read the number from a file.
 
-   > The `fd` variable that is passed widely around to all the functions holds a
-   > _file descriptor_. It's just a number use to represent an open
+   > The `fd` variable that is passed widely around to all the functions holds a _file descriptor_. It's just a number use to represent an open
    > communications path. Usually they point to regular files on disk, but in
-   > the case it points to an open _socket_ network connection. All of the code
-   > to create and use `fd` has been written already, but we still need to pass
-   > it around to the points it is used.
+   > this case it points to an open _socket_ network connection. All of the code to create and use `fd` has been written already, but we still need to pass it around to the points it is used.
 
 3. Implement `send_response()`.
 
@@ -179,36 +168,21 @@ list](https://en.wikipedia.org/wiki/Doubly_linked_list) and a
 
 The hashtable code is already written and can be found in `hashtable.c`.
 
-1. Add cache entries to `cache.h`.
-
-   A cache entry should contain everything needed to serve the file:
-
-   * Endpoint path (e.g. `"/foo/bar.html"`)
-   * Content length (e.g. `2123`)
-   * Content type (e.g. `"text/html"`)
-   * Content itself (e.g. `"<html><head>...etc."`)
-
-   The strings should be of type `char *` (as opposed to arrays). We'll allocate
-   the space for them later.
-
-   In addition, since it's a doubly-linked list, the cache entry should have:
-
-   * Prev and next pointers to cache entries.
-
-2. Implement `cache_put()` in `cache.c`.
+1. Implement `cache_put()` in `cache.c`.
 
    Algorithm:
 
    * Allocate a new cache entry with the passed parameters.
    * Insert the entry at the head of the doubly-linked list.
-   * Store it in the hash table keyed by `path`.
-   * Increment the current cache size.
-   * If the cache size is greater than max size:
+   * Store the entry in the hashtable as well, indexed by the entry's `path`.
+   * Increment the current size of the cache.
+   * If the cache size is greater than the max size:
+     * Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
      * Remove the cache entry at the tail of the linked list.
-     * For the path in that cache entry, delete the item from the hash table.
      * Free the cache entry.
+     * Ensure the size counter for the number of entries in the cache is correct.
 
-3. Implement `cache_get()` in `cache.c`.
+2. Implement `cache_get()` in `cache.c`.
 
    Algorithm:
 
@@ -217,10 +191,10 @@ The hashtable code is already written and can be found in `hashtable.c`.
    * Move the cache entry to the head of the doubly-linked list.
    * Return the cache entry pointer.
 
-4. Add caching functionality to `server.c`.
+3. Add caching functionality to `server.c`.
 
    When a file is requested, first check to see if the path to the file is in
-   the cache. (Use the file path as the key.)
+   the cache (use the file path as the key).
 
    If it's there, serve it back.
 
@@ -230,7 +204,23 @@ The hashtable code is already written and can be found in `hashtable.c`.
    * Store it in the cache
    * Serve it
 
+There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation. 
+
 ### Stretch Goals
+
+#### Post a file:
+
+1. Implement `find_start_of_body()` to locate the start of the HTTP request body
+   (just after the header).
+
+2. Implement the `post_save()` handler. Modify the main loop to pass the body
+   into it. Have this handler write the file to disk. Hint: `open()`, `write()`,
+   `close()`. `fopen()`, `fwrite()`, and `fclose()` variants can also be used,
+   but the former three functions will be slightly more straightforward to use
+   in this case.
+
+   The response from `post_save()` should be of type `application/json` and
+   should be `{"status":"ok"}`.
 
 #### Automatic `index.html` serving
 
@@ -261,25 +251,9 @@ It doesn't make sense to cache things forever--what if the file changes on disk?
 
 Add a `created_at` timestamp to cache entries.
 
-If an item is found in the cache, check to see if it is more than 1 minute old.
-If it is, delete it from the cache, then load the new one from disk as if it
-weren't found.
+If an item is found in the cache, check to see if it is more than 1 minute old. If it is, delete it from the cache, then load the new one from disk as if it weren't found.
 
-You'll have to add `cache_delete` functionality to your cache code.
-
-#### Post a file:
-
-1. Implement `find_start_of_body()` to locate the start of the HTTP request body
-   (just after the header).
-
-2. Implement the `post_save()` handler. Modify the main loop to pass the body
-   into it. Have this handler write the file to disk. Hint: `open()`, `write()`,
-   `close()`. `fopen()`, `fwrite()`, and `fclose()` variants can also be used,
-   but the former three functions will be slightly more straightforward to use
-   in this case.
-
-   The response from `post_save()` should be of type `application/json` and
-   should be `{"status":"ok"}`.
+You'll have to add a `cache_delete` function to your cache code that does the work of actually removing entries that are too old from the cache.
 
 #### Concurrency
 
@@ -289,8 +263,7 @@ Research the pthreads library.
 
 When a new connection comes in, launch a thread to handle it.
 
-Be sure to lock the cache when a thread accesses it so the threads don't step on
-each other's toes and corrupt the cache.
+Be sure to lock the cache when a thread accesses it so the threads don't step on each other's toes and corrupt the cache.
 
 Also have thread cleanup handlers to handle threads that have died.
 
