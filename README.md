@@ -208,7 +208,7 @@ There's a set of unit tests included to ensure that your cache implementation is
 
 ### Stretch Goals
 
-#### Post a file:
+#### 1. Post a file
 
 1. Implement `find_start_of_body()` to locate the start of the HTTP request body
    (just after the header).
@@ -222,7 +222,7 @@ There's a set of unit tests included to ensure that your cache implementation is
    The response from `post_save()` should be of type `application/json` and
    should be `{"status":"ok"}`.
 
-#### Automatic `index.html` serving
+#### 2. Automatic `index.html` serving
 
 We know that if the user hits `http://localhost:3490/index.html` it should
 return the file at `./serverroot/index.html`.
@@ -245,7 +245,7 @@ fail to find a file there, then try:
 
 and succeed.
 
-#### Expire cache entries
+#### 3. Expire cache entries
 
 It doesn't make sense to cache things forever--what if the file changes on disk?
 
@@ -255,7 +255,7 @@ If an item is found in the cache, check to see if it is more than 1 minute old. 
 
 You'll have to add a `cache_delete` function to your cache code that does the work of actually removing entries that are too old from the cache.
 
-#### Concurrency
+#### 4. Concurrency
 
 _Difficulty: Pretty Dang Tough_
 
