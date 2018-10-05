@@ -3,9 +3,10 @@
 
 // Individual hash table entry
 struct cache_entry {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char *path;   // Endpoint path--key to the cache
+    char *content_type;
+    int content_length;
+    void *content;
 
     struct cache_entry *prev, *next; // Doubly-linked list
 };
@@ -18,6 +19,8 @@ struct cache {
     int cur_size; // Current number of entries
 };
 
+extern struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length);
+extern void free_entry(struct cache_entry *entry);
 extern struct cache *cache_create(int max_size, int hashsize);
 extern void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length);
 extern struct cache_entry *cache_get(struct cache *cache, char *path);
