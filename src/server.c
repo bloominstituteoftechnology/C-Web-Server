@@ -80,12 +80,19 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char header = "HTTP/1.1 200 OK";
+    char type = "text/plain";
+    char random_num[10];
+
+    sprintf(random_num, "%d", (rand() % 21));
+    int content_length = strlen(random_num);
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_num, content_length);
 }
 
 /**
