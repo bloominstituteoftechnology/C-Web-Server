@@ -146,10 +146,10 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
-    char *pointer;
-    char req_type[];
-    char req_path[];
-    char req_URI[];
+    
+    char *req_type;
+    char *req_path;
+    char *req_URI;
         
     
     if (bytes_recvd < 0) {
