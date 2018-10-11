@@ -58,7 +58,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    int response_length = sprintf(response, "header", "content_type: %s", "body", "content_length: %d");
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
