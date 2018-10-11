@@ -146,19 +146,27 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
-
+    char *pointer;
+    char req_type[];
+    char req_path[];
+    char req_URI[];
+        
+    
     if (bytes_recvd < 0) {
         perror("recv");
         return;
+
+    sscanf(request, "%s %s %s", req_type, req_path, req_URI);
+    printf("REQUEST DATA: %s-> %s-> %s\n", req_type, req_path, req_URI);
     }
 
-
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
-
+    
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
