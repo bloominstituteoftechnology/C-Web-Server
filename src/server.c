@@ -155,9 +155,17 @@ void handle_http_request(int fd, struct cache *cache)
     if (bytes_recvd < 0) {
         perror("recv");
         return;
+    }
 
     sscanf(request, "%s %s %s", req_type, req_path, req_URI);
     printf("REQUEST DATA: %s-> %s-> %s\n", req_type, req_path, req_URI);
+
+    if (strcmp(req_type, "GET") == 0) {
+        if (strcmp(req_path, "/d20") == 0) {
+            get_d20(fd);
+        }
+    } else {
+        resp_404(fd);
     }
 
     
