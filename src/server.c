@@ -58,9 +58,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    int response_length = sprintf(response, "header", "content_type: %s", "body", "content_length: %d");
+    // int response_length = sprintf(response, "header", "content_type: %s", "body", "content_length: %d");
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -75,9 +75,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    srand(time(NULL));
     // Generate a random number between 1 and 20 inclusive
     char res_body[8];
     sprintf(res_body, "%d", (rand() %20) + 1);
+    // int rand_num = (rand()%21);
+    // printf("d20 number is: %d\n", rand_num);
     
 
     // Use send_response() to send it back as text/plain data
@@ -145,7 +148,7 @@ void handle_http_request(int fd, struct cache *cache)
     
     char req_type[8];
     char req_path[1024];
-    char req_URI[];
+    char req_URI[128];
         
     
     if (bytes_recvd < 0) {
@@ -161,7 +164,7 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
         }
     } else {
-        // resp_404(fd);
+        resp_404(fd);
         // if its not a get, this will run.
     }
 

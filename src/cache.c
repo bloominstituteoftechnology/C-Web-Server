@@ -17,12 +17,12 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 /**
  * Deallocate a cache entry
  */
-void free_entry(void *v_ent, void *varg)
-{
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-}
+// void free_entry(void *v_ent, void *varg)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! //
+//     ///////////////////
+// }
 
 /**
  * Insert a cache entry at the head of the linked list
