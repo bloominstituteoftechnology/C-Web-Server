@@ -143,9 +143,9 @@ void handle_http_request(int fd, struct cache *cache)
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
     
-    char *req_type;
-    char *req_path;
-    char *req_URI;
+    char req_type[8];
+    char req_path[1024];
+    char req_URI[];
         
     
     if (bytes_recvd < 0) {
@@ -161,7 +161,8 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
         }
     } else {
-        resp_404(fd);
+        // resp_404(fd);
+        // if its not a get, this will run.
     }
 
     
