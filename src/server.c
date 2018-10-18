@@ -132,35 +132,46 @@ void resp_404(int fd)
     // create a char pointer called *mime_type???
     char *mime_type;
     // so I'm reading up about snprintf and it says it is basically a function that redirects
-    // the output of printf to a buffer...
+    // the output of printf to a buffer...so I think that in English that means its taking stuff
+    // and putting it into our char array called filepath
     snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
+    // so I looked at this function in file.c, and I believe it's just opening a file
+    // and giving us access to the contents of that file, hence the name filedata
     filedata = file_load(filepath);
-
+    // now we ask a question...is the file empty? or does the file not exist???
     if (filedata == NULL) {
         // TODO: make this non-fatal
+        // if so, then print an error and exit
         fprintf(stderr, "cannot find system 404 file\n");
         exit(3);
     }
-
+    // MIME = Multipurpose Internet Mail Extensions???
+    // not really sure what this is doing
+    // I think it's assigning a MIME type to the filepath...not really sure 
     mime_type = mime_type_get(filepath);
-
+    // now we send the response
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
-
+    // and then we free the memory associated with filedata
     file_free(filedata);
 }
 
 /**
  * Read and return a cache entry or file
  **/
+// so the name pretty much explains what's going on here...
+// see if the file exists in cache, if not then open the file???
 int get_file_or_cache(int fd, struct cache *cache, char *filepath)
-{
+{   // create a struct called file_data that is a pointer to *filedata???
     struct file_data *filedata;
+    // create a struct called cache_entry that is a pointer to cacheent???
     struct cache_entry *cacheent;
+    // create a pointer called *mime_type that is a char pointer
     char *mime_type;
 
     // Try to find the file
+    // so we check the cache and see if the data is already there...?
     cacheent = cache_get(cache, filepath);
-
+    
     if (cacheent != NULL) {
         // Found it in the cache
 
@@ -169,19 +180,22 @@ int get_file_or_cache(int fd, struct cache *cache, char *filepath)
         send_response(fd, "HTTP/1.1 200 OK", cacheent->content_type, cacheent->content, cacheent->content_length);
 
     } else {
+        // otherwise, we just load the file
         filedata = file_load(filepath);
 
         if (filedata == NULL) {
             return -1; // failure
         }
-
+        // and again, we have to get the mime type...whatever that means...
         mime_type = mime_type_get(filepath);
-
+        // and now we send the response back to the user
         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 
         // Save it for next time
+        // so here we're putting it into the cache for faster access in the future
+        // but what is the cache? is it the linked list? the hash table? or both? 
         cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
-
+        // and then we free it
         file_free(filedata);
     }
 
@@ -193,7 +207,9 @@ int get_file_or_cache(int fd, struct cache *cache, char *filepath)
  **/
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    // create a char array called filepath with 4096 bytes of memory
     char filepath[4096];
+    // create an integer called status
     int status;
 
     // Try to find the file
