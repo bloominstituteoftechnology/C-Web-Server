@@ -140,15 +140,22 @@ void free_cache(struct cache *c)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // make a new cache entry
-
+    struct cache_entry *ce = alloc_entry(path, content_type, content, content_length);
+    // if cache is full, remove tail from dll and hashtable
+    if (cache->cur_size == cache->max_size)
+    {
+        hashtable_delete(cache->index, path);
+        dllist_remove_tail(cache);
+        cache->cur_size--;
+    }
+    //put into hastable
+    hashtable_put(cache->index, path, ce);
     // add to head of linked list
+    dllist_insert_head(cache, ce);
     // insert into hash table
 
+    cache->cur_size++;
 }
 
 /**
