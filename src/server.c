@@ -68,6 +68,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time_t t1 = time(NULL);
     // I think this is saying, create a struct called tm that is really a pointer called *ltime that
     // points to localtime(&t1)??? wtf???
+    // formats it to local time zone
     struct tm *ltime = localtime(&t1);
     
     // this is also pretty strange...response_length is just an integer...
@@ -205,6 +206,8 @@ int get_file_or_cache(int fd, struct cache *cache, char *filepath)
 /**
  * Read and return a file
  **/
+// type          name of variable
+// struct cache *cache
 void get_file(int fd, struct cache *cache, char *request_path)
 {
     // create a char array called filepath with 4096 bytes of memory
@@ -214,10 +217,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     // Try to find the file
     snprintf(filepath, sizeof filepath, "%s%s/index.html", SERVER_ROOT, request_path);
+    printf(filepath);
     status = get_file_or_cache(fd, cache, filepath);
 
     if (status == -1) {
         snprintf(filepath, sizeof filepath, "%s%s/index.html", SERVER_ROOT, request_path);
+        printf(filepath);
         status = get_file_or_cache(fd, cache, filepath);
 
         if (status == -1) {
