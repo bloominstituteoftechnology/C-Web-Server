@@ -116,6 +116,22 @@ struct cache *cache_create(int max_size, int hashsize)
 }
 
 /**
+ * Deallocate an entire cache
+**/
+void free_cache(struct cache *c)
+{
+    struct cache_entry *curr = c->head;
+    while(curr != NULL)
+    {
+        struct cache_entry *next = curr->next;
+        free_entry(curr);
+        curr = next;
+    }
+    hashtable_destroy(c->index);
+    free(c);
+}
+
+/**
  * Store an entry in the cache
  *
  * This will also remove the least-recently-used items as necessary.
