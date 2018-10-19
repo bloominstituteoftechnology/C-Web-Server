@@ -17,10 +17,10 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ce->content_type = malloc(strlen(content_type));
     strcpy(ce->content_type, content_type);
 
+    ce->content_length = content_length;
+
     ce->content = malloc(content_length);
     memcpy(ce->content, content, content_length);
-
-    ce->content_length = content_length;
 
     return ce;
 }
@@ -118,7 +118,7 @@ struct cache *cache_create(int max_size, int hashsize)
 /**
  * Deallocate an entire cache
 **/
-void free_cache(struct cache *c)
+void cache_free(struct cache *c)
 {
     struct cache_entry *curr = c->head;
     while(curr != NULL)
@@ -163,9 +163,15 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // look for entry in hashtable using path
+    struct cache_entry *ce = hashtable_get(cache->index, path);
 
-    //
+    // if not there, return NULL
+    if (ce == NULL)
+    {
+        return NULL;
+    }
+    // if there 1)move to head of dll, 2)return ce
+    dllist_move_to_head(cache, ce);
+    return ce;
 }
