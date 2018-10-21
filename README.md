@@ -5,7 +5,6 @@ This is an implementation of the C Web Server project, but written in [Rust](htt
 This implementation is heavily based on [this one](https://doc.rust-lang.org/book/second-edition/ch20-00-final-project-a-web-server.html) and exhibits the following features:
 
  * It handles the same endpoints as the ones the C web server handles, namely `/` or `/index.html`, and `/d20`.
- * It handles arbitrary file serving (though there aren't any files for it to serve other than `index.html` and `404.html`).
  * It handles POST requests; data is written and saved to a `data.txt` file as binary data.
  * It handles requests in a multi-threaded fashion, using a homebrew threadpool implementation.
 
@@ -21,5 +20,6 @@ This implementation is heavily based on [this one](https://doc.rust-lang.org/boo
 
  ## TODO
 
+ - [ ] Implement arbitrary file serving.
  - [ ] Implement file locking when writing and saving to a file, since this server is actually multi-threaded!
  - [ ] Implement caching functionality.
