@@ -1,4 +1,5 @@
 extern crate webserver;
+extern crate file_lock;
 extern crate rand;
 
 use webserver::ThreadPool;
@@ -8,6 +9,7 @@ use std::net::TcpListener;
 use std::net::TcpStream;
 use std::fs::File;
 use rand::Rng;
+use file_lock::FileLock;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:3490").unwrap();
@@ -75,10 +77,10 @@ fn post_save(stream: TcpStream, buffer: &mut [u8]) {
     let request = String::from_utf8_lossy(buffer);
     let body_index = request.find("\r\n\r\n").expect("Could not find the beginning of the body of the POST request");
     let body = &request[body_index+1..];
+    
+    let mut filelock = FileLock::lock("data.txt", true, true).expect("Error locking data.txt");
 
-    let mut file = File::create("data.txt").expect("Failed to create file data.txt");
-    // TODO: Lock this file behind a mutex since we're in a multi-threaded environment
-    match file.write_all(body.as_bytes()) {
+    match filelock.file.write_all(body.as_bytes()) {
         Ok(_) => {
             let contents = "{\"status\": \"ok\"}\n";
             send_response(stream, status_line, &contents);
@@ -88,6 +90,8 @@ fn post_save(stream: TcpStream, buffer: &mut [u8]) {
             send_response(stream, status_line, &contents);
         }
     }
+
+    filelock.unlock().expect("Failed to unlock data.txt");
 }
 
 fn send_response(mut stream: TcpStream, status_line: &str, contents: &str) {

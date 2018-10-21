@@ -5,3 +5,4 @@ authors = ["Sean <seanchen11235@gmail.com>"]
 
 [dependencies]
 rand = "0.5"
+file-lock = "1.1.20"

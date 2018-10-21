@@ -21,5 +21,5 @@ This implementation is heavily based on [this one](https://doc.rust-lang.org/boo
  ## TODO
 
  - [ ] Implement arbitrary file serving.
- - [ ] Implement file locking when writing and saving to a file, since this server is actually multi-threaded!
+ - [X] Implement file locking when writing and saving to a file, since this server is actually multi-threaded!
  - [ ] Implement caching functionality.
