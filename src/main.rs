@@ -12,7 +12,7 @@ use rand::Rng;
 use file_lock::FileLock;
 
 fn main() {
-    let listener = TcpListener::bind("127.0.0.1:3490").unwrap();
+    let listener = TcpListener::bind("127.0.0.1:3490").expect("Error binding to the specified host and port");
     let pool = ThreadPool::new(4);
 
     for stream in listener.incoming() {
@@ -28,7 +28,7 @@ fn main() {
 
 fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 512];
-    stream.read(&mut buffer).unwrap();
+    stream.read(&mut buffer).expect("Error reading from stream");
 
     let get_req = b"GET / HTTP/1.1\r\n";
     let get_index_req = b"GET /index.html HTTP/1.1\r\n";
@@ -48,7 +48,7 @@ fn handle_connection(mut stream: TcpStream) {
 
 fn get_index(stream: TcpStream) {
     let status_line = "HTTP/1.1 200 OK\r\n\r\n";
-    let mut file = File::open("index.html").unwrap();
+    let mut file = File::open("index.html").expect("Error opening index.html file");
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     
@@ -65,7 +65,7 @@ fn get_d20(stream: TcpStream) {
 
 fn get_404(stream: TcpStream) {
     let status_line = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
-    let mut file = File::open("404.html").unwrap();
+    let mut file = File::open("404.html").expect("Error opening 404.html file");
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     
