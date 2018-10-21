@@ -7,6 +7,7 @@ This implementation is heavily based on [this one](https://doc.rust-lang.org/boo
  * It handles the same endpoints as the ones the C web server handles, namely `/` or `/index.html`, and `/d20`.
  * It handles POST requests; data is written and saved to a `data.txt` file as binary data.
  * It handles requests in a multi-threaded fashion, using a homebrew threadpool implementation.
+ * It locks the file where data sent via POST requests are written to.
 
  ## Installation
 
@@ -21,5 +22,5 @@ This implementation is heavily based on [this one](https://doc.rust-lang.org/boo
  ## TODO
 
  - [ ] Implement arbitrary file serving.
- - [X] Implement file locking when writing and saving to a file, since this server is actually multi-threaded!
+ - [X] ~~Implement file locking when writing and saving to a file, since this server is actually multi-threaded!~~
  - [ ] Implement caching functionality.
