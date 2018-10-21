@@ -13,14 +13,14 @@ What you need to write:
 * Your code will interface with the existing code. Understanding the existing
   code is an expected part of this challenge.
 
-What's already there:
+What's already here:
 
-* Low-level networking code
-* Code that determines a MIME type from a file extension
-* File-reading code
-* A hashtable implementation
-* A linked list implementation (used solely by the hashable--you don't need it)
-* All system calls, including `send()` and `recv()`
+* `net.h` and `net.c` contain low-level networking code
+* `mime.h` and `mime.c` contains functionality for determining the MIME type of a file
+* `file.h` and `file.c` contain file-reading code
+* `hashtable.h` and `hashtable.c` contain an implementation of a hashtable (this one is a bit more complicated than what you built in the Hashtables sprint)
+* `llist.h` and `llist.c` contain an implementation of a doubly-linked list (used solely by the hashable--you don't need it)
+* `cache.h` and `cache.c` are where you will implement the LRU cache functionality for days 3 and 4
 
 ## What is a Web Server?
 
@@ -36,13 +36,10 @@ requests for HTML pages), and returns responses (e.g. HTML pages). Other common 
 
 ## Assignment
 
-We will write a simple web server that returns files and some specialized data
-on a certain endpoint.
+We will write a simple web server that returns files and some specialized data on a certain endpoint.
 
-* `http://localhost:3490/d20` should return a random number between 1 and 20
-  inclusive as `text/plain` data.
-* Any other URL should map to the `serverroot` directory and files that lie
-  within. For example:
+* `http://localhost:3490/d20` should return a random number between 1 and 20 inclusive as `text/plain` data.
+* Any other URL should map to the `serverroot` directory and files that lie within. For example:
 
   ```
   http://localhost:3490/index.html
@@ -54,27 +51,21 @@ on a certain endpoint.
   ./serverroot/index.html
   ```
 
-Examine the skeleton source code in `server.c` and `cache.c` for which pieces
-you'll need to implement.
+Examine the skeleton source code in `server.c` and `cache.c` for which pieces you'll need to implement.
 
-**IMPORTANT** _Spend some time inventorying the code to see what is where. Write
-down notes. Write an outline. Note which functions call which other functions.
-Time spent up front doing this will reduce overall time spent down the road._
+**IMPORTANT** _Spend some time inventorying the code to see what is where. Write down notes. Write an outline. Note which functions call which other functions. Time spent up front doing this will reduce overall time spent down the road._
 
 _The existing code is all one big hint on how to attack the problem._
 
-For the portions that are already written, study the moderately-well-commented
-code to see how it works.
+For the portions that are already written, study the moderately-well-commented code to see how it works.
 
-There is a `Makefile` provided. On the command line, type `make` to build the
-server.
+There is a `Makefile` provided. On the command line, type `make` to build the server.
 
 Type `./server` to run the server.
 
 ### Main Goals
 
-_Read through all the main and stretch goals before writing any code to get an
-overall view, then come back to goal #1 and dig in._
+_Read through all the main and stretch goals before writing any code to get an overall view, then come back to goal #1 and dig in._
 
 #### Days 1 and 2
 
@@ -82,11 +73,9 @@ overall view, then come back to goal #1 and dig in._
 
    You'll want to parse the first line of the HTTP request header to see if this is a `GET` or `POST` request, and to see what the path is. You'll use this information to decide which handler function to call.
 
-   The variable `request` in `handle_http_request()` holds the entire HTTP
-   request once the `recv()` call returns.
+   The variable `request` in `handle_http_request()` holds the entire HTTP request once the `recv()` call returns.
 
-   Read the three components from the first line of the HTTP header. Hint:
-   `sscanf()`.
+   Read the three components from the first line of the HTTP header. Hint: `sscanf()`.
 
    Right after that, call the appropriate handler based on the request type
    (`GET`, `POST`) and the path (`/d20` or other file path.) You can start by
