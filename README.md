@@ -15,7 +15,7 @@ This implementation is heavily based on [this one](https://doc.rust-lang.org/boo
 
  Once you've done that, navigate to the root directory and execute `cargo run` to start the server. 
 
- You can test it by typing in `localhost:3490/` into your browser to request root endpoint. 
+ You can test it by typing in `localhost:3490/` into your browser to request the root endpoint. 
 
  You can send a POST request to it using `curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save`
 
