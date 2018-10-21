@@ -1,6 +1,7 @@
 extern crate webserver;
 extern crate file_lock;
 extern crate rand;
+extern crate lru_cache;
 
 use webserver::ThreadPool;
 
@@ -10,6 +11,7 @@ use std::net::TcpStream;
 use std::fs::File;
 use rand::Rng;
 use file_lock::FileLock;
+use lru_cache::LruCache;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:3490").expect("Error binding to the specified host and port");
