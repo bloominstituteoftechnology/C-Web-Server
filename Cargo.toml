@@ -1,0 +1,7 @@
+[package]
+name = "webserver"
+version = "0.1.0"
+authors = ["Sean <seanchen11235@gmail.com>"]
+
+[dependencies]
+rand = "0.5"
