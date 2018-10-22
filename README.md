@@ -129,7 +129,7 @@ overall view, then come back to goal #1 and dig in._
 
    Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
    content length. `sprintf()` also returns the total number of bytes in the
-   result string, which might be helpful.
+   result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file. 
 
    > The HTTP `Content-Length` header only includes the length of the body, not
    > the header. But the `response_length` variable used by `send()` is the
