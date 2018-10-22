@@ -145,6 +145,11 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
+    char *p;
+    char request_type[8];       // GET or POST
+    char request_path[1024];    // /info etc.
+    char request_protocol[128]; // HTTP/1.1
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -153,6 +158,39 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    // NUL terminate request string
+    request[bytes_recvd] = '\0';
+
+    char *first_line = request;
+
+    // Look for newline
+    p = strchr(first_line, '\n');
+    *p = '\0';
+
+    // Remaining header
+    char *header = p + 1; // +1 to skip the '\n'
+
+    // Look for two newlines marking the end of the header
+    p = find_start_of_body(header);
+
+    if (p == NULL)
+    {
+        printf("Could not find end of header\n");
+        exit(1);
+    }
+
+    // And here is the body
+    char *body = p;
+
+    /*
+  * Now that we've assessed the request, we can take actions.
+  */
+
+    // Read the three components of the first request line
+    sscanf(first_line, "%s %s %s", request_type, request_path,
+           request_protocol);
+
+    printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
 
     ///////////////////
     // IMPLEMENT ME! //
