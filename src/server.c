@@ -58,9 +58,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, content_length, 0);
 
     if (rv < 0) {
         perror("send");
