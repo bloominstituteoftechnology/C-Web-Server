@@ -75,16 +75,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    int r = rand() % 21;
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
 
+    // Fetch the 404.html file
+    snprintf(filepath, sizeof filepath, "%s/d20.html", SERVER_FILES);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find system d20.html file\n");
+        exit(3);
+    }
+    mime_type = mime_type_get(filepath);
+
+    // int send_response(int fd, char *header, char *content_type, void *body, int content_length)
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 }
 
 /**
