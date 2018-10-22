@@ -52,12 +52,29 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    char localTime[250];
 
     // Build HTTP response and store it in response
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // Get local time
+    time_t rawtime;
+    struct tm *info;
+
+    time( &rawtime );
+
+    info = localtime( &rawtime );
+
+    // Assemble response string
+    sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(info), content_length, content_type, body);
+
+    int response_length = strlen(response);
+
+    printf("Response length: %d\n\nContent_length: %d\n\nResponse: \n\n%s ", response_length, content_length, response);
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -144,6 +161,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[10], filePath[256], protocol[20];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -152,6 +170,12 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+
+    sscanf(request, "%s %s %s", method, filePath, protocol);
+
+    printf("method: %s\nfilePath: %s\nprotocol: %s\n", method, filePath, protocol);
+
+    resp_404(fd);
 
 
     ///////////////////
@@ -165,6 +189,7 @@ void handle_http_request(int fd, struct cache *cache)
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
+    
 
     // (Stretch) If POST, handle the post request
 }
