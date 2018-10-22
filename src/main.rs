@@ -32,19 +32,50 @@ fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 512];
     stream.read(&mut buffer).expect("Error reading from stream");
 
-    let get_req = b"GET / HTTP/1.1\r\n";
-    let get_index_req = b"GET /index.html HTTP/1.1\r\n";
+    let get_req = b"GET /";
     let d20_req = b"GET /d20 HTTP/1.1\r\n";
     let post_req = b"POST /save HTTP/1.1\r\n";
 
-    if buffer.starts_with(get_req) || buffer.starts_with(get_index_req) {
-        get_index(stream);
-    } else if buffer.starts_with(d20_req) {
+    if buffer.starts_with(d20_req) {
         get_d20(stream);
+    } else if buffer.starts_with(get_req) {
+        get_file(stream, &mut buffer);
     } else if buffer.starts_with(post_req) {
         post_save(stream, &mut buffer);
     } else {
         get_404(stream);
+    }
+}
+
+fn get_d20(stream: TcpStream) {
+    let status_line = "HTTP/1.1 200 OK\r\n\r\n";
+    let mut rng = rand::thread_rng();
+    let contents = rng.gen_range(1, 21).to_string();
+
+    send_response(stream, status_line, &contents);
+}
+
+fn get_file(stream: TcpStream, buffer: &mut [u8]) {
+    let request = String::from_utf8_lossy(buffer);
+    let path = request.split(' ').nth(1).expect("No path found in request string");
+
+    if path.len() == 1 {
+        get_index(stream);
+    } else {
+        let f = File::open(&path[1..]);
+
+        match f {
+            Ok(mut file) => {
+                let status_line = "HTTP/1.1 200 OK\r\n\r\n";
+                let mut contents = String::new();
+                file.read_to_string(&mut contents).unwrap();
+
+                send_response(stream, status_line, &contents);
+            },
+            Err(_) => {
+                get_404(stream);
+            }
+        }
     }
 }
 
@@ -54,14 +85,6 @@ fn get_index(stream: TcpStream) {
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     
-    send_response(stream, status_line, &contents);
-}
-
-fn get_d20(stream: TcpStream) {
-    let status_line = "HTTP/1.1 200 OK\r\n\r\n";
-    let mut rng = rand::thread_rng();
-    let contents = rng.gen_range(1, 21).to_string();
-
     send_response(stream, status_line, &contents);
 }
 
