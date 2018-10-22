@@ -76,12 +76,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    char response_body[50];
+    sprintf(response_body, "Random number: %d\n", (rand() % 20) + 1);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -191,6 +193,41 @@ void handle_http_request(int fd, struct cache *cache)
            request_protocol);
 
     printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+    if (strcmp(request_type, "GET") == 0)
+    {
+        if (strcmp(request_path, "/") == 0)
+        {
+            get_root(fd);
+        }
+        else if (strcmp(request_path, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else if (strcmp(request_path, "/date") == 0)
+        {
+            get_date(fd);
+        }
+        else
+        {
+            resp_404(fd);
+        }
+    }
+    else if (strcmp(request_type, "POST") == 0)
+    {
+        if (strcmp(request_path, "/save") == 0)
+        {
+            post_save(fd, body);
+        }
+        else
+        {
+            resp_404(fd);
+        }
+    }
+    else
+    {
+        resp_404(fd);
+    }
 
     ///////////////////
     // IMPLEMENT ME! //
