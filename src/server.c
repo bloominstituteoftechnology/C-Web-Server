@@ -52,8 +52,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    char time;
 
     // Build HTTP response and store it in response
+    strcat(response, header);
+    strcat(response, "\r\n Date: ");
+    strcat(response, &time);
+    strcat(response, "\r\nConnection: close\r\nContent-Length: ");
+    strcat(response, content_length);
+    strcat(response, "\r\nContent-Type: ");
+    strcat(response, content_type);
+    strcat(response, "\r\n\r\n");
+    strcat(response, "\n");
+
+    int response_length = sizeof(response);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -76,13 +88,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    int num = rand() % 20+1;
     
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+        send_response(fd, "HTTP/1.1 200 OK", "text/plain", num, sizeof(num));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -159,8 +172,15 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    char parsed = sscanf(request, " ");
+    int ret = strcmp("GET /d20 HTTP/1.1", parsed);
     // If GET, handle the get endpoints
+    if(ret==0){
+        get_d20(fd);
+    }
+    //else{
+    //    get_file(fd, request);
+    //}
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
