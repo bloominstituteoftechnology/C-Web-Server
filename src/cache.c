@@ -17,7 +17,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 /**
  * Deallocate a cache entry
  */
-void free_entry(void *v_ent, void *varg)
+void free_entry(struct cache_entry *entry)
 {
     ///////////////////
     // IMPLEMENT ME! //
@@ -68,7 +68,7 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 
 /**
  * Removes the tail from the list and returns it
- * 
+ *
  * NOTE: does not deallocate the tail
  */
 struct cache_entry *dllist_remove_tail(struct cache *cache)
@@ -85,7 +85,7 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
 
 /**
  * Create a new cache
- * 
+ *
  * max_size: maximum number of entries in the cache
  * hashsize: hashtable size (0 for default)
  */
@@ -100,7 +100,7 @@ struct cache *cache_create(int max_size, int hashsize)
  * Store an entry in the cache
  *
  * This will also remove the least-recently-used items as necessary.
- * 
+ *
  * NOTE: doesn't check for duplicate cache entries
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
