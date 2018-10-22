@@ -52,15 +52,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-
+    
     // Build HTTP response and store it in response
-
+    *response = body;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -142,6 +142,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+  
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -151,6 +152,21 @@ void handle_http_request(int fd, struct cache *cache)
     if (bytes_recvd < 0) {
         perror("recv");
         return;
+    } else {
+      printf("%s", request);
+      const char s[4] = " ";
+      const char *req_array[10024];
+      char* tok;
+      char* tok2;
+      char* tok3;
+      int i;
+      tok = strtok (request, s);
+      printf(" request item is %s\n", tok);
+      tok2 = strtok(NULL, s);
+      printf("request url is %s\n", tok2);
+      tok3 = strtok(NULL, s);
+      printf("request version is %s\n", tok3);
+      // send_response(fd, "WHAAAAAAAAT", bytes_recvd->header, bytes_recvd->request->header, bytes_recvd->request_buffer_size);
     }
 
 
