@@ -76,7 +76,7 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     int r = rand() % 21;
-    
+
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
@@ -91,7 +91,7 @@ void get_d20(int fd)
         exit(3);
     }
     mime_type = mime_type_get(filepath);
-
+    
     // int send_response(int fd, char *header, char *content_type, void *body, int content_length)
     // Use send_response() to send it back as text/plain data
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
@@ -162,13 +162,12 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
     const char delim[2] = " ";
-    char *token;
+    char *token = strtok(request, delim);
 
-    token = strtok(request, delim);
     char *request_type;
     char *request_ext;
     int count = 0;
-    while (token != NULL && count < 2) {
+    while (token != NULL & count < 2) {
         printf("%s", token);
         if(count == 0) {
             request_type = token;
@@ -176,16 +175,19 @@ void handle_http_request(int fd, struct cache *cache)
         if(count == 1) {
             request_ext = token;
         }
+        token = strtok(NULL, delim);
         count++;
     }
     
     if (strcmp(request_ext, "/d20")) {
+        get_d20(fd);
         get_file(fd, cache, "./serverfiles/d20.html");
     }
     else if (strcmp(request_ext, "/")) {
         get_file(fd, cache, "./serverroot/index.html");
     }
     else {
+        resp_404(fd);
         get_file(fd, cache, "./serverfiles/404.html");
     }
     //Read the three components from the first line of the HTTP header. Hint: sscanf().
