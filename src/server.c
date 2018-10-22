@@ -55,12 +55,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     
     // Build HTTP response and store it in response
     *response = body;
+    char *response_length;
+    response_length = strlen(header) + strlen(body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Send it all!
-    int rv = send(fd, response, content_length, 0);
+    int rv = send(fd, response, response_length, 0);
+    
 
     if (rv < 0) {
         perror("send");
@@ -80,6 +83,14 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    int r, value;
+    r= rand();
+    value = (r % 20) + 1;
+
+    char *mime_type;
+    mime_type = "txt/plain";
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, value, sizeof value);
 
     // Use send_response() to send it back as text/plain data
 
@@ -106,6 +117,7 @@ void resp_404(int fd)
         fprintf(stderr, "cannot find system 404 file\n");
         exit(3);
     }
+
 
     mime_type = mime_type_get(filepath);
 
@@ -155,18 +167,19 @@ void handle_http_request(int fd, struct cache *cache)
     } else {
       printf("%s", request);
       const char s[4] = " ";
-      const char *req_array[10024];
-      char* tok;
-      char* tok2;
-      char* tok3;
+      char* request_type;
+      char* request_url;
+      char d = "/d20";
+     
       int i;
-      tok = strtok (request, s);
-      printf(" request item is %s\n", tok);
-      tok2 = strtok(NULL, s);
-      printf("request url is %s\n", tok2);
-      tok3 = strtok(NULL, s);
-      printf("request version is %s\n", tok3);
-      // send_response(fd, "WHAAAAAAAAT", bytes_recvd->header, bytes_recvd->request->header, bytes_recvd->request_buffer_size);
+      request_type = strtok (request, s);
+      printf(" request item is %s\n", request_type);
+      request_url = strtok(NULL, s);
+      printf("request url is %s\n", request_url);
+      if (strcmp(request_url, d) == 0) {
+      get_d20(fd);
+      }
+
     }
 
 
