@@ -50,16 +50,33 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+    printf("Entering send_response....\n");
     const int max_response_size = 65536;
     char response[max_response_size];
 
     // Build HTTP response and store it in response
 
+    // sprintf() for creating the HTTP response
+    // strlen() for computing content length.
+    // sprintf() also returns the total number of bytes in the result string
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Send it all!
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+
+    time( &rawtime );
+
+    info = localtime( &rawtime );
+    printf("Current local time and date: %s\n", asctime(info));
+
+    int response_length = sprintf(response,"%s\n Content-Type: %s\n Server: Lamdba C Server\n Content-Length: %d\n Date: %s\n Hello World", header, content_type, content_length, asctime(info));
+    printf("Response: %s", response);
+
+    // int response_length = sizeof(response);
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -75,13 +92,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    printf("Hey in the getd20 function!..\n");
     // Generate a random number between 1 and 20 inclusive
-    
+    int random_1_20 = rand() % 20;
+
+    printf("Random Number is: %d\n", random_1_20);
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_1_20, sizeof(random_1_20));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -103,6 +125,7 @@ void resp_404(int fd)
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
+        //Maybe try/catch?
         fprintf(stderr, "cannot find system 404 file\n");
         exit(3);
     }
@@ -158,10 +181,46 @@ void handle_http_request(int fd, struct cache *cache)
     // IMPLEMENT ME! //
     ///////////////////
 
+    // strtok()
+    // strchr()
+    // strstr()
+    // sscanf()
+
     // Read the three components of the first request line
+    printf("\nPRINTING FROM handle_http_request...\n");
+    printf("Request %s\n", request);
+    printf("Bytes_recvd %d\n", bytes_recvd);
+    
+    //Create a http_header_line variable
+    char *http_header_line;
+   
+    /* get the first line of header */
+    http_header_line = strtok(request, "\n");
+    printf("First line of header: %s\n", http_header_line);
+    
+    //Initialize the 3 variables in the first line of the header:
+    char method[5], resource[20], protocol[20];
+
+    //Extract the 3 variables from the http header line and place into the variables:
+    sscanf(request, "%s %s %s", method, resource, protocol);
+    
+    printf("Method: %s\n", method);
+    printf("Resource: %s\n", resource);
 
     // If GET, handle the get endpoints
+    if (strcmp(method, "GET") == 0){
+        printf("Inside GET....\n");
 
+        if (strcmp(resource, "/d20") == 0){
+            printf("Inside Resource....\n");
+            
+            //initialize fd to some random value
+            get_d20(fd);
+        }else {
+            resp_404(fd);
+        }
+
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
