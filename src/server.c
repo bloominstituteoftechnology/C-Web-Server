@@ -58,6 +58,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    int response_length = sizeof(response)/sizeof(char);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -144,6 +145,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8]; // Either GET or POST (? Why 8 bytes ?)
+    char request_route[1024]; // The path for the request [? Why 1KB ?]
+    char request_protocol[128]; // Request protocol for our case will always be HTTP 1.1 (? Also why 128 ?)
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -153,20 +157,43 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    //NUL terminates the request string
+    request[bytes_recvd] = '\0';
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", request_type, request_route, request_protocol);
 
+    printf("REQUEST: %s %s %s\n", request_type, request_route, request_protocol);
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
+    if (strcmp(request_type, "GET") == 0)
+    {
+        //  Check if it's /d20 and handle that special case
+        if (strcmp(request_route, "d20"))
+        {
+            get_d20(fd);
+        }
+        //  Otherwise serve the requested file by calling get_file()
+        else
+        {
+            get_file(fd, cache, request_route);
+        }
+    }
     // (Stretch) If POST, handle the post request
+    else if (strcmp(request_type, "POST") == 0)
+    {
+        if (strcmp(request_route, "/save") == 0)
+        {
+            printf("Here should be logic to save a post");
+        }
+        else
+        {
+            resp_404(fd);
+        }
+    }
+    else
+    {
+        fprintf(stderr, "Unknown request type %s\n", request_type);
+        return;
+    }
 }
 
 /**
