@@ -139,9 +139,23 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    char filepath[4096];                            // For arbitrary file serving
+    struct file_data *filedata;                     // For arbitrary file serving
+    (void) cache;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+    
+    if(filedata != NULL)
+    {
+        char *mime_type = mime_type_get(filepath);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    }
+    else{ resp_404(fd); }
+
 }
 
 /**
@@ -162,9 +176,9 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 65536;          // 64K
     char request[request_buffer_size];
-    char method[10], filePath[256], protocol[20];
+    char method[10], filePath[256], protocol[20];   // To parse request info
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -178,13 +192,8 @@ void handle_http_request(int fd, struct cache *cache)
 
     // printf("method: %s\nfilePath: %s\nprotocol: %s\n", method, filePath, protocol);
 
-    if (strcmp(method, "GET") == 0 && strcmp(filePath, "/d20") == 0)
-    {
-        get_d20(fd);
-    }
-    else{
-        resp_404(fd);
-    }
+    if (strcmp(method, "GET") == 0 && strcmp(filePath, "/d20") == 0) { get_d20(fd); }
+    else{ get_file(fd, cache, filePath); }
     
 
     ///////////////////
