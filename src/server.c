@@ -152,7 +152,8 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
+    
+    sscanf(request, "%s %s %s\n");
 
     ///////////////////
     // IMPLEMENT ME! //
