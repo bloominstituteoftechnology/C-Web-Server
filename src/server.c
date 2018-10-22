@@ -50,6 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+    
     const int max_response_size = 65536;
     char response[max_response_size];
     int response_length = strlen(header) + strlen(body);
@@ -61,8 +62,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     sprintf(response, "header: %s\n \
                        content_type: %s\n \
                        body: %s\n",
-            header, content_type, body);
+            header, content_type, (char*)body);
     // Send it all!
+    printf("%s\n", response);
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0)
@@ -186,9 +188,10 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp("GET", req_type) == 0)
     {
         //    Check if it's /d20 and handle that special case
-        if (strcmp("/d20", req_path))
+        if (strcmp("/d20", req_path) == 0)
         {
-            
+            printf("\n\nHELLO\n\n");
+            get_d20(fd);
         }
         //    Otherwise serve the requested file by calling get_file()
     }
