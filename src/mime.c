@@ -31,7 +31,7 @@ char *mime_type_get(char *filename)
 
     strlower(ext);
 
-    // TODO: this is O(n) and it should be O(1)
+    // TODO: this is O(n) and it should be O(1) // maybe searching from the end of the filename?
 
     if (strcmp(ext, "html") == 0 || strcmp(ext, "htm") == 0) { return "text/html"; }
     if (strcmp(ext, "jpeg") == 0 || strcmp(ext, "jpg") == 0) { return "image/jpg"; }
