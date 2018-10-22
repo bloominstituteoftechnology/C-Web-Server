@@ -77,9 +77,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+
     ///////////////////
-    // IMPLEMENT ME! //
+     srand(time(NULL) + getpid());
+     rand()%1+20
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
@@ -105,7 +106,7 @@ void resp_404(int fd)
     if (filedata == NULL) {
         // TODO: make this non-fatal
         fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        // exit(3);
     }
 
     mime_type = mime_type_get(filepath);
@@ -145,6 +146,13 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char type = []; //
+    char host_protocol = []; //
+    char connection = []; //
+
+    //sprintf(str, "", Value) - formats output for buffer
+    //tokenize request
+    //if/else
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -160,7 +168,8 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    sscanf(request, "%s %s %s", type, connection,
+    host_protocol);
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
