@@ -8,3 +8,5 @@ src/data.txt
 cache_tests/cache_tests
 cache_tests/cache_tests.exe
 cache_tests/cache_tests.log
+target/
+data.txt
