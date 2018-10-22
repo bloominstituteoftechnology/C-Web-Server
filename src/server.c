@@ -73,9 +73,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     int response_length = strlen(response);
 
-    printf("Response length: %d\n\nContent_length: %d\n\nResponse: \n\n%s ", response_length, content_length, response);
-
-
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -97,12 +94,18 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    srand(time(NULL));
+    int random_num = rand() % 20 + 1;
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char mime_type[] = "text/plain";
+    char random_num_str[3];
+    sprintf(random_num_str, "%d", random_num);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, random_num_str, strlen(random_num_str));
 }
 
 /**
@@ -173,10 +176,16 @@ void handle_http_request(int fd, struct cache *cache)
 
     sscanf(request, "%s %s %s", method, filePath, protocol);
 
-    printf("method: %s\nfilePath: %s\nprotocol: %s\n", method, filePath, protocol);
+    // printf("method: %s\nfilePath: %s\nprotocol: %s\n", method, filePath, protocol);
 
-    resp_404(fd);
-
+    if (strcmp(method, "GET") == 0 && strcmp(filePath, "/d20") == 0)
+    {
+        get_d20(fd);
+    }
+    else{
+        resp_404(fd);
+    }
+    
 
     ///////////////////
     // IMPLEMENT ME! //
