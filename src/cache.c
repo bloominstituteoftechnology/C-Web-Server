@@ -17,7 +17,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 /**
  * Deallocate a cache entry
  */
-void free_entry(void *v_ent, void *varg)
+// void free_entry(void *v_ent, void *varg)
+// below fixes above bug, when executing MAKE
+void free_entry(struct cache_entry *entry)
 {
     ///////////////////
     // IMPLEMENT ME! //
