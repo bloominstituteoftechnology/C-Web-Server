@@ -1,0 +1,6 @@
+DEBUG cache_tests/cache_tests.c:160: ----- RUNNING: ./cache_tests/cache_tests
+DEBUG cache_tests/cache_tests.c:152: 
+----- test_cache_create
+DEBUG cache_tests/cache_tests.c:153: 
+----- test_cache_alloc_entry
+[ERROR] (cache_tests/cache_tests.c:39: errno: None) Your alloc_entry function did not allocate the content field to the expected string
