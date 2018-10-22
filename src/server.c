@@ -77,16 +77,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-
-    ///////////////////
      srand(time(NULL) + getpid());
-     rand()%1+20
+     char res_body[];
+     sprintf(res_body[], "%d\n", rand()%1+20)
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
-    // IMPLEMENT ME! //
+    send_response(fd, "HTTP/1.1 200 FOUND", "text/plain", res_body, strlen(res_body))
     ///////////////////
 }
 
