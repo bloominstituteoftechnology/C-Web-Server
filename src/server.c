@@ -128,6 +128,7 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -164,8 +165,8 @@ void handle_http_request(int fd, struct cache *cache)
     const char delim[2] = " ";
     char *token = strtok(request, delim);
 
-    char *request_type;
-    char *request_ext;
+    const char *request_type;
+    const char *request_ext;
     int count = 0;
     while (token != NULL & count < 2) {
         if(count == 0) {
@@ -179,13 +180,13 @@ void handle_http_request(int fd, struct cache *cache)
         token = strtok(NULL, delim);
         count++;
     }
-    if(strcmp(request_type, "GET")) {
-        if (strcmp(request_ext, "/d20")) {
+    if(strcmp(request_type, " GET")) {
+        if (strcmp(request_ext, "/d20") == 0) {
             printf("d20 has been reached\n");
             get_d20(fd);
             get_file(fd, cache, "./serverfiles/d20.html");
         }
-        else if (strcmp(request_ext, "/")) {
+        else if (strcmp(request_ext, "/") == 0) {
             printf("Root has been reached\n");
             get_file(fd, cache, "./serverroot/index.html");
         }
