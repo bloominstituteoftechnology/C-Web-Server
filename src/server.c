@@ -97,6 +97,7 @@ void resp_404(int fd)
     struct file_data *filedata; 
     char *mime_type;
 
+    // Fetch the 404.html file
     snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
     filedata = file_load(filepath);
 
@@ -190,7 +191,7 @@ int main(void)
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
     // This is the main loop that accepts incoming connections and
-    // fork()s a handler process to take care of it. The main parent
+    // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
     
     while(1) {
