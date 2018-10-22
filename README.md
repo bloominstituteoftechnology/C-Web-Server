@@ -1,3 +1,108 @@
+#### Days 1 and 2
+
+[ ] Examine `handle_http_request()` in the file `server.c`.
+
+   [ ] You'll want to parse the first line of the HTTP request header to see if this is a `GET` or `POST` request, and to see what the path is. You'll use this information to decide which handler function to call.
+
+   [ ] The variable `request` in `handle_http_request()` holds the entire HTTP request once the `recv()` call returns.
+
+   [ ] Read the three components from the first line of the HTTP header. Hint: `sscanf()`.
+
+   [ ] Right after that, call the appropriate handler based on the request type (`GET`, `POST`) and the path (`/d20` or other file path.) You can start by just checking for `/d20` and then add arbitrary files later.
+
+   [ ] Hint: `strcmp()` for matching the request method and path. Another hint: `strcmp()` returns `0` if the strings are the _same_!
+
+   [ ] > Note: you can't `switch()` on strings in C since it will compare the string pointer values instead of the string contents. You have to use an `if`-`else` block with `strcmp()` to get the job done.
+
+   [ ] If you can't find an appropriate handler, call `resp_404()` instead to give them a "404 Not Found" response.
+
+[ ] Implement the `get_d20()` handler. This will call `send_response()`.
+
+   [ ] See above at the beginning of the assignment for what `get_d20()` should pass to `send_response()`.
+
+   [ ] If you need a hint as to what the `send_response()` call should look like, check out the usage of it in `resp_404()`, just above there.
+
+   [ ] Note that unlike the other responses that send back file contents, the `d20` endpoint will simply compute a random number and send it back. It does not read the number from a file.
+
+   [ ] > The `fd` variable that is passed widely around to all the functions holds a _file descriptor_. It's just a number use to represent an open communications path. Usually they point to regular files on disk, but in this case it points to an open _socket_ network connection. All of the code to create and use `fd` has been written already, but we still need to pass it around to the points it is used.
+
+[ ]  Implement `send_response()`.
+
+   [ ] This needs to build a complete HTTP response with the given parameters. It should write the response to the string in the `response` variable.
+   
+   [ ] The total length of the header **and** body should be stored in the `response_length` variable so that the `send()` call knows how many bytes to send out over the wire.
+
+   [ ] See the [HTTP](#http) section above for an example of an HTTP response and use that to build your own.
+
+   [ ] Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing content length. `sprintf()` also returns the total number of bytes in the result string, which might be helpful. For getting the current time for the Date field of the response, you'll  want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file. 
+
+   [ ] > The HTTP `Content-Length` header only includes the length of the body, not  the header. But the `response_length` variable used by `send()` is the total length of both header and body.
+
+[ ]  Implement arbitrary file serving.
+
+   [ ] Any other URL should map to the `serverroot` directory and files that lie
+   within. For example:
+
+   [ ] `http://localhost:3490/index.html` serves file `./serverroot/index.html`.
+
+   [ ] `http://localhost:3490/foo/bar/baz.html` serves file
+   `./serverroot/foo/bar/baz.html`.
+
+   [ ] You might make use of the functionality in `file.c` to make this happen.
+
+   [ ] You also need to set the `Content-Type` header depending on what data is in
+   the file. `mime.c` has useful functionality for this.
+
+#### Days 3 and 4
+
+[ ] Implement an LRU cache. This will be used to cache files in RAM so you don't have to load them through the OS.
+
+[ ] When a file is requested, the cache should be checked to see if it is there. If so, the file is served from the cache. If not, the file is loaded from disk, served, and saved to the cache.
+
+[ ] The cache has a maximum number of entries. If it has more entries than the max, the least-recently used entries are discarded.
+
+[ ] The cache consists of a [doubly-linked list](https://en.wikipedia.org/wiki/Doubly_linked_list) and a [hash table](https://en.wikipedia.org/wiki/Hash_table).
+
+[ ] The hashtable code is already written and can be found in `hashtable.c`.
+
+[ ]  Implement `cache_put()` in `cache.c`.
+
+   Algorithm:
+
+   * Allocate a new cache entry with the passed parameters.
+   * Insert the entry at the head of the doubly-linked list.
+   * Store the entry in the hashtable as well, indexed by the entry's `path`.
+   * Increment the current size of the cache.
+   * If the cache size is greater than the max size:
+     * Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
+     * Remove the cache entry at the tail of the linked list.
+     * Free the cache entry.
+     * Ensure the size counter for the number of entries in the cache is correct.
+
+[ ]  Implement `cache_get()` in `cache.c`.
+
+   Algorithm:
+
+   * Attempt to find the cache entry pointer by `path` in the hash table.
+   * If not found, return `NULL`.
+   * Move the cache entry to the head of the doubly-linked list.
+   * Return the cache entry pointer.
+
+[ ]  Add caching functionality to `server.c`.
+
+   When a file is requested, first check to see if the path to the file is in
+   the cache (use the file path as the key).
+
+   If it's there, serve it back.
+
+   If it's not there:
+
+   * Load the file from disk (see `file.c`)
+   * Store it in the cache
+   * Serve it
+
+[ ] There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation. 
+
 # A Simple Web Server in C
 
 In this project, we'll finish the implementation of a web server in C.
