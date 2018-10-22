@@ -152,13 +152,35 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+    const char delim[2] = " ";
+    char *token;
 
+    token = strtok(request, delim);
+    char *request_type;
+    char *request_ext;
+    int count = 0;
+    while (token != NULL && count < 2) {
+        printf("%s", token);
+        if(count == 0) {
+            request_type = token;
+        }
+        if(count == 1) {
+            request_ext = token;
+        }
+        count++;
+    }
+    
+    if (strcmp(request_ext, "/d20")) {
+        get_file(fd, cache, "./serverfiles/d20.html");
+    }
+    else if (strcmp(request_ext, "/")) {
+        get_file(fd, cache, "./serverroot/index.html");
+    }
+    else {
+        get_file(fd, cache, "./serverfiles/404.html");
+    }
+    //Read the three components from the first line of the HTTP header. Hint: sscanf().
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the three components of the first request line
 
     // If GET, handle the get endpoints
 
