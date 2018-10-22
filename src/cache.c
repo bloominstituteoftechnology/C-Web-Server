@@ -12,16 +12,22 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    //malloc
+    //llist cache = malloc(sizeof(llist))
 }
 
 /**
  * Deallocate a cache entry
  */
-void free_entry(void *v_ent, void *varg)
+void free_entry(struct cache_entry *entry)
+// void free_entry(void *v_ent, void *varg)
 {
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    //free?
 }
 
 /**
