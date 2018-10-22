@@ -58,8 +58,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    int response_length = 0;
 
+    // get the time for the response
+    time_t cur_time = time(NULL);
+    char *time_str = ctime(&cur_time);
+
+    int response_length = sprintf(response,
+                                  "%s\nDate: %sContent-Length: %d"
+                                  "Connection: close\nContent-Type: %s"
+                                  "\n"    // end marker for header
+                                  "%s\n", // body
+                                  header, asctime(time_str), content_type,
+                                  content_length, body);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -77,16 +87,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    srand(time(NULL));
+    int d20;
+    d20 = rand() % 20 + 1;
+    printf("%d\n", d20);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char body[4];
+    sprintf(body, "%d\n", d20);
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
 }
 
 /**
@@ -186,6 +196,7 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(req_uri, "/d20") == 0)
         {
             printf("\nTrying to /d20\n");
+            get_d20(fd);
         }
         else
         {
@@ -194,6 +205,11 @@ void handle_http_request(int fd, struct cache *cache)
             get_file(fd, cache, req_uri);
         }
     }
+
+    // else
+    // {
+    //     resp_404(fd);
+    // }
 
     // (Stretch) If POST, handle the post request
 }
