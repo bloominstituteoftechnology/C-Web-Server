@@ -178,17 +178,18 @@ void handle_http_request(int fd, struct cache *cache)
         token = strtok(NULL, delim);
         count++;
     }
-    
-    if (strcmp(request_ext, "/d20")) {
-        get_d20(fd);
-        get_file(fd, cache, "./serverfiles/d20.html");
-    }
-    else if (strcmp(request_ext, "/")) {
-        get_file(fd, cache, "./serverroot/index.html");
-    }
-    else {
-        resp_404(fd);
-        get_file(fd, cache, "./serverfiles/404.html");
+    if(strcmp(request_type, "GET")) {
+        if (strcmp(request_ext, "/d20")) {
+            get_d20(fd);
+            get_file(fd, cache, "./serverfiles/d20.html");
+        }
+        else if (strcmp(request_ext, "/")) {
+            get_file(fd, cache, "./serverroot/index.html");
+        }
+        else {
+            resp_404(fd);
+            get_file(fd, cache, "./serverfiles/404.html");
+        }
     }
     //Read the three components from the first line of the HTTP header. Hint: sscanf().
 
