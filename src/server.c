@@ -168,25 +168,29 @@ void handle_http_request(int fd, struct cache *cache)
     char *request_ext;
     int count = 0;
     while (token != NULL & count < 2) {
-        printf("%s", token);
         if(count == 0) {
             request_type = token;
+            printf("Request Type: %s\n", request_type);
         }
         if(count == 1) {
             request_ext = token;
+            printf("Request ext: %s\n", request_ext);
         }
         token = strtok(NULL, delim);
         count++;
     }
     if(strcmp(request_type, "GET")) {
         if (strcmp(request_ext, "/d20")) {
+            printf("d20 has been reached\n");
             get_d20(fd);
             get_file(fd, cache, "./serverfiles/d20.html");
         }
         else if (strcmp(request_ext, "/")) {
+            printf("Root has been reached\n");
             get_file(fd, cache, "./serverroot/index.html");
         }
         else {
+            printf("404 has been reached\n");
             resp_404(fd);
             get_file(fd, cache, "./serverfiles/404.html");
         }
