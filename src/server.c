@@ -212,6 +212,10 @@ void handle_http_request(int fd, struct cache *cache)
       }else if (strcmp(request_url, "/index.html") == 0) {
         puts("(direct)getting index.html...");
         get_file(fd, cache, "/index.html");
+      }else if (strcmp(request_url, "/") == 0)
+        {
+          puts("(forwarding) to index.html...");
+          get_file(fd, cache, "/index.html");
       } else {
         resp_404(fd);
       }
