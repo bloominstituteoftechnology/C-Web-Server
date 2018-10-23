@@ -153,9 +153,18 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    // Fetch the 404.html file
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    
+    filedata = file_load(filepath);
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
 }
 
 /**
@@ -200,6 +209,11 @@ void handle_http_request(int fd, struct cache *cache)
       printf("request url is %s\n", request_url);
       if (strcmp(request_url, "/d20") == 0) {
       get_d20(fd);
+      }else if (strcmp(request_url, "/index.html") == 0) {
+        puts("(direct)getting index.html...");
+        get_file(fd, cache, "/index.html");
+      } else {
+        resp_404(fd);
       }
 
     }
