@@ -130,9 +130,7 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    resp_404(fd);
 }
 
 /**
@@ -182,7 +180,8 @@ void handle_http_request(int fd, struct cache *cache)
         printf("/d20 requested...\n");
         get_d20(fd);
       } else {
-        resp_404(fd);
+        //resp_404(fd);
+        get_file(fd, cache, request_path);
       }
     } else {
       fprintf(stderr, "Unrecognized request type \"%s\"\n", request_type);
