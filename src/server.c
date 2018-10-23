@@ -115,6 +115,25 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+    printf("The request path: %s\n", request_path);
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT,request_path);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find system 404 file\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -162,7 +181,7 @@ void handle_http_request(int fd, struct cache *cache)
         }
         else if (strcmp(resource, "/") == 0) {
             printf("Root has been reached\n");
-            get_file(fd, cache, resource);
+            get_file(fd, cache, "index.html");
         }
         else {
             printf("404 has been reached\n");
