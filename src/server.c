@@ -93,7 +93,6 @@ void get_d20(int fd)
  */
 void resp_404(int fd)
 {
-    printf("RESP_404 IS BEING CALLED\n");
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
@@ -120,9 +119,36 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch the 404.html file
+    snprintf(filepath, sizeof filepath, "./serverroot%s", request_path);
+    struct cache_entry *entry;
+    entry = cache_get(cache, filepath);
+
+    if (entry != NULL) {
+        printf("ALREADY IN THE CACHE\n");
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    } else {
+        printf("LOADING FILE...\n");
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            // TODO: make this non-fatal
+            fprintf(stderr, "cannot find system 404 file\n");
+            resp_404(fd);
+            return;
+        }
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
 }
 
 /**
@@ -167,7 +193,7 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(request_path, "/d20") == 0) {
            get_d20(fd); 
         } else {
-            resp_404(fd);
+            get_file(fd, cache, request_path);
         }
     }
 
