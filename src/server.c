@@ -178,7 +178,7 @@ void handle_http_request(int fd, struct cache *cache)
         }
         else if (strcmp(resource, "/") == 0) {
             printf("Root has been reached\n");
-            get_file(fd, cache, "./serverroot/index.html");
+            get_file(fd, cache, resource);
         }
         else {
             printf("404 has been reached\n");
