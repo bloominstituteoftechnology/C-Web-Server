@@ -62,10 +62,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // get the time for the response
     time_t cur_time = time(NULL);
     char *time_str = ctime(&cur_time);
+    time_str[strlen(time_str) - 1] = '\0';
 
     int response_length = sprintf(response,
-                                  "%s\nDate: %sContent-Length: %d"
-                                  "Connection: close\nContent-Type: %s"
+                                  "%s\n" // header
+                                  "Date: %sConnection: close\n"
+                                  "Content-Type: %s\nContent-Length: %d\n"
                                   "\n"    // end marker for header
                                   "%s\n", // body
                                   header, asctime(time_str), content_type,
@@ -92,6 +94,7 @@ void get_d20(int fd)
     d20 = rand() % 20 + 1;
     printf("%d\n", d20);
 
+    // set up the "body" of the response
     char body[4];
     sprintf(body, "%d\n", d20);
 
