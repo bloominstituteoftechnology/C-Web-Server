@@ -52,15 +52,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    time_t t = time(NULL);
+    struct tm *info = localtime(t);
 
     // Build HTTP response and store it in response
+    int response_length = sprintf(response, "%s\nDate:%sConnection: close\nContent-Length: %d\nContent-Type:%s\n\n\%s\n", header, asctime(info), content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -80,8 +83,12 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    srand(getpid() + time(NULL));
 
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand() % 20) + 1);
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 
     ///////////////////
     // IMPLEMENT ME! //
