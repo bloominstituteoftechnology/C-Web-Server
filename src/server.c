@@ -59,6 +59,23 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    time_t t1 = time(NULL);
+    struct tm *ltime = localtime(&t1);
+
+    int response_length = sprintf(response,
+                                  "%s\n"
+                                  "Date: %s" // asctime adds its own newline
+                                  "Connection: close\n"
+                                  "Content-Length: %d\n"
+                                  "Content-Type: %s\n"
+                                  "\n" // End of HTTP header
+                                  "%s\n",
+
+                                  header,
+                                  asctime(ltime),
+                                  content_length,
+                                  content_type,
+                                  body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -120,11 +137,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-}
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
 
+    // Try to find the file
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
+        filedata = file_load(filepath);
+        if (filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
+    }
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+}
 /**
  * Search for the end of the HTTP header
  * 
