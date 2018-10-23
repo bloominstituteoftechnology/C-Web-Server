@@ -50,15 +50,43 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
-    char response[max_response_size];
-    char response_length[0];
-
     // Build HTTP response and store it in response
+   
+   // The total length of the header **and** body should be stored in the `response_length` variable 
+   // so that the `send()` call knows how many bytes to send out over the wire.
+
+   // Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing content length. 
+   // `sprintf()` also returns the total number of bytes in the result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file. 
+
+    // The HTTP `Content-Length` header only includes the length of the body, 
+    // not the header. But the `response_length` variable used by `send()` 
+    // is the total length of both header and body.
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    const int max_response_size = 65536;
+    char response[max_response_size];  
+
+    // http://www.java2s.com/Code/C/Development/ConverttimetvaluetotmstructureinlocaltimeHowtouselocaltime.htm
+    time_t rawtime;
+    struct tm *tminfo;
+    time(&rawtime);
+    tminfo = localtime ( &rawtime );
+
+    int response_length = sprintf(response,
+      "Header: %s\n"
+      "Date: %s"
+      "Content-Type: %s\n"
+      "Content-Length: %d\n"
+      "Body:\n%s\n",
+
+      header,
+      asctime(tminfo),
+      content_length,
+      content_type,
+      body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -86,8 +114,7 @@ void get_d20(int fd)
     char response_body[8];
     sprintf(response_body, "%d\n", (rand()% 20) + 1);
 
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
-
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, sizeof(response_body));
 
     // Use send_response() to send it back as text/plain data
 
@@ -127,9 +154,42 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+//    Any other URL should map to the `serverroot` directory and files that lie
+//    within. For example:
+
+//    `http://localhost:3490/index.html` serves file `./serverroot/index.html`.
+
+//    `http://localhost:3490/foo/bar/baz.html` serves file
+//    `./serverroot/foo/bar/baz.html`.
+
+//    You might make use of the functionality in `file.c` to make this happen.
+
+//    You also need to set the `Content-Type` header depending on what data is in
+//    the file. `mime.c` has useful functionality for this.
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch the 404.html file
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find system 404 file\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -183,8 +243,6 @@ void handle_http_request(int fd, struct cache *cache)
             // attempt to retrieve the requested file
             get_file(fd, cache, request_path);
         }
-    } else if (strcmp(request_type, "POST") == 0) {
-        // hanlde POSTing a file
     }
 
     //    Check if it's /d20 and handle that special case
