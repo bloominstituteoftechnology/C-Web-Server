@@ -57,8 +57,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // get the time for the response
     time_t cur_time = time(NULL);
-    char *time_str = ctime(&cur_time);
-    time_str[strlen(time_str) - 1] = '\0';
+    struct tm *time_str = localtime(&cur_time);
 
     // sprintf returns length of str
     int response_length = sprintf(response,
