@@ -173,7 +173,8 @@ void resp_404(int fd)
 
     mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+    // send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+    send_response(fd, "404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
 }
@@ -183,12 +184,37 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-     (void)fd;
+    //  (void)fd;
      (void)cache;
-     (void)request_path;
+    //  (void)request_path;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    // filepath = request_path;
+    struct file_data *filedata; 
+    char *mime_type;
+
+    
+    printf("request_path: %s\n", request_path);
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    printf("filepath: %s\n", filepath);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "ERROR: cannot find system %s file\n", filepath);
+        resp_404(fd);
+        exit(3);
+    }
+    mime_type = mime_type_get(filepath);
+    printf("mime_type: %s\n", mime_type);
+    // printf("filesize: %s\n", filedata->size);
+    // printf("filedata: %s\n", filedata->data);
+    send_response(fd, "200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
+    return;
 }
 
 /**
@@ -235,8 +261,8 @@ void handle_http_request(int fd, struct cache *cache)
         // Accept: */*
 
     // Read the three components of the first request line
-    char req_type[5];
-    char req_endpoint[20];
+    char req_type[8];
+    char req_endpoint[4096];
     // SSCANF BREAKS DOWN THE REQ INTO VARs
     sscanf(request, "%s %s", req_type, req_endpoint);
     // printf("req_type: %s\nreq_endpoint: %s\n", req_type, req_endpoint);
@@ -253,9 +279,12 @@ void handle_http_request(int fd, struct cache *cache)
 
     if (strcmp(req_type, "GET") == 0) {
         // printf("found GET in req\n");
-        if (strcmp(req_endpoint, "/") == 0) {
+        if (strcmp(req_endpoint, "/") == 0 || strcmp(req_endpoint, "index.html") == 0 || strcmp(req_endpoint, "home") == 0) {
             printf("found HOME\n");
-            return;
+
+            get_file(fd, cache, "/index.html");
+
+            exit(0);
         }
     //    Check if it's /d20 and handle that special case
         else if (strcmp(req_endpoint, "d20") == 0) {
