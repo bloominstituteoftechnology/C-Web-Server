@@ -78,6 +78,7 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
     int d20;
     time_t t;
+
     srand((unsigned)time(&t));
     d20 = rand() % 21;
 
@@ -86,7 +87,10 @@ void get_d20(int fd)
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", d20, floor(log10(abs(d20))) + 1);
+    char response_body[8];
+
+    sprintf(response_body, "%d\n", d20);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 
     ///////////////////
     // IMPLEMENT ME! //
