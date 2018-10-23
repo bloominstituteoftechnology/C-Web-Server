@@ -144,27 +144,38 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8];
+    char request_path[1024];
+    char request_protocol[128];
+    char *first_line;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
-        perror("recv");
-        return;
+      perror("recv");
+      return;
     }
 
+    request[bytes_recvd] = '\0';
+    *first_line = request;
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
 
     // If GET, handle the get endpoints
-
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
+    if (strcmp(request_type, "GET") == 0) {
+      resp_404(fd, request_path);
+    } else {
+      fprintf(stderr, "Unrecognized request type \"%s\"\n", request_type);
+      return;
+    }
 
     // (Stretch) If POST, handle the post request
 }
