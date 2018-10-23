@@ -53,9 +53,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
+    time_t t = time(NULL);
+    struct tm *lt = localtime(&t);
+
+
     // Build HTTP response and store it in response
     // printf("Inside send_response");
-    unsigned long int response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, content_length, content_type, body);
+    unsigned long int response_length = sprintf(response,
+        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",
+        header, asctime(lt), content_length, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -124,8 +130,16 @@ void get_file(int fd, struct cache *cache, char *request_path)
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        fprintf(stderr, "cannot find system %s file\n", request_path);
-        exit(3);
+        // Handle the case where the user types '/' as the path
+        // serve the index.html file
+        snprintf(filepath, sizeof filepath, "%s%sindex.html", SERVER_ROOT, request_path);
+
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            resp_404(fd);
+            return;
+        }
     }
 
     mime_type = mime_type_get(filepath);
@@ -165,7 +179,7 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
     // Read the three components of the first request line
-    char method[4], path[30], version[15];
+    char method[8], path[32], version[16];
     sscanf(request, "%s %s %s", method, path, version);
 
     // If GET, handle the get endpoints
