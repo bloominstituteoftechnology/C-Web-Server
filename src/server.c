@@ -54,29 +54,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
-
-    // sprintf() for creating the HTTP response
-    // strlen() for computing content length.
-    // sprintf() also returns the total number of bytes in the result string
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    //For calculating the time
     time_t rawtime;
     struct tm *info;
     char buffer[80];
-
     time( &rawtime );
-
     info = localtime( &rawtime );
     printf("Current local time and date: %s\n", asctime(info));
 
-    int response_length = sprintf(response,"%s\n Content-Type: %s\n Server: Lamdba C Server\n Content-Length: %d\n Date: %s\n Hello World", header, content_type, content_length, asctime(info));
+    // Build HTTP response and store it in response
+    int response_length = sprintf(response,"%s\n Content-Type: %s\n Server: Lamdba C Server\n Content-Length: %d\n Date: %s\n %s", header, content_type, content_length, asctime(info), body);
     printf("Response: %s", response);
 
-    // int response_length = sizeof(response);
+    //Send the HTTP response via the send() sys call:
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -93,21 +83,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     printf("Hey in the getd20 function!..\n");
-    // Generate a random number between 1 and 20 inclusive
-    int random_1_20 = rand() % 20;
 
-    printf("Random Number is: %d\n", random_1_20);
+    //Initialize the random number:
+    char res_body[8];
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    //Set the seed of the PRNG
+    srand(getpid()+time(NULL));
+
+    // Generate a random number between 1 and 20 inclusive and
+    // set it to the res_body variable
+    sprintf(res_body, "%d\n", (rand() % 20) + 1);
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_1_20, sizeof(random_1_20));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", res_body, sizeof(res_body));
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -176,30 +165,16 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // strtok()
-    // strchr()
-    // strstr()
-    // sscanf()
-
     // Read the three components of the first request line
     printf("\nPRINTING FROM handle_http_request...\n");
     printf("Request %s\n", request);
     printf("Bytes_recvd %d\n", bytes_recvd);
     
-    //Create a http_header_line variable
-    char *http_header_line;
-   
-    /* get the first line of header */
-    http_header_line = strtok(request, "\n");
-    printf("First line of header: %s\n", http_header_line);
-    
-    //Initialize the 3 variables in the first line of the header:
-    char method[5], resource[20], protocol[20];
+    printf("Request: %s\n", request);
+
+    //To come up with length of each buffer, take the nominal length
+    //and double it and make sure the number is radix 2.
+    char method[8], resource[1024], protocol[16];
 
     //Extract the 3 variables from the http header line and place into the variables:
     sscanf(request, "%s %s %s", method, resource, protocol);
@@ -217,6 +192,7 @@ void handle_http_request(int fd, struct cache *cache)
             //initialize fd to some random value
             get_d20(fd);
         }else {
+            //get_file(fd, cache, request_path);
             resp_404(fd);
         }
 
