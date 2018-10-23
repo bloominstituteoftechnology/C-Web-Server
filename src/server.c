@@ -52,7 +52,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-    char localTime[250];
 
     // Build HTTP response and store it in response
 
@@ -90,17 +89,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     srand(time(NULL));
     int random_num = rand() % 20 + 1;
-    // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Use send_response() to send it back as text/plain data
     char mime_type[] = "text/plain";
     char random_num_str[3];
     sprintf(random_num_str, "%d", random_num);
@@ -122,9 +114,9 @@ void resp_404(int fd)
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        char not_found[] = "Not found file not found (meta)";
+        send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/plain", not_found, strlen(not_found));
+
     }
 
     mime_type = mime_type_get(filepath);
@@ -142,9 +134,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];                            // For arbitrary file serving
     struct file_data *filedata;                     // For arbitrary file serving
     (void) cache;
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
