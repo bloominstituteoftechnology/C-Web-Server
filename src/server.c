@@ -172,18 +172,18 @@ void handle_http_request(int fd, struct cache *cache)
     request[bytes_recvd] = '\0';
     char *first_line = request;
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
     sscanf(first_line, "%s %s %s", request_type, request_path, request_protocol);
 
     // If GET, handle the get endpoints
-    //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
     if (strcmp(request_type, "GET") == 0) {
-      resp_404(fd);
+      // Check if it's /d20 and handle that special case
+      if (strcmp(request_path, "/d20") == 0) {
+        get_d20(fd);
+      } else {
+        resp_404(fd);
+      }
     } else {
       fprintf(stderr, "Unrecognized request type \"%s\"\n", request_type);
       return;
