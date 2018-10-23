@@ -52,9 +52,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    int response_length = 0; //just initializing
 
     // Build HTTP response and store it in response
-    int response_length = sizeof(response) / sizeof(char);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -142,7 +142,8 @@ char *find_start_of_body(char *header)
 /**
  * Handle HTTP request and send response
  */
-void handle_http_request(int fd, struct cache *cache)
+void handle_http_request(int fd, struct cache *cache) // Passing socket file descriptor, and the cache.
+// This function is receiving the request, with the file descriptor that represents the connection, fd. Through that we're reading in the datat the client requested.
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
@@ -156,25 +157,35 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    // IMPLEMENT BELOW
+
     request[bytes_recvd] = '\0'; // Null terminator
 
-    char request_type[8];
-    char request_route[20];
-    sscanf(request, "%s %s", request_type, request_route);
+    char request_type[8];    // "Get, put, post, etc", give it an arbitrary of 8 because they're not long.
+    char request_path[1024]; // Pick the power of 2 that will safely hold the amount of data you think will go in the buffer.
+    char request_protocol[16];
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);         // WE can call sscanf, we want to take from the request buffer (the entiere request string is in the request buffer), we want to break the lines into their specific pieces. The request type, path, protocol are all separated by spaces, so we can just space them out with %s %s. Anywhere it finds the space it will just dump the space before the first space, it'll dump the first part. And then second. etc.
+    printf("Got request: %s %s %s\n: ", request_type, request_path, request_protocol); // Sanity check
 
     // If GET, handle the get endpoints
-    if (strcmp(request_type, "GET") == 0) // If request is GET
+    if (strcmp(request_type, "GET") == 0) // If request is GET, if they match will get 0.
     {
-        if (strcmp(request_route, "d20") == 0) // If the route is d20, do d20 stuff.
+        if (strcmp(request_path, "/d20") == 0) // If the route is d20, do d20 stuff.
         {
-            get_d20(fd);
+            get_d20(fd); // Passing in the file descriptor.
         }
         else
         {
-            resp_404(fd); // Any other path, for now, we do a 404 error.
+            // Otherwise, we'll attempt to retrieve the requested file.
+            get_file(fd, cache, request_path); // Not implemented yet, won't work yet.
+            // resp_404(fd);                      // Any other path, for now, we do a 404 error.
         }
+    }
+    else if (strcmp(request_path, "POST") == 0)
+    {
+        // handle POSTING a file
     }
 
     // Read components of the first request line
