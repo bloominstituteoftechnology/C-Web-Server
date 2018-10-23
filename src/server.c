@@ -54,10 +54,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    time_t cur_time = time(NULL);
+    struct tm *time_str = localtime(&cur_time);
+    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Type: %s\nContent-Length: %d\n"
+                                            "\n%s\n", header, asctime(time_str), content_type, content_length, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -75,11 +75,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    srand(time(NULL));
+
     // Generate a random number between 1 and 20 inclusive
     int n = (rand() % 20) + 1; 
+    char body[4];
+    sprintf(body, "%d\n", n);
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "application/json", n, sizeof(n);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
 }
 
 /**
