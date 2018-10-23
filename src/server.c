@@ -89,7 +89,6 @@ void get_d20(int fd)
     srand(time(NULL));
     int d20;
     d20 = rand() % 20 + 1;
-    printf("%d\n", d20);
 
     // set up the "body" of the response
     char body[4];
@@ -135,15 +134,22 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
+    if (strcmp(request_path, "/") == 0)
+    {
+        sprintf(filepath, "./serverroot/%s", "index.html");
+    }
+    else
+    {
+        sprintf(filepath, "./serverroot%s", request_path);
+    }
+
     // Fetch the  file
-    sprintf(filepath, "./serverroot%s", request_path);
     filedata = file_load(filepath);
 
     if (filedata == NULL)
     {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find the specified file: %s\n", filepath);
-        exit(3);
+        resp_404(fd);
+        return;
     }
 
     mime_type = mime_type_get(filepath);
@@ -207,7 +213,6 @@ void handle_http_request(int fd, struct cache *cache)
         // Check if it's /d20 and handle that special case
         if (strcmp(req_uri, "/d20") == 0)
         {
-            printf("\nTrying to /d20\n");
             get_d20(fd);
         }
         else
