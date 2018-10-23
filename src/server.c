@@ -64,6 +64,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char *time_str = ctime(&cur_time);
     time_str[strlen(time_str) - 1] = '\0';
 
+    // sprintf returns length of str
     int response_length = sprintf(response,
                                   "%s\n" // header
                                   "Date: %sConnection: close\n"
