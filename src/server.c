@@ -81,12 +81,11 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    srand(getpid() + time(NULL)); // To generate a random number. seed random number, you need to feed it some random data for it to work.
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand() % 20) + 1); // + 1 because it gives us 0 through 19.
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 }
 
 /**
