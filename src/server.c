@@ -120,14 +120,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata; 
     char *mime_type;
 
-    // Fetch the 404.html file
-    printf("INSIDE: %s\n", SERVER_ROOT);
-    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
+        fprintf(stderr, "cannot find system %s file\n", request_path);
         exit(3);
     }
 
@@ -168,7 +165,7 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
     // Read the three components of the first request line
-    char method[8], path[1024], version[16];
+    char method[4], path[30], version[15];
     sscanf(request, "%s %s %s", method, path, version);
 
     // If GET, handle the get endpoints
@@ -178,11 +175,6 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(path, "/d20") == 0) {
             get_d20(fd);
         } else {
-            // if (file_load(path) == NULL) {
-            //     resp_404(fd);
-            // } else {
-            //     get_file(fd, cache, path);
-            // }
             get_file(fd, cache, path);
         }
     } else {
