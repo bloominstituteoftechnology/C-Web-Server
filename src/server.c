@@ -178,9 +178,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char *req_method; // GET, POST, CONNECT, etc
-    char *req_uri;
-    char *temp_protocol;
+    char req_method[16]; // GET, POST, CONNECT, etc
+    char req_uri[1024];
     char req_protocol[9]; // HTTP/1.1 or HTTP/2.0
 
     // Read request
@@ -194,17 +193,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     // printf("\nIN HANDLE_REQ\n\n%s\nend of request\n", request);
-    const char s[4] = " ";
-
-    // Use of strtok to get parts
-    req_method = strtok(request, s);
-    req_uri = strtok(0, s);
-    temp_protocol = strtok(0, s);
-
-    // note: there's no space after HTTP/1.1, so Host: is included
-    // in the string - copy the 8 required chars for protocol
-    strncpy(req_protocol, temp_protocol, 8);
-    req_protocol[8] = '\0'; //  terminating null
+    sscanf(request, "%s %s %s", req_method, req_uri, req_protocol);
 
     // If GET, handle the get endpoints
     if (strcmp(req_method, "GET") == 0)
@@ -220,12 +209,6 @@ void handle_http_request(int fd, struct cache *cache)
             get_file(fd, cache, req_uri);
         }
     }
-
-    // else
-    // {
-    //     resp_404(fd);
-    // }
-
     // (Stretch) If POST, handle the post request
 }
 
