@@ -54,7 +54,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response,"%s\nDate:%sConnection: close\nContent-Length: %d\nContent-Type:%s\n\n%s\n", header, content_length, content_type, body);
+    // int response_length = sprintf(response,"%s\nDate:%sConnection: close\nContent-Length: %d\nContent-Type:%s\n\n%s\n", header, content_length, content_type, body);
+
+    int response_length = 0;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -76,15 +78,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    char body[20];
+    /* char body[20];
     int random_number = rand() % 20 + 1;
-    sprintf(body, "%d", random_number);
+    sprintf(body, "%d", random_number); */
+    srand(getpid() + time(NULL));
+
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand() % 20) + 1);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text,plain", body, strlen(body));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -146,8 +152,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char request_type[8];
-    char request_path[1024];
+    char request_type[8]; // request types not long (get,put,post..about 4 chars)
+    char request_path[1024];// powers of 2..choosing numbers that will allow your data to fit
+    char request_protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -161,8 +168,9 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char request_type[4];
-    char request_path[20];
+    //char request_type[4];
+    //char request_path[20];
+
     //sscanf reads formatted input from a string
     sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
@@ -173,8 +181,11 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(request_path,"/d20") ==0){
             get_d20(fd);
         } else {
-            resp_404(fd);
+            //resp_404(fd);
+            get_file(fd, cache, request_path);
         }
+    } else if (strcmp(request_path, "POST") == 0) {
+        // (Stretch) If POST, handle the post request
     }
     // Read the three components of the first request line
 
@@ -184,7 +195,7 @@ void handle_http_request(int fd, struct cache *cache)
     //    Otherwise serve the requested file by calling get_file()
 
 
-    // (Stretch) If POST, handle the post request
+    
 }
 
 /**
