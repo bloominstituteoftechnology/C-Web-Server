@@ -146,7 +146,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
          on disk ./serverroot/), if no file is found there, try adding an index.html
          to the end of the path and trying again.
         */
-        sprintf(filepath, "./serverroot/%s", "index.html");
+        sprintf(filepath, "./serverroot/%s%s", request_path, "/index.html");
         filedata = file_load(filepath);
         if (filedata == NULL)
         {
