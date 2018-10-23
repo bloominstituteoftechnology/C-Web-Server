@@ -55,10 +55,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // get the time for the response
     time_t cur_time = time(NULL);
     char *time_str = ctime(&cur_time);
