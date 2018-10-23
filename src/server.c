@@ -52,20 +52,28 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-    int response_length = 10;
-    // Build HTTP response and store it in response
 
+    // Build HTTP response and store it in response
+    time_t t1 = time(NULL);
+    struct tm *ltime = localtime(&t1);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    int response_length = sprintf(response,
+                                  "%s\n"
+                                  "Date: %s" // asctime adds its own newline
+                                  "Connection: close\n"
+                                  "Content-Length: %d\n"
+                                  "Content-Type: %s\n"
+                                  "\n" // End of HTTP header
+                                  "%s\n",
 
-    sprintf(response, "header: %s\n \
-                       content_type: %s\n \
-                       body: %s\n",
-            header, content_type, (char *)body);
+                                  header,
+                                  asctime(ltime),
+                                  content_length,
+                                  content_type,
+                                  body);
     // Send it all!
-    printf("%s\n", response);
-
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0)
@@ -94,18 +102,9 @@ void get_d20(int fd)
     ///////////////////
     sprintf(response_body, "%d\n", n);
     printf("%s\n", response_body);
-    int d;
-    if (n > 9)
-    {
-        d = 2;
-    }
-    else
-    {
-        d = 1;
-    }
     // Use send_response() to send it back as text/plain data
 
-    send_response(fd, header, content_type, n, strlen(response_body));
+    send_response(fd, header, content_type, response_body, strlen(response_body));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -217,12 +216,11 @@ void handle_http_request(int fd, struct cache *cache)
         {
             get_d20(fd);
         }
-         //    Otherwise serve the requested file by calling get_file()
+        //    Otherwise serve the requested file by calling get_file()
         else
         {
-            get_file(fd,cache, req_path);
+            get_file(fd, cache, req_path);
         }
-       
     }
     else
     {
