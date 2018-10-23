@@ -170,24 +170,19 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
     // printf("\nIN HANDLE_REQ\n\n%s\nend of request\n", request);
     const char s[4] = " ";
 
     // Use of strtok to get parts
     req_method = strtok(request, s);
-    // printf("\nTOK 1 %s\n", req_method);
     req_uri = strtok(0, s);
-    // printf("TOK 2 %s\n", req_uri);
     temp_protocol = strtok(0, s);
-    // printf("TOK 3 %s\n DONE\n", temp_protocol);
+
+    // note: there's no space after HTTP/1.1, so Host: is included
+    // in the string - copy the 8 required chars for protocol
     strncpy(req_protocol, temp_protocol, 8);
     req_protocol[8] = '\0'; //  terminating null
-    // printf("\nFIXED REQ %s\n", req_protocol);
 
     // If GET, handle the get endpoints
     if (strcmp(req_method, "GET") == 0)
