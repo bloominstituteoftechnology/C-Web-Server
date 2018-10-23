@@ -58,13 +58,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     info = localtime(&rawtime);
 
-    // Build HTTP response and store it in response
     int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, asctime(info), content_length, content_type, body);
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Send it all!
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0)
@@ -80,20 +74,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
-    char body[20];
+    srand(getpid() + time(NULL));
     int random_number = rand() % 20 + 1;
+    char body[20];
     sprintf(body, "%d", random_number);
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
-    // Use send_response() to send it back as text/plain data
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -133,20 +119,32 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
 
-    if (filedata == NULL)
+    struct cache_entry *entry = cache_get(cache, filepath);
+
+    if (entry != NULL)
     {
-        fprintf(stderr, "Cannot find system file: %s\n", request_path);
-        resp_404(fd);
-        return;
+        printf("In Cache\n");
+        send_response(fd, "HTTP/1.1 OK", entry->content_type, entry->content, entry->content_length);
     }
+    else
+    {
+        filedata = file_load(filepath);
 
-    mime_type = mime_type_get(filepath);
+        if (filedata == NULL)
+        {
+            fprintf(stderr, "Cannot find system file: %s\n", request_path);
+            resp_404(fd);
+            return;
+        }
 
-    send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
+        mime_type = mime_type_get(filepath);
 
-    file_free(filedata);
+        send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
 }
 
 /**
@@ -179,9 +177,6 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char request_type[4];
     char request_path[20];
     sscanf(request, "%s %s", request_type, request_path);
@@ -198,8 +193,6 @@ void handle_http_request(int fd, struct cache *cache)
             // resp_404(fd);
         }
     }
-
-    // Read the three components of the first request line
 
     // If GET, handle the get endpoints
 

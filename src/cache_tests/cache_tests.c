@@ -20,7 +20,7 @@ char *test_cache_create()
   mu_assert(cache->max_size == max_size, "The max_size field of the cache was not initialized to the expected value");
   mu_assert(cache->index != NULL, "The index field of the cache was not initialized");
 
-  cache_free(cache);
+  // cache_free(cache);
 
   return NULL;
 }
@@ -37,7 +37,7 @@ char *test_cache_alloc_entry()
   mu_assert(check_strings(ce->path, path) == 0, "Your alloc_entry function did not allocate the path field to the expected string");
   mu_assert(check_strings(ce->content_type, content_type) == 0, "Your alloc_entry function did not allocate the content_type field to the expected string");
   mu_assert(check_strings(ce->content, content) == 0, "Your alloc_entry function did not allocate the content field to the expected string");
-  mu_assert(ce->content_length == strlen(content), "Your alloc_entry function did not allocate the content_length field to the expected length")
+  mu_assert(ce->content_length == strlen(content), "Your alloc_entry function did not allocate the content_length field to the expected length");
 
   free_entry(ce);
 
@@ -60,7 +60,7 @@ char *test_cache_put()
   mu_assert(cache->cur_size == 1, "Your cache_put function did not correctly increment the cur_size field when adding a new cache entry");
   mu_assert(cache->head->prev == NULL && cache->tail->next == NULL, "The head and tail of your cache should have NULL prev and next pointers when a new entry is put in an empty cache");
   mu_assert(check_cache_entries(cache->head, test_entry_1) == 0, "Your cache_put function did not put an entry into the head of the empty cache with the expected form");
-  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not put an entry into the tail of the empty cache with the expected form")
+  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not put an entry into the tail of the empty cache with the expected form");
   mu_assert(check_cache_entries(hashtable_get(cache->index, "/1"), test_entry_1) == 0, "Your cache_put function did not put the expected entry into the hashtable");
 
   // Add in a second entry to the cache
@@ -81,7 +81,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->head->next->prev, test_entry_3) == 0, "Your cache_put function did not update the head->next->prev pointer to point to the new head entry");
   mu_assert(check_cache_entries(cache->head->next->next, test_entry_1) == 0, "Your cache_put function did not update the head->next->next pointer to point to the tail entry");
   mu_assert(check_cache_entries(cache->tail->prev, test_entry_2) == 0, "Your cache_put function did not update the tail->prev pointer to poin to the second-to-last entry");
-  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not correctly update the tail pointer of the cache"); 
+  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not correctly update the tail pointer of the cache");
 
   // Add in a fourth entry to the cache
   cache_put(cache, test_entry_4->path, test_entry_4->content_type, test_entry_4->content, test_entry_4->content_length);
@@ -94,7 +94,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->tail->prev, test_entry_3) == 0, "Your cache_put function did not update the tail->prev pointer to poin to the second-to-last entry");
   mu_assert(check_cache_entries(cache->tail, test_entry_2) == 0, "Your cache_put function did not correctly handle the tail of an already-full cache");
 
-  cache_free(cache);
+  // cache_free(cache);
 
   return NULL;
 }
@@ -140,7 +140,7 @@ char *test_cache_get()
   mu_assert(check_cache_entries(cache->head, test_entry_2) == 0, "Your cache_get function did not move the most-recently retrieved entry to the head of the cache");
   mu_assert(check_cache_entries(cache->tail, test_entry_3) == 0, "Your cache_get function did not move the oldest entry to the tail of the cache");
 
-  cache_free(cache);
+  // cache_free(cache);
 
   return NULL;
 }
