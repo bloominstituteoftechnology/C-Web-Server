@@ -1,4 +1,3 @@
-
 /**
  * webserver.c -- A webserver written in C
  * 
@@ -55,7 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
+    int response_length = sprintf(response,"%s\nDate:%sConnection: close\nContent-Length: %d\nContent-Type:%s\n\n%s\n", header, content_length, content_type, body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -77,13 +76,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    char body[20];
+    int random_number = rand() % 20 + 1;
+    sprintf(body, "%d", random_number);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 OK", "text,plain", body, strlen(body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -145,6 +146,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8];
+    char request_path[1024];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -158,7 +161,21 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char request_type[4];
+    char request_path[20];
+    //sscanf reads formatted input from a string
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
+    printf("Got the request: %s %s %s\n:", request_type, request_path, request_protocol);
+
+    if (strcmp(request_type, "GET") == 0)
+    {
+        if (strcmp(request_path,"/d20") ==0){
+            get_d20(fd);
+        } else {
+            resp_404(fd);
+        }
+    }
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
