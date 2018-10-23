@@ -54,14 +54,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     
     // Build HTTP response and store it in response
-    *response = body;
-    char *response_length;
-    response_length = strlen(header) + strlen(body);
+
+    time_t t1 = time(NULL);
+    struct tm *ltime = localtime(&t1);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+int response_length = sprintf(response,
+        "%s\n"
+        "Date: %s"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n" 
+        "%s\n",
 
-    // Send it all!
+        header,
+        asctime(ltime),
+        content_length,
+        content_type,
+        body);
+   
     int rv = send(fd, response, response_length, 0);
     
 
@@ -83,14 +96,23 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    int r, value;
-    r= rand();
+
+    time_t t;
+
+    /* Intializes random number generator */
+    srand((unsigned)time(&t));
+
+    unsigned char r;
+    unsigned char value;
+    r = rand();
     value = (r % 20) + 1;
+    printf("value------- %d\n", value);
+    char snum[5];
+    sprintf(snum, "%d\n", value);
+    // char *mime_type;
+    // mime_type = "txt/plain";
 
-    char *mime_type;
-    mime_type = "txt/plain";
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, value, sizeof value);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", snum, strlen(snum));
 
     // Use send_response() to send it back as text/plain data
 
@@ -176,7 +198,7 @@ void handle_http_request(int fd, struct cache *cache)
       printf(" request item is %s\n", request_type);
       request_url = strtok(NULL, s);
       printf("request url is %s\n", request_url);
-      if (strcmp(request_url, d) == 0) {
+      if (strcmp(request_url, "/d20") == 0) {
       get_d20(fd);
       }
 
