@@ -129,7 +129,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 {
     // create entry and add to hash table
     struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
-    hashtable_put(cache->index, entry->path, entry->content);
+    hashtable_put(cache->index, entry->path, entry);
     
     // Insert entry into head of linked list
     dllist_insert_head(cache, entry);
@@ -152,7 +152,13 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char *res = hashtable_get(cache->index, path);
+
+    if(res != NULL)
+    {
+        dllist_move_to_head(cache, res);
+        return res;
+    }
+
+    return NULL;
 }
