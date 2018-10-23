@@ -53,13 +53,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+    time(&rawtime);
+    info = localtime(&rawtime);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int response_length = sprintf(response,
+                                  "%s\n Content-Type: %s\n Server: Lambda C Server\n Content-Length: %d\n Date: %s\n",
+                                  header, content_type, content_length, asctime(info));
 
-    // Send it all!
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -75,10 +78,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-  char body[2];
-  int random_number = rand() % 20 + 1;
-  sprintf(body, "%d", random);
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
+  char response[8];
+  srand(getpid() + time(NULL));
+  sprintf(response, "%d\n", (rand() % 20) + 1);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, sizeof(response));
 }
 
 /**
@@ -112,9 +115,21 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  char filepath[4096];
+  struct file_data *filedata;
+  char *mime_type;
+  snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+  filedata = file_load(filepath);
+  if (filedata == NULL) {
+      resp_404(fd);
+      fprintf(stderr, "cannot find system 404 file\n");
+      exit(3);
+  }
+  mime_type = mime_type_get(filepath);
+
+  send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+  file_free(filedata);
 }
 
 /**
@@ -157,7 +172,7 @@ void handle_http_request(int fd, struct cache *cache)
       }
       else
       {
-        resp_404(fd);
+        get_file(fd, cache, request_path);
       }
     }
 
