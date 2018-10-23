@@ -180,7 +180,7 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
     char req_method[16]; // GET, POST, CONNECT, etc
     char req_uri[1024];
-    char req_protocol[9]; // HTTP/1.1 or HTTP/2.0
+    char req_protocol[16]; // HTTP/1.1 or HTTP/2.0
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
