@@ -116,7 +116,7 @@ void resp_404(int fd)
         fprintf(stderr, "cannot find system 404 file\n");
         exit(3);
     }
-
+        
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
@@ -139,8 +139,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     if (filedata == NULL) {
         resp_404(fd);    
+        return;
     }
-
+ 
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
@@ -199,10 +200,6 @@ void handle_http_request(int fd, struct cache *cache)
         }
     }
     // (Stretch) If POST, handle the post request
-    else
-    {
-        printf("Bad Request"); 
-    }
 }
 
 /**
