@@ -141,11 +141,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     if (filedata == NULL)
     {
-        /*
-        Make it so that if the user hits http://localhost:3490/ (which is endpoint /,
-         on disk ./serverroot/), if no file is found there, try adding an index.html
-         to the end of the path and trying again.
-        */
+        // if file not found, look to see if there's an index.html in the dir
         sprintf(filepath, "./serverroot/%s%s", request_path, "/index.html");
         filedata = file_load(filepath);
         if (filedata == NULL)
