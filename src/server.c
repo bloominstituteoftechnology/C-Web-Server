@@ -129,10 +129,19 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    char cont_type[8];
+    sprintf(cont_type, mime_type_get(request_path));
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if(cache) {
+        send_response(fd, "HTTP/1.1 200 OK", cont_type, cache, strlen(cache));
+    }
+    else {
+        char resp_body[1024];
+        char r_path[1024];
+        sprintf(r_path, "/serverroot%s", request_path);
+        sprintf(resp_body, file_load(r_path));
+        send_response(fd, "HTTP/1.1 200 OK", cont_type, resp_body, strlen(resp_body));
+    }
 }
 
 /**
