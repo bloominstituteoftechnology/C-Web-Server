@@ -130,7 +130,19 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    resp_404(fd);
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if(filedata != NULL) {
+      mime_type = mime_type_get(filepath);
+      send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    } else {
+      resp_404(fd);
+    }
 }
 
 /**
