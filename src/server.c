@@ -126,13 +126,25 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    // TODO: Verify this code
-    // if (cache) {
-    //     fd = file_load(cache);
-    // } else {
-    //     fd = file_load(request_path);
-    // }
-    fd = file_load(request_path);
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    printf("INSIDE: %s\n", SERVER_ROOT);
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    printf("Filepath: %s\n", filepath);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        fprintf(stderr, "cannot find system %s file\n", request_path);
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -175,11 +187,11 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(path, "/d20") == 0) {
             get_d20(fd);
         } else {
-            if (file_load(path) == NULL) {
-                resp_404(fd);
-            } else {
+            // if (file_load(path) == NULL) {
+            //     resp_404(fd);
+            // } else {
                 get_file(fd, cache, path);//request_path
-            }
+            // }
         }
     } else {
         resp_404(fd);
