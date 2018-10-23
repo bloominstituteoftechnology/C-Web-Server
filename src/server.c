@@ -76,16 +76,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    srand(getpid() + time(NULL));
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand() % 20) + 1);
 
-    // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
+    
 }
 
 /**
@@ -142,8 +139,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    // parse("GET /path/script.cgi?field1=value1&field2=value2 HTTP/1.1");
-    // int parse(const char* line)
+    
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -159,48 +155,29 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    char method[6], path[20], query[20];
-    int ret;
-     ret = sscanf(request, "%s %s %s", method, path, query);
+
+    char method[8], path[1024], protocol[16];
+     
+     sscanf(request, "%s %s %s", method, path, protocol);
+
      printf("Method: %s\n", method);
      printf("Path: %s\n", path);
-     printf("Query: %s\n", query);
+     printf("Protocol: %s\n", protocol);
 
     //If GET, handle the get endpoints
+    
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(path, "/d20") == 0) {
+            printf("get_d20 called\n");
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, method);
+        }
+        
+    } else if (strcmp(method, "POST") == 0) {
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+    }
 
-// int parse(const char* line)
-// {
-//     /* Find out where everything is */
-//     const char *start_of_path = strchr(line, ' ') + 1;
-//     const char *start_of_query = strchr(start_of_path, '?');
-//     const char *end_of_query = strchr(start_of_query, ' ');
-
-//     /* Get the right amount of memory */
-//     char path[start_of_query - start_of_path];
-//     char query[end_of_query - start_of_query];
-
-//     /* Copy the strings into our memory */
-//     strncpy(path, start_of_path,  start_of_query - start_of_path);
-//     strncpy(query, start_of_query, end_of_query - start_of_query);
-
-//     /* Null terminators (because strncpy does not provide them) */
-//     path[sizeof(path)] = 0;
-//     query[sizeof(query)] = 0;
-
-//     /*Print */
-//     printf("%s\n", query, sizeof(query));
-//     printf("%s\n", path, sizeof(path));
-// }
-
-// int main(void)
-// {
-//     parse("GET /path/script.cgi?field1=value1&field2=value2 HTTP/1.1");
-//     return 0;
-// }
-    // (Stretch) If POST, handle the post request
 }
 
 /**
