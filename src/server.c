@@ -54,7 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -95,6 +95,8 @@ void get_d20(int fd)
     // int send_response(int fd, char *header, char *content_type, void *body, int content_length)
     // Use send_response() to send it back as text/plain data
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -154,7 +156,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-
+    char request_type[8];
+    char resource[1024];
+    char request_protocol[16];
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -162,38 +166,23 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-    const char delim[2] = " ";
-    char *token = strtok(request, delim);
 
-    const char *request_type;
-    const char *request_ext;
-    int count = 0;
-    while (token != NULL & count < 2) {
-        if(count == 0) {
-            request_type = token;
-            printf("Request Type: %s\n", request_type);
-        }
-        if(count == 1) {
-            request_ext = token;
-            printf("Request ext: %s\n", request_ext);
-        }
-        token = strtok(NULL, delim);
-        count++;
-    }
+    sscanf(request, "%s %s %s", request_type, resource, request_protocol);
+
+    printf("Got request: %s %s %s\n:", request_type, resource, request_protocol);
+   
     if(strcmp(request_type, " GET")) {
-        if (strcmp(request_ext, "/d20") == 0) {
+        if (strcmp(resource, "/d20") == 0) {
             printf("d20 has been reached\n");
             get_d20(fd);
-            get_file(fd, cache, "./serverfiles/d20.html");
         }
-        else if (strcmp(request_ext, "/") == 0) {
+        else if (strcmp(resource, "/") == 0) {
             printf("Root has been reached\n");
             get_file(fd, cache, "./serverroot/index.html");
         }
         else {
             printf("404 has been reached\n");
             resp_404(fd);
-            get_file(fd, cache, "./serverfiles/404.html");
         }
     }
     //Read the three components from the first line of the HTTP header. Hint: sscanf().
