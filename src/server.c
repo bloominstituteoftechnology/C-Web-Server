@@ -54,16 +54,29 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    time_t t = time(NULL);
+    struct tm *local_time = localtime(&t);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int response_length = sprintf(response,
+      "%s\n"
+      "Date: %s"
+      "Connection: close\n"
+      "Content-Length: %d\n"
+      "Content-Type: %s\n"
+      "\n"
+      "%s\n",
+
+      header,
+      asctime(local_time),
+      content_length,
+      content_type,
+      body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
-        perror("send");
+      perror("send");
     }
 
     return rv;
@@ -147,7 +160,6 @@ void handle_http_request(int fd, struct cache *cache)
     char request_type[8];
     char request_path[1024];
     char request_protocol[128];
-    char *first_line;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -158,7 +170,7 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
     request[bytes_recvd] = '\0';
-    *first_line = request;
+    char *first_line = request;
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -171,7 +183,7 @@ void handle_http_request(int fd, struct cache *cache)
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
     if (strcmp(request_type, "GET") == 0) {
-      resp_404(fd, request_path);
+      resp_404(fd);
     } else {
       fprintf(stderr, "Unrecognized request type \"%s\"\n", request_type);
       return;
