@@ -108,7 +108,7 @@ _Read through all the main and stretch goals before writing any code to get an o
 
    This needs to build a complete HTTP response with the given parameters. It
    should write the response to the string in the `response` variable.
-   
+
    The total length of the header **and** body should be stored in the
    `response_length` variable so that the `send()` call knows how many bytes to
    send out over the wire.
@@ -118,7 +118,7 @@ _Read through all the main and stretch goals before writing any code to get an o
 
    Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
    content length. `sprintf()` also returns the total number of bytes in the
-   result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file. 
+   result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file.
 
    > The HTTP `Content-Length` header only includes the length of the body, not
    > the header. But the `response_length` variable used by `send()` is the
@@ -193,7 +193,7 @@ The hashtable code is already written and can be found in `hashtable.c`.
    * Store it in the cache
    * Serve it
 
-There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation. 
+There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation.
 
 ### Stretch Goals
 
