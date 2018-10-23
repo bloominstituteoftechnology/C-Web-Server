@@ -54,10 +54,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    int response_length = strlen(header) + strlen(body);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    sprintf(response, "%s %s %s", header, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -159,12 +161,25 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    scanf(request, "%s %s %s", req_type, req_path, req_protocol);
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
+    if(strcmp(request_type, "GET") == 0) {
+        if(strcmp(request_path, "/") == 0) {
+        get_root(fd);
+        }
+        else if(strcmp(request_path, "/d20") == 0) {
+        get_d20(fd);
+        }
+        else if(strcmp(request_path, "/date") == 0) {
+        get_date(fd);
+        }
+        else {
+        resp_404(fd);
+        }
+    }
 
     // (Stretch) If POST, handle the post request
 }
