@@ -52,12 +52,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-
-    // Build HTTP response and store it in response
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Build HTTP response and store it in response
+    printf("header: %s", header);
+    printf("content_type: %s", content_type);
+    printf("body: %s", body);
+    sprintf(response, "%s%s%s", header, content_type, body);
+
     // Send it all!
     int rv = send(fd, response, content_length, 0);
 
@@ -130,7 +131,6 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
