@@ -12,6 +12,17 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+    entry->path = malloc(strlen(path));
+    entry->content_type = malloc(strlen(content_type));
+    entry->content_length = content_length;
+    entry->content_type = malloc(strlen(content));
+
+    strcpy(entry->path, path);
+    strcpy(entry->content_type, content_type);
+    strcpy(entry->content, content);
+
+    return entry;
 }
 
 /**
@@ -22,6 +33,12 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // Free all dynamically allocated memory (see alloc_entry above)
+    free(entry->content);
+    free(entry->content_type);
+    free(entry->path);
+    free(entry);
 }
 
 /**
@@ -94,6 +111,11 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache *new_cache = malloc(sizeof(struct cache));
+    new_cache->index = hashtable_create(hashsize, NULL);
+    new_cache->head = new_cache->tail = NULL;
+    new_cache->max_size = max_size;
+    new_cache->cur_size = 0;
 }
 
 /**
@@ -108,6 +130,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
 }
 
 /**

@@ -55,10 +55,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Get local time
     time_t rawtime;
     struct tm *info;
@@ -69,6 +65,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Assemble response string
     sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(info), content_length, content_type, body);
+
+    // printf("%s", response);
 
     int response_length = strlen(response);
 
@@ -158,6 +156,8 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    (void) header;
+    return 0;
 }
 
 /**
@@ -179,6 +179,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     sscanf(request, "%s %s %s", method, filePath, protocol);
 
+    // printf("fd: %d\n", fd);
     // printf("method: %s\nfilePath: %s\nprotocol: %s\n", method, filePath, protocol);
 
     if (strcmp(method, "GET") == 0 && strcmp(filePath, "/d20") == 0) { get_d20(fd); }
