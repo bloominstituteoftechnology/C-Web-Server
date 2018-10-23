@@ -58,7 +58,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+   int response_length = 1;
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -144,6 +144,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8];
+    char request_path[1024];
+    char request_protocol[128];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -153,7 +156,25 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
     
-    sscanf(request, "%s %s %s\n");
+    sscanf(request, "%s %s %s\n", request_type, request_path, request_protocol);
+
+    printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
+
+    if (strcmp(request_type, "GET") == 0) {
+        if (strcmp(request_path, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, request_path);
+        }
+    } else if (strcmp(request_type, "POST") == 0) {
+        if (strcmp(request_path, "/save") == 0) {
+            post_save(fd, body);
+        } else {
+            resp_404(fd);
+        }
+    } else {
+        fprintf(stderr, "unknown request type \"%s\"\n");
+    }
 
     ///////////////////
     // IMPLEMENT ME! //
