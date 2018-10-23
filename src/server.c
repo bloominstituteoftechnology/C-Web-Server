@@ -133,22 +133,26 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    if (strcmp(request_path, "/") == 0)
-    {
-        sprintf(filepath, "./serverroot/%s", "index.html");
-    }
-    else
-    {
-        sprintf(filepath, "./serverroot%s", request_path);
-    }
+    // load the filepath variable
+    sprintf(filepath, "./serverroot%s", request_path);
 
     // Fetch the  file
     filedata = file_load(filepath);
 
     if (filedata == NULL)
     {
-        resp_404(fd);
-        return;
+        /*
+        Make it so that if the user hits http://localhost:3490/ (which is endpoint /,
+         on disk ./serverroot/), if no file is found there, try adding an index.html
+         to the end of the path and trying again.
+        */
+        sprintf(filepath, "./serverroot/%s", "index.html");
+        filedata = file_load(filepath);
+        if (filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
     }
 
     mime_type = mime_type_get(filepath);
