@@ -175,11 +175,10 @@ void handle_http_request(int fd, struct cache *cache)
         get_d20(fd);
       }
       // Otherwise serve the requested file by calling get_file()
-      else
-      {
-        get_file(fd, cache, request_path);
       }
-    }
+      else {
+        resp_404(fd);
+     }
 
 
     // (Stretch) If POST, handle the post request
