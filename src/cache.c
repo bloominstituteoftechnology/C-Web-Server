@@ -17,7 +17,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 /**
  * Deallocate a cache entry
  */
-void free_entry(void *v_ent, void *varg)
+void free_entry(struct cache_entry *entry)
 {
     ///////////////////
     // IMPLEMENT ME! //
@@ -30,10 +30,13 @@ void free_entry(void *v_ent, void *varg)
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
     // Insert at the head of the list
-    if (cache->head == NULL) {
+    if (cache->head == NULL)
+    {
         cache->head = cache->tail = ce;
         ce->prev = ce->next = NULL;
-    } else {
+    }
+    else
+    {
         cache->head->prev = ce;
         ce->next = cache->head;
         ce->prev = NULL;
@@ -46,13 +49,16 @@ void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
  */
 void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 {
-    if (ce != cache->head) {
-        if (ce == cache->tail) {
+    if (ce != cache->head)
+    {
+        if (ce == cache->tail)
+        {
             // We're the tail
             cache->tail = ce->prev;
             cache->tail->next = NULL;
-
-        } else {
+        }
+        else
+        {
             // We're neither the head nor the tail
             ce->prev->next = ce->next;
             ce->next->prev = ce->prev;
@@ -64,7 +70,6 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
         cache->head = ce;
     }
 }
-
 
 /**
  * Removes the tail from the list and returns it
