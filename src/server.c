@@ -130,8 +130,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        // Handle the case where the user types '/' as the path
-        // serve the index.html file
         snprintf(filepath, sizeof filepath, "%s%sindex.html", SERVER_ROOT, request_path);
 
         filedata = file_load(filepath);

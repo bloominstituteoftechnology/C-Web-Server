@@ -9,9 +9,14 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
+    new_entry->path = path;
+    new_entry->content_type = content_type;
+    new_entry->content_length = content_length;
+    new_entry->content = content;
+    new_entry->prev = NULL;
+    new_entry->next = NULL;
+    return new_entry;
 }
 
 /**
@@ -19,9 +24,13 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if (entry->prev != NULL) {
+        entry->prev->next = entry->next;
+    }
+    if (entry->next != NULL) {
+        entry->next->prev = entry->prev;
+    }
+    free(entry);
 }
 
 /**
@@ -91,9 +100,13 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *new_cache = malloc(sizeof(struct cache));
+    new_cache->index = hashtable_create(hashsize, NULL);
+    new_cache->head = NULL;
+    new_cache->tail = NULL;
+    new_cache->max_size = max_size;
+    new_cache->cur_size = hashsize;
+    return new_cache;
 }
 
 /**
@@ -105,9 +118,16 @@ struct cache *cache_create(int max_size, int hashsize)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    if (cache->cur_size == cache->max_size) {
+        struct cache_entry *rm_entry = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, rm_entry->path);
+        free(rm_entry);
+        printf("cur-size: %d\n", cache->cur_size);
+    }
+    dllist_insert_head(cache, entry);
+    hashtable_put(cache->index, path, entry);
+    cache->cur_size += 1;
 }
 
 /**
