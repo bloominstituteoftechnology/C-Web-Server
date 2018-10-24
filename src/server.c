@@ -164,16 +164,35 @@ char *find_start_of_body(char *header)
     return token + 4;
 }
 
-char * post_save(char *request)
+/**
+ * Handle post request and save file in serverroot
+ */
+void post_save(int fd, char *request, int *file_counter)
 {
+    char file_name[256];
+    FILE * fp;
+
+    // Make file name, files stored in SERVER_ROOT
+    sprintf(file_name, "%s/input_file_%d.txt", SERVER_ROOT, (*file_counter)++);   
+
+    // Get body
     char *start_body = find_start_of_body(request);
-    printf("Start of body: %s\n", start_body);
-    return start_body;
+
+    // Open file, write to file
+    fp = fopen(file_name, "w");
+    fwrite(start_body, 1, strlen(start_body), fp);
+
+    fclose(fp);
+
+    char json_return[] = "{\"status\":\"ok\"}";
+
+    send_response(fd, "HTTP/1.1 200 OK", "application/json", json_return, strlen(json_return)); 
 }
+
 /**
  * Handle HTTP request and send response
  */
-void handle_http_request(int fd, struct cache *cache)
+void handle_http_request(int fd, struct cache *cache, int *file_counter)
 {
     const int request_buffer_size = 65536;          // 64K
     char request[request_buffer_size];
@@ -211,12 +230,13 @@ void handle_http_request(int fd, struct cache *cache)
     }
     else if(strcmp(method, "POST") == 0)
     {
-        post_save(request);
+        post_save(fd, request, file_counter);
         resp_404(fd);
     }
-     
+
+    // Reset request string so future file writes don't retain old values 
+    memset(request, 0, request_buffer_size);
     
-    // (Stretch) If POST, handle the post request
 }
 
 /**
@@ -227,6 +247,9 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
+
+    int file_counter = 1;       // For naming post files ex. input_file_1
+    int *file_counter_p = &file_counter;
 
     struct cache *cache = cache_create(10, 0);
 
@@ -264,7 +287,7 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
-        handle_http_request(newfd, cache);
+        handle_http_request(newfd, cache, file_counter_p);
 
         close(newfd);
     }
