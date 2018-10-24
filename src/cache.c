@@ -109,6 +109,8 @@ void cache_free(struct cache *cache)
 
         cur_entry = next_entry;
     }
+
+    free(cache);
 }
 
 /**
