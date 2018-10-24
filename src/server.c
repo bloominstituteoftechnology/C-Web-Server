@@ -55,10 +55,23 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
+    int response_length = sprintf(response,
+        "%s\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "Connection: close\n"
+        "\n"
+        "%s\n",
+        header,
+        content_length,
+        content_type,
+        body
+    );
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-   int response_length = 1;
+   
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
