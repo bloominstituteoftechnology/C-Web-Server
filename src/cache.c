@@ -39,6 +39,20 @@ void free_entry(struct cache_entry *entry)
 }
 
 /**
+ *  Deallocates a cache 
+ */
+void cache_free(struct cache *cache)
+{
+    while (cache->head != NULL)
+    {
+        struct cache_entry *temp = cache->head;
+        cache->head = cache->head->next;
+        free_entry(temp);
+    }
+    free(cache);
+}
+
+/**
  * Insert a cache entry at the head of the linked list
  */
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
