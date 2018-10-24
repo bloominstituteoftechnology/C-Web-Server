@@ -144,7 +144,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     if (cache_entry != NULL)
     {
         // printf("\nIT IS CACHED!! :)\n");
-        send_response(fd, "HTTP/1.1 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
+        send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
     }
     //   If it's not there:
     else
