@@ -137,15 +137,24 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     printf("The request_path: %s\n", request_path);
     // Fetch the file
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT,request_path);
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT,request_path);
     
     printf("The filepath: %s\n", filepath);
 
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        resp_404(fd);
-        return;
+        // This implies that the user entered / so route to index.html
+        printf("First if");
+        snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
+
+        filedata = file_load(filepath);
+
+        if (filedata == NULL){
+            printf("Second if");
+            resp_404(fd);
+            return;
+        }
     }
 
     mime_type = mime_type_get(filepath);
@@ -184,7 +193,7 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    // Read the three components of the first request line
+    // Printing to figure out what the variable are:
     printf("\nPRINTING FROM handle_http_request...\n");
     printf("Request %s\n", request);
     printf("Bytes_recvd %d\n", bytes_recvd);
