@@ -30,6 +30,21 @@ void free_entry(struct cache_entry *entry)
     //free?
 }
 
+void cache_free(struct cache *cache)
+{
+    struct cache_entry *cur_entry = cache->head;
+
+    hashtable_destroy(cache->index);
+
+    while (cur_entry != NULL) {
+        struct cache_entry *next_entry = cur_entry->next;
+
+        free_entry(cur_entry);
+
+        cur_entry = next_entry;
+    }
+}
+
 /**
  * Insert a cache entry at the head of the linked list
  */
@@ -100,6 +115,20 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
+    //Allocate the memory
+    struct cache *cache_inst = malloc(sizeof(struct cache));
+    struct hashtable *ht = hashtable_create(hashsize, NULL);
+
+    //Define/init the attributes or prperties of the obj/DS
+    cache_inst->head = NULL;
+    cache_inst->tail = NULL;
+    cache_inst->cur_size = 0;
+    cache_inst->max_size = max_size;
+    cache_inst->index = ht;
+
+    // return the DS
+    return cache_inst;
 }
 
 /**
