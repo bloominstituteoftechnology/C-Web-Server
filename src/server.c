@@ -132,7 +132,8 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
         if (filedata == NULL)
         {
-            snprintf(filepath, sizeof filepath, "%s%s/index.html", SERVER_ROOT, request_path);
+            snprintf(filepath, sizeof filepath, "%s%sindex.html", SERVER_ROOT, request_path);
+            printf("%s\n", filepath);
             filedata = file_load(filepath);
 
             if (filedata == NULL)
