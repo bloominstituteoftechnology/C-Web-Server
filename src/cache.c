@@ -36,9 +36,10 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if(entry != NULL) {
+
+        free(entry);
+    }
 }
 
 /**
@@ -127,9 +128,28 @@ struct cache *cache_create(int max_size, int hashsize)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+   struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+
+   dllist_insert_head(cache, entry);
+
+   hashtable_put(cache->index, entry->path, entry);
+
+   // Incremtn the current size of the cache
+   cache->cur_size++;
+
+    // if the cache size is greater than the max size
+
+    if (cache->cur_size > cache->max_size) {
+        // Remove the entry from the hashtable, using the entry's path
+        hashtable_delete(cache->index, entry->path);
+        // Remove the cache entry at the tail of the linked list
+        dllist_remove_tail(cache);
+    // Free the cache entry
+        free_entry(entry);
+        printf("Cache-head: %s\n", cache->head->content);
+        // Ensure the size counter for the number of entries in the cache is correct.
+        cache->cur_size = cache->index->num_entries;
+    }
 }
 
 /**
