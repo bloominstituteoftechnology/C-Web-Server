@@ -5,7 +5,7 @@
 
 /**
  * Loads a file into memory and returns a pointer to the data.
- * 
+ *
  * Buffer is not NUL-terminated.
  */
 struct file_data *file_load(char *filename)
@@ -16,11 +16,13 @@ struct file_data *file_load(char *filename)
 
     // Get the file size
     if (stat(filename, &buf) == -1) {
+        printf("%s\n", "a");
         return NULL;
     }
 
     // Make sure it's a regular file
     if (!(buf.st_mode & S_IFREG)) {
+        printf("%s\n", "b");
         return NULL;
     }
 
@@ -28,6 +30,7 @@ struct file_data *file_load(char *filename)
     FILE *fp = fopen(filename, "rb");
 
     if (fp == NULL) {
+        printf("%s\n", "c");
         return NULL;
     }
 
@@ -36,6 +39,7 @@ struct file_data *file_load(char *filename)
     p = buffer = malloc(bytes_remaining);
 
     if (buffer == NULL) {
+        printf("%s\n", "d");
         return NULL;
     }
 
@@ -43,6 +47,7 @@ struct file_data *file_load(char *filename)
     while (bytes_read = fread(p, 1, bytes_remaining, fp), bytes_read != 0 && bytes_remaining > 0) {
         if (bytes_read == -1) {
             free(buffer);
+            printf("%s\n", "d");
             return NULL;
         }
 
@@ -56,6 +61,7 @@ struct file_data *file_load(char *filename)
 
     if (filedata == NULL) {
         free(buffer);
+        printf("%s\n", "e");
         return NULL;
     }
 
