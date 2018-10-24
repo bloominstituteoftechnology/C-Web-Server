@@ -5,4 +5,5 @@ DEBUG cache_tests/cache_tests.c:153:
 ----- test_cache_alloc_entry
 DEBUG cache_tests/cache_tests.c:154: 
 ----- test_cache_put
-[ERROR] (cache_tests/cache_tests.c:60: errno: None) Your cache_put function did not correctly increment the cur_size field when adding a new cache entry
+DEBUG cache_tests/cache_tests.c:155: 
+----- test_cache_get

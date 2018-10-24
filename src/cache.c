@@ -155,15 +155,25 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     struct cache_entry *cache_entry = alloc_entry(path, content_type, content, content_length);
 
     // Insert the entry at the head of the doubly-linked list.
+    dllist_insert_head(cache, cache_entry);
 
     // Store the entry in the hashtable as well, indexed by the entry's path.
+    hashtable_put(cache->index, cache_entry->path, cache_entry);
 
     // Increment the current size of the cache.
+    cache->cur_size++;
 
     // If the cache size is greater than the max size:
-    /// Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
-    /// Remove the cache entry at the tail of the linked list.
-    /// Free the cache entry.
+    if (cache->cur_size > cache->max_size)
+    {
+        // Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
+        cache_entry = dllist_remove_tail(cache);
+        // Remove the cache entry at the tail of the linked list.
+        hashtable_delete(cache->index, cache_entry->path);
+        // Free the cache entry.
+        free_entry(cache_entry);
+    }
+
     /// Ensure the size counter for the number of entries in the cache is correct.
 }
 
@@ -172,7 +182,21 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // declare our cache_entry pointer variable
+    struct cache_entry *cache_entry;
+
+    // Attempt to find the cache entry pointer by path in the hash table.
+    cache_entry = hashtable_get(cache->index, path);
+
+    // If not found, return NULL.
+    if (cache_entry == NULL)
+    {
+        return NULL;
+    }
+
+    // Move the cache entry to the head of the doubly - linked list.
+    dllist_move_to_head(cache, cache_entry);
+
+    // Return the cache_entry pointer.
+    return cache_entry;
 }
