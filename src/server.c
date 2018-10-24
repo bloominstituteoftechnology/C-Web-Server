@@ -151,13 +151,14 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
 
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
 
+    filedata = file_load(filepath);
     if (filedata == NULL)
     {
         fprintf(stderr, "cannot find %s file\n", request_path);
         exit(0);
     }
+
     else
     {
         mime_type = mime_type_get(filepath);
@@ -219,7 +220,14 @@ void handle_http_request(int fd, struct cache *cache)
         //    Otherwise serve the requested file by calling get_file()
         else
         {
-            get_file(fd, cache, req_path);
+            if (strlen(req_path) == 1)
+            {
+                get_file(fd, cache, "index.html");
+            }
+            else
+            {
+                get_file(fd, cache, req_path);
+            }
         }
     }
     else

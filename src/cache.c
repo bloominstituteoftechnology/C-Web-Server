@@ -110,15 +110,15 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    if (hashsize == NULL)
-    {
-        hashsize = 0;
-    }
+    // if (hashsize == NULL)
+    // {
+    //     hashsize = 0;
+    // }
     struct cache *cache = malloc(sizeof(struct cache));
 
     cache->head = NULL;
     cache->tail = NULL;
-    cache->index = hashtable_create(hashsize);
+    cache->index = hashtable_create(hashsize, NULL);
     cache->max_size = max_size;
     cache->cur_size = 0;
 
@@ -137,9 +137,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     struct cache_entry *ce = alloc_entry(path, content_type, content, content_length);
     struct cache_entry *oldTail;
+
     hashtable_put(cache->index, ce->path, ce->content);
     dllist_insert_head(cache, ce);
 
