@@ -60,8 +60,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     info = localtime(&rawtime);
 
     int response_length = sprintf(response,
-                                  "%s\n Content-Type: %s\n Server: Lambda C Server\n Content-Length: %d\n Date: %s\n",
-                                  header, content_type, content_length, asctime(info));
+                                  "%s\n Content-Type: %s\n Server: Lambda C Server\n Content-Length: %d\n Date: %s\n %s\n",
+                                  header, content_type, content_length, asctime(info), body);
 
     int rv = send(fd, response, response_length, 0);
 
@@ -119,33 +119,29 @@ void get_file(int fd, struct cache *cache, char *request_path)
   struct file_data *filedata;
   char *mime_type;
 
-  snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+  if (strcmp(request_path, "/") == 0)
+  {
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, "/index.html");
+  }
+  else
+  {
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+  }
 
   filedata = file_load(filepath);
 
-  printf("filedata: %s\n", filedata);
-  printf("request path: %s\n", request_path);
-  printf("filepath: %s\n", filepath);
-
   if (filedata == NULL)
   {
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, "/index.html");
-    printf("Filedata null: %s\n", filepath);
-    filedata = file_load(filepath);
-
-    if (filedata == NULL)
-    {
-      fprintf(stderr, "File not found: %s\n", request_path);
-      resp_404(fd);
-      return;
-    }
+    fprintf(stderr, "File not found: %s\n", request_path);
+    resp_404(fd);
+    return;
   }
-
-  mime_type = mime_type_get(filepath);
-
-  send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-  file_free(filedata);
+  else
+  {
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
+  }
 }
 
 /**
