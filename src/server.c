@@ -124,7 +124,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     if (entry != NULL)
     {
-        printf("In Cache\n");
         send_response(fd, "HTTP/1.1 OK", entry->content_type, entry->content, entry->content_length);
     }
     else

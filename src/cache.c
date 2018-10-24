@@ -113,6 +113,21 @@ struct cache *cache_create(int max_size, int hashsize)
     return cache;
 }
 
+void cache_free(struct cache *cache)
+{
+    hashtable_destroy(cache->index);
+    struct cache_entry *current_entry = cache->head;
+
+    while (current_entry != NULL)
+    {
+        struct cache_entry *next_entry = current_entry->next;
+        free_entry(current_entry);
+        current_entry = next_entry;
+    }
+
+    free(cache);
+}
+
 /**
  * Store an entry in the cache
  *
