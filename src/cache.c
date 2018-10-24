@@ -119,3 +119,20 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     // IMPLEMENT ME! //
     ///////////////////
 }
+
+// added on 10/24 per sean c instructions
+void cache_free(struct cache *cache)
+{
+    struct cache_entry *cur_entry = cache->head;
+
+    hashtable_destroy(cache->index);
+
+    while (cur_entry != NULL)
+    {
+        struct cache_entry *next_entry = cur_entry->next;
+
+        free_entry(cur_entry);
+
+        cur_entry = next_entry;
+    }
+}
