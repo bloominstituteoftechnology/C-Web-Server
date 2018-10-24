@@ -52,23 +52,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-    char time;
-    char length[50];
-    sprintf(length, "%d", content_length);
 
     // Build HTTP response and store it in response
-    strcat(response, header);
-    strcat(response, "\r\n Date: ");
-    strcat(response, &time);
-    strcat(response, "\r\nConnection: close\r\nContent-Length: ");
-    strcat(response, length);
-    strcat(response, "\r\nContent-Type: ");
-    strcat(response, content_type);
-    strcat(response, "\r\n\r\n");
-    strcat(response, body);
-    strcat(response, "\n");
 
-    int response_length = strlen(response);
+    time_t t = time(NULL);
+    struct tm *gm = gmtime(&t);
+
+
+    int response_length = sprintf(response,
+        "%s\n"
+        "Date: %s"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n"
+        "%s\n",
+        header, 
+        asctime(gm),
+        content_length,
+        content_type, 
+        body
+    );
 
 
     // Send it all!
@@ -129,19 +133,25 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    char cont_type[8];
-    sprintf(cont_type, mime_type_get(request_path));
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
 
-    if(cache) {
-        send_response(fd, "HTTP/1.1 200 OK", cont_type, cache, strlen(cache));
+    mime_type = mime_type_get(filepath);
+
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+
+    filedata = file_load(filepath);
+
+    if(filedata == NULL) {
+        resp_404(fd);
+        return;
     }
     else {
-        char resp_body[1024];
-        char r_path[1024];
-        sprintf(r_path, "/serverroot%s", request_path);
-        sprintf(resp_body, file_load(r_path));
-        send_response(fd, "HTTP/1.1 200 OK", cont_type, resp_body, strlen(resp_body));
+        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata, sizeof(filedata));;
     }
+    file_free(filedata);
 }
 
 /**
