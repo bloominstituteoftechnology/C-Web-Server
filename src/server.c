@@ -64,11 +64,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     info = localtime( &rawtime );
 
     // Assemble response string
-    sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(info), content_length, content_type, body);
+    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(info), content_length, content_type, body);
 
     // printf("%s", response);
-
-    int response_length = strlen(response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -112,7 +110,7 @@ void resp_404(int fd)
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        char not_found[] = "Not found file not found (meta)";
+        char not_found[] = "File for 'not Found' file, not found (meta)";
         send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/plain", not_found, strlen(not_found));
 
     }
@@ -129,17 +127,20 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+
     char filepath[4096];                            // For arbitrary file serving
     struct file_data *filedata;                     // For arbitrary file serving
-    (void) cache;
-
+    
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
     
     if(filedata != NULL)
     {
+        
         char *mime_type = mime_type_get(filepath);
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
     }
     else{ resp_404(fd); }
 
@@ -179,26 +180,28 @@ void handle_http_request(int fd, struct cache *cache)
 
     sscanf(request, "%s %s %s", method, filePath, protocol);
 
-    // printf("fd: %d\n", fd);
-    // printf("method: %s\nfilePath: %s\nprotocol: %s\n", method, filePath, protocol);
+    if (strcmp(method, "GET") == 0)
+    {   
+        // Construct string of local path to use as hashtable key
+        char localPath[256];
+        sprintf(localPath, "%s%s", SERVER_ROOT, filePath);
 
-    if (strcmp(method, "GET") == 0 && strcmp(filePath, "/d20") == 0) { get_d20(fd); }
-    else{ get_file(fd, cache, filePath); }
+        struct cache_entry *entry = cache_get(cache, localPath);
+        if(entry != NULL){          // If we have the entry in our cache
+        
+            printf("\nentry in cache!!\n");
+            send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+
+        }
+        else{    
+            printf("\nfile not in cache\n");
+            if(strcmp(filePath, "/d20") == 0) { get_d20(fd); }
+            else{ get_file(fd, cache, filePath); }              // get the entry and add to cache
+        }
+        
+    }
+     
     
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the three components of the first request line
-
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-    
-
     // (Stretch) If POST, handle the post request
 }
 
