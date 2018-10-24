@@ -11,6 +11,8 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
     ///////////////////
     // IMPLEMENT ME! //
+    // Malloc size for entry here
+    // Build out entry using struct
     ///////////////////
 }
 
@@ -21,6 +23,7 @@ void free_entry(struct cache_entry *entry)
 {
     ///////////////////
     // IMPLEMENT ME! //
+    // Free up memory that you've alloc
     ///////////////////
 }
 
@@ -93,6 +96,7 @@ struct cache *cache_create(int max_size, int hashsize)
 {
     ///////////////////
     // IMPLEMENT ME! //
+    // allac entry like
     ///////////////////
 }
 
@@ -107,6 +111,13 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 {
     ///////////////////
     // IMPLEMENT ME! //
+    // Use alloc
+    // Insert double list
+    // Store entry w/ hashtable insert
+    // Increment current size of cache (see cache.h)
+    // Check if > max size in while loop, free space in cache like a queue
+    //    Remove from hashtable
+    // ~ 10 lines
     ///////////////////
 }
 
@@ -118,4 +129,19 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+}
+
+void cache_free(struct cache *cache)
+{
+    struct cache_entry *cur_entry = cache->head;
+
+    hashtable_destroy(cache->index);
+
+    while (cur_entry != NULL) {
+        struct cache_entry *next_entry = cur_entry->next;
+
+        free_entry(cur_entry);
+
+        cur_entry = next_entry;
+    }
 }
