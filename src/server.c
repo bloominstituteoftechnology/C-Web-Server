@@ -154,13 +154,22 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-    (void) header;
-    return 0;
+
+    const char search_for[5] = "\r\n\r\n";
+    char *token;
+
+    token = strstr(header, search_for);
+
+    // Original pointer includes searched_for term, add 5 to get to content
+    return token + 4;
 }
 
+char * post_save(char *request)
+{
+    char *start_body = find_start_of_body(request);
+    printf("Start of body: %s\n", start_body);
+    return start_body;
+}
 /**
  * Handle HTTP request and send response
  */
@@ -189,16 +198,21 @@ void handle_http_request(int fd, struct cache *cache)
         struct cache_entry *entry = cache_get(cache, localPath);
         if(entry != NULL){          // If we have the entry in our cache
         
-            printf("\nentry in cache!!\n");
             send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
 
         }
         else{    
-            printf("\nfile not in cache\n");
+            
             if(strcmp(filePath, "/d20") == 0) { get_d20(fd); }
             else{ get_file(fd, cache, filePath); }              // get the entry and add to cache
+
         }
         
+    }
+    else if(strcmp(method, "POST") == 0)
+    {
+        post_save(request);
+        resp_404(fd);
     }
      
     
