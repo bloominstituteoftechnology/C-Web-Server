@@ -131,9 +131,28 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    printf("The request_path: %s\n", request_path);
+    // Fetch the file
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT,request_path);
+    
+    printf("The filepath: %s\n", filepath);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -154,11 +173,11 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 65536; // 64K 16 bits
     char request[request_buffer_size];
 
     // Read request
-    int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+    int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0); //15 bit number
 
     if (bytes_recvd < 0) {
         perror("recv");
@@ -170,30 +189,28 @@ void handle_http_request(int fd, struct cache *cache)
     printf("Request %s\n", request);
     printf("Bytes_recvd %d\n", bytes_recvd);
     
-    printf("Request: %s\n", request);
-
     //To come up with length of each buffer, take the nominal length
     //and double it and make sure the number is radix 2.
-    char method[8], resource[1024], protocol[16];
+    char req_method[8], req_path[1024], req_protocol[16];
 
     //Extract the 3 variables from the http header line and place into the variables:
-    sscanf(request, "%s %s %s", method, resource, protocol);
+    sscanf(request, "%s %s %s", req_method, req_path, req_protocol);
     
-    printf("Method: %s\n", method);
-    printf("Resource: %s\n", resource);
+    printf("req_method: %s\n", req_method);
+    printf("req_path: %s\n", req_path);
 
     // If GET, handle the get endpoints
-    if (strcmp(method, "GET") == 0){
+    if (strcmp(req_method, "GET") == 0){
         printf("Inside GET....\n");
 
-        if (strcmp(resource, "/d20") == 0){
-            printf("Inside Resource....\n");
+        if (strcmp(req_path, "/d20") == 0){
+            printf("Inside req_path....\n");
             
-            //initialize fd to some random value
+            // Call d20
             get_d20(fd);
         }else {
-            //get_file(fd, cache, request_path);
-            resp_404(fd);
+            get_file(fd, cache, req_path);
+
         }
 
     }
