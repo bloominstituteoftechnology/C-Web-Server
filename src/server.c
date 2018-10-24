@@ -89,19 +89,11 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
     srand(getpid() + time(NULL));
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Use send_response() to send it back as text/plain data
     char response_body[8];
 
     sprintf(response_body, "%d\n", (rand() % 20) + 1);
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -136,9 +128,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
+        filedata = file_load(filepath);
+        if (filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
+    }
+
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
 }
 
 /**
@@ -173,10 +183,6 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
