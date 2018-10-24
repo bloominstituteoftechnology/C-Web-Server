@@ -132,9 +132,16 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
         if (filedata == NULL)
         {
-            fprintf(stderr, "Cannot find system file: %s\n", request_path);
-            resp_404(fd);
-            return;
+            snprintf(filepath, sizeof filepath, "%s%s/index.html", SERVER_ROOT, request_path);
+            filedata = file_load(filepath);
+
+            if (filedata == NULL)
+            {
+
+                fprintf(stderr, "Cannot find system file: %s\n", request_path);
+                resp_404(fd);
+                return;
+            }
         }
 
         mime_type = mime_type_get(filepath);
