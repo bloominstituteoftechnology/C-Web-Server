@@ -33,6 +33,7 @@
 #include "file.h"
 #include "mime.h"
 #include "cache.h"
+#include <ctype.h>
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -53,13 +54,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+    int response_length = sprintf(response, "%s\n"
+                                            "Connection: close\n"
+                                            "Content-Length: %d\n"
+                                            "Content-Type: %s\n"
+                                            "\n"
+                                            "%s\n",
+                                  header, content_length, content_type, body);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    int response_length = sprintf(response, "%s, %s", header, body);
-    printf("response is %s\n", response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -67,7 +69,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     {
         perror("send");
     }
-
+    printf("send rv number is, %d\n", rv);
     return rv;
 }
 
@@ -76,15 +78,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-
+    srand(10);
     // Generate a random number between 1 and 20 inclusive
-    int randNumber = rand() % 21;
-    printf("number is %d\n", randNumber);
+    char randNumber_text[50];
+    int randNumber_text_length = sprintf(randNumber_text, "%d", (rand() % 21));
+    char *mime_type = mime_type_get(randNumber_text);
 
-    // Use send_response() to send it back as text/plain data
-    mime_type = mime_type_get(randNumber);
-
-    send_response(fd, "HTTP/1.1 200", "text/plain", randNumber, 25);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", randNumber_text, randNumber_text_length);
 }
 
 /**
@@ -136,7 +136,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     if (filedata == NULL)
     {
         // TODO: make this non-fatal
-        fprintf(stderr, "got file cannot find system 404 file\n");
+        fprintf(stderr, "get_file cannot find system 404 file\n");
         exit(3);
     }
 
@@ -179,9 +179,6 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     sscanf(request, "%s %s %s", method, path, http);
 
     printf("handle_http_request reading path %s\n", path);
@@ -190,7 +187,6 @@ void handle_http_request(int fd, struct cache *cache)
     {
         if (strcmp(path, "/d20") == 0)
         {
-            puts("d20 file page");
             get_d20(fd);
         }
         else
@@ -202,12 +198,6 @@ void handle_http_request(int fd, struct cache *cache)
     {
         puts("Post request");
     }
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-    // (Stretch) If POST, handle the post request
 }
 
 /**

@@ -13,6 +13,21 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     // IMPLEMENT ME! //
     ///////////////////
 }
+void cache_free(struct cache *cache)
+{
+    struct cache_entry *cur_entry = cache->head;
+
+    hashtable_destroy(cache->index);
+
+    while (cur_entry != NULL)
+    {
+        struct cache_entry *next_entry = cur_entry->next;
+
+        free_entry(cur_entry);
+
+        cur_entry = next_entry;
+    }
+}
 
 /**
  * Deallocate a cache entry
@@ -22,6 +37,8 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    if (entry)
+        free(entry);
 }
 
 /**
@@ -96,12 +113,16 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *cache = malloc(sizeof *cache);
+    cache->max_size = max_size;
+    cache->head = NULL;
+    cache->tail = NULL;
+    cache->cur_size = 0;
+    cache->index = NULL;
 }
 
 /**
+ *  
  * Store an entry in the cache
  *
  * This will also remove the least-recently-used items as necessary.
@@ -110,9 +131,21 @@ struct cache *cache_create(int max_size, int hashsize)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
+    // allocate new cache entry with the passed params
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    // Insert the entry at the head of the doubly-linked list.
+    dllist_insert_head(cache, entry);
+    // Store the entry in the hashtable as well, indexed by the entry's path.
+    hashtable_put(cache->index, entry->path, entry);
+    // Increment the current size of the cache.
+    cache->cur_size++;
+    if (cache->cur_size > cache->max_size)
+    {
+        // If the cache size is greater than the max size:
+        hashtable_delete(cache->index, cache->tail->path);
+        free(dllist_remove_tail(cache));
+    }
 }
 
 /**
