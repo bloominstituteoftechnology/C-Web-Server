@@ -34,6 +34,7 @@
 #include "mime.h"
 #include "cache.h"
 #include <ctype.h>
+#include "cache.h"
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -82,7 +83,6 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
     char randNumber_text[50];
     int randNumber_text_length = sprintf(randNumber_text, "%d", (rand() % 21));
-    char *mime_type = mime_type_get(randNumber_text);
 
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", randNumber_text, randNumber_text_length);
 }
@@ -129,22 +129,29 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     // Fetch the 404.html file
     snprintf(filepath, sizeof filepath, "%s%s.html", SERVER_ROOT, request_path);
+
     printf("get_file reading path %s\n", filepath);
-
-    filedata = file_load(filepath);
-
-    if (filedata == NULL)
+    struct cache_entry *entry = cache_get(cache, filepath);
+    if (!entry)
     {
-        // TODO: make this non-fatal
-        fprintf(stderr, "get_file cannot find system 404 file\n");
-        exit(3);
+        filedata = file_load(filepath);
+        if (filedata == NULL)
+        {
+            // TODO: make this non-fatal
+            fprintf(stderr, "get_file cannot find system 404 file\n");
+            exit(3);
+        }
+        mime_type = mime_type_get(filepath);
+
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
     }
+    else
+    {
 
-    mime_type = mime_type_get(filepath);
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    }
 }
 
 /**
@@ -153,12 +160,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
+// char *find_start_of_body(char *header)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! // (Stretch)
+//     ///////////////////
+// }
 
 /**
  * Handle HTTP request and send response

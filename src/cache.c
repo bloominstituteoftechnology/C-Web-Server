@@ -9,9 +9,12 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = malloc(sizeof *entry);
+    entry->path = path;
+    entry->content_type = content_type;
+    entry->content = content;
+    entry->content_length = content_length;
+    return entry;
 }
 void cache_free(struct cache *cache)
 {
@@ -114,11 +117,13 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
 struct cache *cache_create(int max_size, int hashsize)
 {
     struct cache *cache = malloc(sizeof *cache);
+    struct hashtable *index = hashtable_create(hashsize, NULL);
     cache->max_size = max_size;
     cache->head = NULL;
     cache->tail = NULL;
-    cache->cur_size = 0;
-    cache->index = NULL;
+    cache->cur_size = hashsize;
+    cache->index = index;
+    return cache;
 }
 
 /**
@@ -153,10 +158,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     // Attempt to find the cache entry pointer by path in the hash table.
+
+    printf("cache_get looking for path %s\n", path);
     struct cache_entry *entry = hashtable_get(cache->index, path);
     if (!entry)
     {
