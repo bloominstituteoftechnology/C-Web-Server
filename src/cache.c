@@ -39,6 +39,16 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
 }
 
+void clean_lru(struct cache *cache)
+{
+    while (cache->cur_size > cache->max_size) {
+        struct cache_entry *oldtail = dllist_remove_tail(cache);
+
+        hashtable_delete(cache->index, oldtail->path);
+        free_entry(oldtail);
+    }
+}
+
 /**
  * Insert a cache entry at the head of the linked list
  */
