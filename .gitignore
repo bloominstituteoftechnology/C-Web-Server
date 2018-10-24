@@ -58,8 +58,8 @@ dkms.conf
 src/server
 src/data.txt
 *.o
-cache_tests/cache_tests
-cache_tests/cache_tests.exe
-cache_tests/cache_tests.log
+src/cache_tests/cache_tests
+src/cache_tests/cache_tests.exe
+src/cache_tests/cache_tests.log
 target/
 data.txt
