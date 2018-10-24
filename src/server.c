@@ -52,7 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-    int response_length = 0;
+    // int response_length = 0;
     time_t t = time(NULL);
     struct tm *lt1 = localtime(&t);
     // // Build HTTP response and store it in response
@@ -130,6 +130,28 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+
+    struct file_data *filedata;
+    char *mime_type;
+
+    sprintf(filepath, sizeof(filepath), "%s %s", SERVER_ROOT, request_path);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        //Handle the case where user just typed in '/' as the path
+        //Serves the index.html file
+        snprintf(filepath, sizeof(filepath), "%s %s/index.html", SERVER_ROOT, request_path);
+
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            resp_404(fd);
+            return;
+        }
+    }
+
 }
 
 /**
