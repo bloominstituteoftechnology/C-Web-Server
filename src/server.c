@@ -154,18 +154,32 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
+    char *body = strstr(header, "\r\n\r\n"); // First two CRLF's in a row is where the body starts - Carriage Return (ASCII 13, \r) Line Feed (ASCII 10, \n)
+    return body;
 }
 
 /**
  * Handle HTTP request and send response
  */
+
+void post_save(int fd, char *body)
+{
+    FILE *file = fopen("post_data.txt", "a");
+    if (file != NULL)
+    {
+        char status[32] = "{\"status\": \"ok\"}";
+        fwrite(body, sizeof(char), strlen(body), file);
+        fclose(file);
+        send_response(fd, "HTTP/1.1 200 OK", "application/json", status, strlen(status));
+    }
+}
+
 void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8];
+    char request_path[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -176,8 +190,6 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    char request_type[4];
-    char request_path[20];
     sscanf(request, "%s %s", request_type, request_path);
 
     if (strcmp(request_type, "GET") == 0)
@@ -189,16 +201,15 @@ void handle_http_request(int fd, struct cache *cache)
         else
         {
             get_file(fd, cache, request_path);
-            // resp_404(fd);
         }
     }
-
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-    // (Stretch) If POST, handle the post request
+    else if (strcmp(request_type, "POST") == 0)
+    {
+        if (strcmp(request_path, "/save") == 0)
+        {
+            post_save(fd, find_start_of_body(request));
+        }
+    }
 }
 
 /**
