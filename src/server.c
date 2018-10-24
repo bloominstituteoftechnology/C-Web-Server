@@ -55,9 +55,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     // Get current time for HTTP header
     time_t t1 = time(NULL);
     struct tm *local_time = localtime(&t1);
@@ -130,14 +127,64 @@ void resp_404(int fd)
     file_free(filedata);
 }
 
+int get_file_or_cache(int fd, struct cache *cache, char *filepath)
+{
+    struct file_data *filedata;
+    struct cache_entry *cacheent;
+    char *mime_type;
+
+    // Try to find the file
+    cacheent = cache_get(cache, filepath);
+
+    if (cacheent != NULL)
+    {
+        // Found in the cache
+
+        // Removes cache and ignores entry if it's too old
+        send_response(fd, "HTTP/1.1 200 OK", cacheent->content_type, cacheent->content, cacheent->content_length);
+    } else {
+        filedata = file_load(filepath);
+
+        if (filedata == NULL)
+        {
+            return -1; // Failure
+        }
+
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        // Save in cache for next call
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
+    return 0;
+}
+
 /**
  * Read and return a file from disk or cache
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    int status;
+
+    // Attempts to find file
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    status = get_file_or_cache(fd, cache, filepath);
+
+    if (status == -1)
+    {
+        snprintf(filepath, sizeof filepath, "%s%s/index.html", SERVER_ROOT, request_path);
+        status = get_file_or_cache(fd, cache, filepath);
+
+        if (status == -1)
+        {
+            resp_404(fd);
+            return;
+        }
+    }
 }
 
 /**
