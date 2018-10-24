@@ -1,10 +1,11 @@
 #ifndef _HASHTABLE_H_
 #define _HASHTABLE_H_
 
-struct hashtable {
-    int size; // Read-only
+struct hashtable
+{
+    int size;        // Read-only
     int num_entries; // Read-only
-    float load; // Read-only
+    float load;      // Read-only
     struct llist **bucket;
     int (*hashf)(void *data, int data_size, int bucket_count);
 };

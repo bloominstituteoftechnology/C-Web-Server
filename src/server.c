@@ -55,9 +55,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    // get the time for the response
+    // get the time for the response, type time_t
     time_t cur_time = time(NULL);
-    struct tm *time_str = localtime(&cur_time);
+    // convert to struct tm (asctime converts to string)
+    struct tm *time_tm = localtime(&cur_time);
 
     // sprintf returns length of str
     int response_length = sprintf(response,
@@ -66,7 +67,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                   "Content-Type: %s\nContent-Length: %d\n"
                                   "\n"    // end marker for header
                                   "%s\n", // body
-                                  header, asctime(time_str), content_type,
+                                  header, asctime(time_tm), content_type,
                                   content_length, body);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -152,6 +153,8 @@ void get_file(int fd, struct cache *cache, char *request_path)
     }
 
     mime_type = mime_type_get(filepath);
+    printf("\nTHE MIME TYPE IS %s\n", mime_type);
+    printf("\nTHE DATA IS %s\n", filedata->data);
 
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 
