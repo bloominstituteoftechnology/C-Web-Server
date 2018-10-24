@@ -58,7 +58,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    int response_length = sizeof(response)/sizeof(char);
+    // Get current time for HTTP header
+    time_t t1 = time(NULL);
+    struct tm *local_time = localtime(&t1);
+
+    // int response_length = sizeof(response)/sizeof(char); Not quite right...
+    int response_length = sprintf(response, 
+        "%sn\n"
+        "Date: %s"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n"
+        "%s\n",
+
+        header,
+        asctime(local_time),
+        content_length,
+        content_type,
+        body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -77,16 +95,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(0)); // Seeds the random number generator based on the current time
 
-    // Use send_response() to send it back as text/plain data
+    char response_body[8]; // Set string to send response body, again why 8 bytes?
+    sprintf(response_body, "%d\n", (rand()%20) + 1); // Prints the generated number
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Sends the response back as plain text data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body)); 
 }
 
 /**
