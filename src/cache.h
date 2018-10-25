@@ -8,6 +8,7 @@ struct cache_entry
     char *content_type;
     int content_length;
     void *content;
+    char *created_at;
 
     struct cache_entry *prev, *next; // Doubly-linked list
 };

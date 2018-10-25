@@ -1,6 +1,9 @@
+#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE_EXTENDED
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "hashtable.h"
 #include "cache.h"
 
@@ -10,10 +13,13 @@
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
     struct cache_entry *entry = malloc(sizeof(*entry));
+    time_t ltime = time(NULL);
     entry->path = strdup(path);
     entry->content_type = strdup(content_type);
-    entry->content = strdup(content);
+    entry->content = malloc(content_length);
+    memcpy(entry->content, content, content_length);
     entry->content_length = content_length;
+    entry->created_at = strdup(asctime(localtime(&ltime)));
     entry->prev = NULL;
     entry->next = NULL;
 
@@ -28,6 +34,7 @@ void free_entry(struct cache_entry *entry)
     free(entry->path);
     free(entry->content_type);
     free(entry->content);
+    free(entry->created_at);
     free(entry);
 }
 
@@ -128,6 +135,31 @@ void cache_free(struct cache *cache)
     free(cache);
 }
 
+void cache_delete(struct cache *cache, struct cache_entry *entry)
+{
+    if (cache->head == entry)
+    {
+        printf("%s\n", entry->next->content_type);
+        // cache->head = cache->head->next;
+        // cache->head->prev = NULL;
+    }
+    // if (cache->tail == entry)
+    // {
+    //     printf("TAIL\n");
+    //     dllist_remove_tail(cache);
+    // }
+    // else
+    // {
+    //     printf("NEITHER\n");
+    //     entry->prev->next = entry->next;
+    //     entry->next->prev = entry->prev;
+    // }
+
+    printf("GOT HERE\n");
+    // hashtable_delete(cache->index, entry->path);
+    // free_entry(entry);
+}
+
 /**
  * Store an entry in the cache
  *
@@ -162,6 +194,26 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     {
         return NULL;
     }
+
+    // struct tm current, created_at;
+
+    // memset(&current, 0, sizeof(struct tm));
+    // memset(&created_at, 0, sizeof(struct tm));
+
+    // time_t tcurrent = time(NULL);
+    // time_t tcreated_at;
+
+    // strptime(asctime(localtime(&tcurrent)), "%a %b %d %H:%M:%S %Y", &current);
+    // strptime(entry->created_at, "%a %b %d %H:%M:%S %Y", &created_at);
+
+    // tcurrent = mktime(&current);
+    // tcreated_at = mktime(&created_at);
+
+    // if (1)
+    // {
+    //     cache_delete(cache, entry);
+    //     return NULL;
+    // }
 
     dllist_move_to_head(cache, entry);
     return entry;

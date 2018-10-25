@@ -58,8 +58,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     info = localtime(&rawtime);
 
-    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, asctime(info), content_length, content_type, body);
-    int rv = send(fd, response, response_length, 0);
+    int response_length = sprintf(response, "%s\r\nDate: %sConnection: close\r\nContent-Length: %d\r\nContent-Type: %s\r\n\r\n", header, asctime(info), content_length, content_type);
+    memcpy(response + response_length, body, content_length);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0)
     {
@@ -133,7 +134,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
         if (filedata == NULL)
         {
             snprintf(filepath, sizeof filepath, "%s%sindex.html", SERVER_ROOT, request_path);
-            printf("%s\n", filepath);
             filedata = file_load(filepath);
 
             if (filedata == NULL)
@@ -187,7 +187,7 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
     char request_type[8];
-    char request_path[16];
+    char request_path[1024];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);

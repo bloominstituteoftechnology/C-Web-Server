@@ -45,7 +45,8 @@ printf("%d %s\n", q->bar, q->baz); // 12 Hello
 #define DEFAULT_GROW_FACTOR 2
 
 // Hash table entry
-struct htent {
+struct htent
+{
     void *key;
     int key_size;
     int hashed_key;
@@ -53,9 +54,10 @@ struct htent {
 };
 
 // Used to cleanup the linked lists
-struct foreach_callback_payload {
-	void *arg;
-	void (*f)(void *, void *);
+struct foreach_callback_payload
+{
+    void *arg;
+    void (*f)(void *, void *);
 };
 
 /**
@@ -76,7 +78,8 @@ int default_hashf(void *data, int data_size, int bucket_count)
     int h = 0;
     unsigned char *p = data;
 
-    for (int i = 0; i < data_size; i++) {
+    for (int i = 0; i < data_size; i++)
+    {
         h = (R * h + p[i]) % bucket_count;
     }
 
@@ -88,17 +91,20 @@ int default_hashf(void *data, int data_size, int bucket_count)
  */
 struct hashtable *hashtable_create(int size, int (*hashf)(void *, int, int))
 {
-    if (size < 1) {
+    if (size < 1)
+    {
         size = DEFAULT_SIZE;
     }
 
-    if (hashf == NULL) {
+    if (hashf == NULL)
+    {
         hashf = default_hashf;
     }
 
     struct hashtable *ht = malloc(sizeof *ht);
 
-    if (ht == NULL) return NULL;
+    if (ht == NULL)
+        return NULL;
 
     ht->size = size;
     ht->num_entries = 0;
@@ -106,7 +112,8 @@ struct hashtable *hashtable_create(int size, int (*hashf)(void *, int, int))
     ht->bucket = malloc(size * sizeof(struct llist *));
     ht->hashf = hashf;
 
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++)
+    {
         ht->bucket[i] = llist_create();
     }
 
@@ -118,9 +125,9 @@ struct hashtable *hashtable_create(int size, int (*hashf)(void *, int, int))
  */
 void htent_free(void *htent, void *arg)
 {
-	(void)arg;
+    (void)arg;
 
-	free(htent);
+    free(htent);
 }
 
 /**
@@ -130,10 +137,11 @@ void htent_free(void *htent, void *arg)
  */
 void hashtable_destroy(struct hashtable *ht)
 {
-    for (int i = 0; i < ht->size; i++) {
+    for (int i = 0; i < ht->size; i++)
+    {
         struct llist *llist = ht->bucket[i];
 
-		llist_foreach(llist, htent_free, NULL);
+        llist_foreach(llist, htent_free, NULL);
         llist_destroy(llist);
     }
 
@@ -164,7 +172,8 @@ void *hashtable_put_bin(struct hashtable *ht, void *key, int key_size, void *dat
     ent->hashed_key = index;
     ent->data = data;
 
-    if (llist_append(llist, ent) == NULL) {
+    if (llist_append(llist, ent) == NULL)
+    {
         free(ent->key);
         free(ent);
         return NULL;
@@ -184,7 +193,8 @@ int htcmp(void *a, void *b)
 
     int size_diff = entB->key_size - entA->key_size;
 
-    if (size_diff) {
+    if (size_diff)
+    {
         return size_diff;
     }
 
@@ -214,7 +224,10 @@ void *hashtable_get_bin(struct hashtable *ht, void *key, int key_size)
 
     struct htent *n = llist_find(llist, &cmpent, htcmp);
 
-    if (n == NULL) { return NULL; }
+    if (n == NULL)
+    {
+        return NULL;
+    }
 
     return n->data;
 }
@@ -224,6 +237,7 @@ void *hashtable_get_bin(struct hashtable *ht, void *key, int key_size)
  */
 void *hashtable_delete(struct hashtable *ht, char *key)
 {
+    printf("DELETING\n");
     return hashtable_delete_bin(ht, key, strlen(key));
 }
 
@@ -244,17 +258,18 @@ void *hashtable_delete_bin(struct hashtable *ht, void *key, int key_size)
 
     struct htent *ent = llist_delete(llist, &cmpent, htcmp);
 
-	if (ent == NULL) {
-		return NULL;
-	}
+    if (ent == NULL)
+    {
+        return NULL;
+    }
 
-	void *data = ent->data;
+    void *data = ent->data;
 
-	free(ent);
+    free(ent);
 
     add_entry_count(ht, -1);
 
-	return data;
+    return data;
 }
 
 /**
@@ -262,10 +277,10 @@ void *hashtable_delete_bin(struct hashtable *ht, void *key, int key_size)
  */
 void foreach_callback(void *vent, void *vpayload)
 {
-	struct htent *ent = vent;
-	struct foreach_callback_payload *payload = vpayload;
+    struct htent *ent = vent;
+    struct foreach_callback_payload *payload = vpayload;
 
-	payload->f(ent->data, payload->arg);
+    payload->f(ent->data, payload->arg);
 }
 
 /**
@@ -275,14 +290,15 @@ void foreach_callback(void *vent, void *vpayload)
  */
 void hashtable_foreach(struct hashtable *ht, void (*f)(void *, void *), void *arg)
 {
-	struct foreach_callback_payload payload;
+    struct foreach_callback_payload payload;
 
-	payload.f = f;
-	payload.arg = arg;
+    payload.f = f;
+    payload.arg = arg;
 
-	for (int i = 0; i < ht->size; i++) {
-		struct llist *llist = ht->bucket[i];
+    for (int i = 0; i < ht->size; i++)
+    {
+        struct llist *llist = ht->bucket[i];
 
-		llist_foreach(llist, foreach_callback, &payload);
-	}
+        llist_foreach(llist, foreach_callback, &payload);
+    }
 }
