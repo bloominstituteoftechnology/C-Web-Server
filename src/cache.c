@@ -147,15 +147,6 @@ struct cache *cache_create(int max_size, int hashsize)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    
-    // create entry and add to hash table
-    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
-    hashtable_put(cache->index, entry->path, entry);
-    
-
-    // Insert entry into head of linked list
-    dllist_insert_head(cache, entry);
-
     cache->cur_size++;
 
     if(cache->cur_size > cache->max_size)  // If we've reached cache capacity
@@ -167,8 +158,17 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         hashtable_delete(cache->index, temp->path);
 
         free_entry(temp);
-        cache->cur_size--;
+
     }
+
+    // create entry and add to hash table
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    hashtable_put(cache->index, entry->path, entry);
+    
+
+    // Insert entry into head of linked list
+    dllist_insert_head(cache, entry);
+
 
 }
 
