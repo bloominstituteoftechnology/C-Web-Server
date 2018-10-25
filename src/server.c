@@ -127,11 +127,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
 
-    struct cache_entry *entry = cache_get(cache, filepath);
+    struct cache_entry *cache_entry = cache_get(cache, filepath);
     
-    if (entry != NULL) {
+    if (cache_entry != NULL) {
         printf("Already Cached\n");
-        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+        send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
     } else {
         filedata = file_load(filepath);
         if (filedata == NULL) {
