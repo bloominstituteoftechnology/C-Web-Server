@@ -24,6 +24,17 @@ void cache_free(struct cache *cache)
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
+    struct cache_entry *ce = malloc(sizeof *ce);
+
+    ce->path = malloc(strlen(path) + 1);
+    strcpy(ce->path, path);
+
+    ce->content_length = content_length;
+
+    ce->content = malloc(content_length);
+    memcpy(ce->content, content, content_length);
+
+    return ce;
 
     ///////////////////
     // IMPLEMENT ME! //
