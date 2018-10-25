@@ -204,4 +204,27 @@ void cache_free(struct cache *cache)
     }
 }
 
+void cache_remove(struct cache *cache, struct cache_entry *entry)
+{
+    if (cache->head == entry && cache->tail == entry)
+    {
+        dllist_remove_head(cache);
+        dllist_remove_tail(cache);
+    }
+    else if (cache->tail == entry)
+    {
+        dllist_remove_tail(cache);
+    }
+    else if (cache->head == entry)
+    {
+        dllist_remove_head(cache);
+    }
+    else
+    {
+        entry->prev->next = entry->next;
+        entry->next->prev = entry->prev;
+    }
 
+    hashtable_delete(cache->index, entry->path);
+    free_entry(entry);
+}
