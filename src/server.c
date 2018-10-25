@@ -50,6 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+    printf("send response 1/4\n");
     const int max_response_size = 65536;
     char response[max_response_size];
     char len[30];
@@ -60,19 +61,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     sprintf(len, "Content-Length: %lu", content_length);
     sprintf(type, "Content-Type: %s", content_type);
     sprintf(connection, "Connection: close");
+    printf("send response 2/4\n");
 
     
-    printf("%s\n", response);
+    // printf("%s\n", response);
 
     unsigned long int response_length = sprintf(response, "%s\n%s\n%s\n%s\n\n%s", header, connection, len, type, body);
-
+    printf("send response 3/4\n");
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
         perror("send");
     }
-
+    printf("send response 4/4\n");
     return rv;
 }
 
@@ -130,21 +132,37 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata; 
     char *mime_type;
 
-    printf("INSIDE: %s\n", SERVER_ROOT);
+    // printf("INSIDE: %s\n", request_path);
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     printf("Filepath: %s\n", filepath);
-    filedata = file_load(filepath);
+    struct cache_entry *cache_entry = cache_get(cache, filepath);
+    // filedata = file_load(filepath);
+    if(cache_entry != NULL){
+        printf("in cache\n");
+        // send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
+        // send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
+        send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
+    } else {
+        filedata = file_load(filepath);
 
-    if (filedata == NULL) {
-        fprintf(stderr, "cannot find system %s file\n", request_path);
-        exit(3);
+    
+        if (filedata == NULL) {
+            snprintf(filepath, sizeof filepath, "%s%sindex.html", SERVER_ROOT, request_path);
+
+            filedata = file_load(filepath);
+
+            if (filedata == NULL) {
+                resp_404(fd);
+                return;
+            }
+        }
+
+        mime_type = mime_type_get(filepath);
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
     }
-
-    mime_type = mime_type_get(filepath);
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
 }
 
 /**
@@ -177,7 +195,7 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
     // Read the three components of the first request line
-    char method[4], path[30], version[15];
+    char method[8], path[32], version[16];
     sscanf(request, "%s %s %s", method, path, version);
 
     // If GET, handle the get endpoints
@@ -187,15 +205,14 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(path, "/d20") == 0) {
             get_d20(fd);
         } else {
-            // if (file_load(path) == NULL) {
-            //     resp_404(fd);
-            // } else {
-                get_file(fd, cache, path);//request_path
-            // }
+            get_file(fd, cache, path);
         }
     } else {
         resp_404(fd);
     }
+
+
+ 
 
     
 
