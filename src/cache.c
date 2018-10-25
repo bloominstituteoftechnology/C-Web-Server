@@ -9,17 +9,14 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    struct cache_entry *new_node = malloc(sizeof(struct cache_entry));
-    new_node->content = content;
-    new_node->next = NULL;
-    new_node->prev = NULL;
-    new_node->path = path;
-    new_node->content_type = content_type;
-    new_node->content_length = content_length;
+    struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
+    new_entry->content = content;
+    new_entry->next = NULL;
+    new_entry->prev = NULL;
+    new_entry->path = path;
+    new_entry->content_type = content_type;
+    new_entry->content_length = content_length;
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -29,9 +26,7 @@ void free_entry(struct cache_entry *entry)
 {
     free(entry->content);
     free(entry);
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
 }
 
 /**
@@ -121,9 +116,18 @@ struct cache *cache_create(int max_size, int hashsize)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    dllist_insert_head(cache, entry);
+    hashtable_put(cache->index, entry->path, entry);
+    cache->cur_size++;
+    if(cache->cur_size > cache->max_size) {
+        hashtable_delete(cache->index, entry->path);
+        dllist_remove_tail(cache);
+        free_entry(entry);
+
+    }
+
+
 }
 
 /**
@@ -131,7 +135,11 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *found = hashtable_get(cache->index, path);
+    if(!found) {
+        return NULL;
+    }
+    dllist_move_to_head(cache, found);
+    return found;
+
 }
