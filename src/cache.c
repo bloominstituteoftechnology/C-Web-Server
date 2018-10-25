@@ -92,7 +92,6 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 struct cache_entry *dllist_remove_tail(struct cache *cache)
 {
     struct cache_entry *oldtail = cache->tail;
-
     cache->tail = oldtail->prev;
     cache->tail->next = NULL;
 
@@ -141,14 +140,15 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
     if (cache->cur_size > cache->max_size) {
         // Remove the entry from the hashtable, using the entry's path
-        hashtable_delete(cache->index, entry->path);
+        hashtable_delete(cache->index, cache->tail->path);
         // Remove the cache entry at the tail of the linked list
-        dllist_remove_tail(cache);
-    // Free the cache entry
-        free_entry(entry);
-        printf("Cache-head: %s\n", cache->head->content);
+        // Free the cache entry
+        free_entry(dllist_remove_tail(cache));
+        
         // Ensure the size counter for the number of entries in the cache is correct.
-        cache->cur_size = cache->index->num_entries;
+        if (cache->cur_size > cache->max_size) {
+            printf("Cache's current size is bigger than its capacity.");
+        }
     }
 }
 
