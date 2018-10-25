@@ -1,9 +1,9 @@
-DEBUG cache_tests/cache_tests.c:162: ----- RUNNING: ./cache_tests/cache_tests
-DEBUG cache_tests/cache_tests.c:154: 
+DEBUG cache_tests/cache_tests.c:160: ----- RUNNING: ./cache_tests/cache_tests
+DEBUG cache_tests/cache_tests.c:152: 
 ----- test_cache_create
-DEBUG cache_tests/cache_tests.c:155: 
+DEBUG cache_tests/cache_tests.c:153: 
 ----- test_cache_alloc_entry
-DEBUG cache_tests/cache_tests.c:156: 
+DEBUG cache_tests/cache_tests.c:154: 
 ----- test_cache_put
-DEBUG cache_tests/cache_tests.c:157: 
+DEBUG cache_tests/cache_tests.c:155: 
 ----- test_cache_get

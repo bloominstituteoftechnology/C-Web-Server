@@ -9,6 +9,8 @@
 #include <pthread.h>
 #include "server.h"
 
+pthread_mutex_t lock;
+
 /**
  * Allocate a cache entry
  */
