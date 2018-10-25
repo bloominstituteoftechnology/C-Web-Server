@@ -40,6 +40,17 @@
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
 
+
+//Brought over struct from file.h due to compiler issues
+struct file_data {
+    int size;
+    void *data;
+};
+
+extern struct file_data *file_load(char *filename);
+extern void file_free(struct file_data *filedata);
+
+
 /**
  * Send an HTTP response
  * fd:             The file descriptor of the socket to send the response through.
