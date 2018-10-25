@@ -155,6 +155,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
         if(filedata == NULL)
         {
             resp_404(fd);
+            return;
         }
     }
 
@@ -254,7 +255,7 @@ void handle_http_request(int fd, struct cache *cache, int *file_counter)
     else if(strcmp(method, "POST") == 0)
     {
         post_save(fd, request, file_counter);
-        resp_404(fd);
+        resp_404(fd);       // Shouldn't ever arrive here, post_save should send response
     }
 
     // Reset request string so future file writes don't retain old values 
