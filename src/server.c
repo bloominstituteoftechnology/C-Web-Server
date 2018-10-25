@@ -151,7 +151,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
             cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
             file_free(filedata);
         } else {
+          if (strcmp(request_path, "/") == 0) {
+            printf("Root requested...\n");
+            get_file(fd, cache, "/index.html");
+          } else {
             resp_404(fd);
+          }
         }
     }
 }
