@@ -54,9 +54,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     int response_length = strlen(header) + strlen(body);
     // Build HTTP response and store it in response
-    printf("header: %s", header);
-    printf("content_type: %s", content_type);
-    printf("body: %s", body);
+    // printf("header: %s", header);
+    // printf("content_type: %s", content_type);
+    // printf("body: %s", body);
     sprintf(response, "%s%s%s", header, content_type, body);
 
     // Send it all!
@@ -115,28 +115,36 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    // When a file is requested, first check to see if the path to the file is in
+    // the cache (use the file path as the key).
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata;
     char *mime_type;
     printf("The request path: %s\n", request_path);
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT,request_path);
 
-    filedata = file_load(filepath);
-
-    if (filedata == NULL) {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+    struct cache_entry *entry = cache_get(cache, filepath);
+    if(entry != NULL) {
+        printf("Blake says we have CACHE!!!!\n");
+        filedata = file_load(entry->path);
+        mime_type = mime_type_get(entry->content_type);
+        send_response(fd, "HTTP1.1 200 OK", mime_type, filedata->data, entry->content_length);
     }
+    else {
+        filedata = file_load(filepath);
+        if (filedata == NULL) {
+            // TODO: make this non-fatal
+            fprintf(stderr, "cannot find system 404 file\n");
+            exit(3);
+        }
 
-    mime_type = mime_type_get(filepath);
+        mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
 
-    file_free(filedata);
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+        file_free(filedata);
+    }
 }
 
 /**
