@@ -3,12 +3,12 @@ CFLAGS=-std=c99 -Wall -Wextra
 OBJS=server.o net.o file.o mime.o cache.o hashtable.o llist.o
 
 server: $(OBJS)
-	gcc -Wall -Wextra -g -o $@ $^
+	gcc -pthread -Wall -Wextra -g -o $@ $^
 
 net.o: net.c net.h
 	gcc -Wall -Wextra -c $<
 
-server.o: server.c net.h
+server.o: server.c server.h net.h
 	gcc -Wall -Wextra -c $<
 
 file.o: file.c file.h

@@ -1,7 +1,8 @@
 #ifndef _FILE_H_
 #define _FILE_H_
 
-struct file_data {
+struct file_data
+{
     int size;
     void *data;
 };
