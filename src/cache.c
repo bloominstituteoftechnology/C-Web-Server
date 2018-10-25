@@ -125,16 +125,18 @@ struct cache *cache_create(int max_size, int hashsize)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    // Use alloc
-    // Insert double list
-    // Store entry w/ hashtable insert
-    // Increment current size of cache (see cache.h)
-    // Check if > max size in while loop, free space in cache like a queue
-    //    Remove from hashtable
-    // ~ 10 lines
-    ///////////////////
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    dllist_insert_head(cache, entry);
+
+    hashtable_put(cache->index, entry->path, entry);
+    cache->cur_size++;
+
+    if (cache->cur_size > cache->max_size)
+    {
+        struct cache_entry *entry = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, entry->path);
+        free_entry(entry);
+    }
 }
 
 /**
@@ -142,9 +144,15 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+
+    if(entry != NULL)
+    {
+        dllist_move_to_head(cache, entry);
+        return entry;
+    }
+    
+    return NULL;
 }
 
 void cache_free(struct cache *cache)
