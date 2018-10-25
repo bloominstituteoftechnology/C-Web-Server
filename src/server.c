@@ -54,12 +54,23 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    int response_length = strlen(header) + strlen(body);
+    int response_length = sprintf(response,
+        "%s\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "Connection: close\n"
+        "\n"
+        "%s\n",
+        header,
+        content_length,
+        content_type,
+        body
+    );
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    sprintf(response, "%s %s %s", header, content_type, body);
+    // sprintf(response, "%s %s %s", header, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -82,6 +93,12 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    srand(time(NULL) + getpid());
+
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand()%20)+1);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 
     // Use send_response() to send it back as text/plain data
 
@@ -146,9 +163,10 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char req_type[8];
-    char req_path[1024];
-    char req_protocol[16];
+    char *p;
+    char request_type[8]; // GET or POST
+    char request_path[1024]; // /info etc.
+    char request_protocol[128]; // HTTP/1.1
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -164,9 +182,9 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    scanf(request, "%s %s %s", req_type, req_path, req_protocol);
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
-    printf("Got request: %s %s %s\n:", req_type, req_path, req_protocol);
+    printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
@@ -185,11 +203,14 @@ void handle_http_request(int fd, struct cache *cache)
     //     resp_404(fd);
     //     }
     // }
-    if (strcmp(req_type, "GET") == 0) {
-        if (strcmp(req_path, "/d20") == 0) {
+    if (strcmp(request_type, "GET") == 0) {
+
+        if (strcmp(request_path, "/d20") == 0) {
+            // Handle any programmatic endpoints here
             get_d20(fd);
         } else {
-            get_file(fd, cache, req_path);
+            // Otherwise try to get a file
+            get_file(fd, cache, request_path);
         }
     }
 
