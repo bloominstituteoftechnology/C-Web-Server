@@ -1,5 +1,5 @@
-#ifndef _FILE_H_
-#define _FILE_H_
+#ifndef _FILEFOO_H_
+#define _FILEFOO_H_
 
 struct file_data {
     int size;
