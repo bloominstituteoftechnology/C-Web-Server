@@ -9,6 +9,14 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
+    struct cache_entry *new_node = malloc(sizeof(struct cache_entry));
+    new_node->content = content;
+    new_node->next = NULL;
+    new_node->prev = NULL;
+    new_node->path = path;
+    new_node->content_type = content_type;
+    new_node->content_length = content_length;
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -91,6 +99,12 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
+     struct cache *new_cache = malloc(sizeof(struct cache));
+    new_cache->index = 0;
+    new_cache->cur_size = hashsize;
+    new_cache->max_size = max_size;
+    new_cache->head = NULL;
+    new_cache->tail = NULL;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
