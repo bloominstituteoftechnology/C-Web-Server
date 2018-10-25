@@ -64,9 +64,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     info = localtime( &rawtime );
 
     // Assemble response string
-    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(info), content_length, content_type, body);
-
-    // printf("%s", response);
+    int response_length = sprintf(response, 
+                                "%s\n"
+                                "Date: %s"
+                                "Connection: close\n"
+                                "Content-Length: %d\n"
+                                "Content-Type: %s\n\n"
+                                "%s", 
+                                header, 
+                                asctime(info), 
+                                content_length, 
+                                content_type, 
+                                body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -129,15 +138,19 @@ void get_file(int fd, struct cache *cache, char *request_path)
 {
 
     char filepath[4096];                            // For arbitrary file serving
+    char appendedfilepath[4096];                    // For automatic index.html serving
     struct file_data *filedata;                     // For arbitrary file serving
     
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
-    
+    char *mime_type = mime_type_get(filepath);
+
+
     if(filedata == NULL)
     {
-        snprintf(filepath, sizeof filepath, "%s%s", filepath, "index.html");
-        filedata = file_load(filepath);
+        snprintf(appendedfilepath, sizeof filepath, "%s%s", filepath, "index.html");
+        filedata = file_load(appendedfilepath);
+        mime_type = mime_type_get(appendedfilepath);
 
         if(filedata == NULL)
         {
@@ -145,7 +158,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
         }
     }
 
-    char *mime_type = mime_type_get(filepath);
+    // use original filepath to avoid repeated entries of ./serverroot/index.html
     cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 
@@ -224,12 +237,14 @@ void handle_http_request(int fd, struct cache *cache, int *file_counter)
 
         struct cache_entry *entry = cache_get(cache, localPath);
         if(entry != NULL){          // If we have the entry in our cache
-        
+            
+            printf("Entry in cache\n");
             send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
 
         }
         else{    
             
+            printf("Entry not in cache\n");
             if(strcmp(filePath, "/d20") == 0) { get_d20(fd); }
             else{ get_file(fd, cache, filePath); }              // get the entry and add to cache
 

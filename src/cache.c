@@ -163,11 +163,14 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
     if(cache->cur_size > cache->max_size)  // If we've reached cache capacity
     {
+
         // remove the tail from the linked list and hashtable
         struct cache_entry *temp = dllist_remove_tail(cache);
-        hashtable_delete(cache->index, temp->path);
-        free_entry(temp);
 
+        hashtable_delete(cache->index, temp->path);
+        
+        free_entry(temp);
+        cache->cur_size--;
     }
 
 }
