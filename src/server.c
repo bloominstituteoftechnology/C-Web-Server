@@ -169,9 +169,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
+    char *start_of_body = strstr(header, "\r\n\r\n");
+    printf("Start of body: %s\n", start_of_body);
+    return start_of_body;
 }
 
 /**
