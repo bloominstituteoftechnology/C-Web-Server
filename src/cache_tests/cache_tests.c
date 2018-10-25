@@ -7,7 +7,7 @@
 
 char *test_cache_create()
 {
-  printf("\n\nHELLO\n\n");
+
   int max_size = 10;
   int hash_size = 0;
 

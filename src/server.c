@@ -153,18 +153,28 @@ void get_file(int fd, struct cache *cache, char *request_path)
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
 
     filedata = file_load(filepath);
-    if (filedata == NULL)
-    {
-        fprintf(stderr, "cannot find %s file\n", request_path);
-        exit(0);
-    }
 
+    struct cache_entry *ce = cache_get(cache, filepath);
+    if (!ce)
+    {
+        if (filedata == NULL)
+        {
+            fprintf(stderr, "cannot find %s file\n", request_path);
+            exit(0);
+        }
+
+        else
+        {
+            mime_type = mime_type_get(filepath);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            cache_put(cache, filepath, mime_type, filedata, sizeof(filedata));
+        }
+        file_free(filedata);
+    }
     else
     {
-        mime_type = mime_type_get(filepath);
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", ce->content_type, ce->content, ce->content_length);
     }
-    file_free(filedata);
 }
 
 /**
