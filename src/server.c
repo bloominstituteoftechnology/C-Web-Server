@@ -144,13 +144,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
     //   If it's there, serve it back.
     if (cache_entry != NULL)
     {
-        printf("\nIT IS CACHED!! :)\n");
         send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
     }
     //   If it's not there:
     else
     {
-        printf("\nHAS TO LOAD THE FILE - NOT CACHED\n");
         // Fetch the file
         filedata = file_load(filepath);
 
@@ -167,9 +165,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
         }
 
         mime_type = mime_type_get(filepath);
-        printf("\nMIME TYPE %s\n", mime_type);
-        // printf("\nTHE MIME TYPE IS %s\n", mime_type);
-        // printf("\nTHE DATA IS %s\n", filedata->data);
 
         // Store it in the cache
         cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
