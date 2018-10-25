@@ -9,9 +9,13 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = malloc(sizeof(*entry));
+    entry->path = strdup(path);
+    entry->content_type = strdup(content_type);
+    entry->content = strdup(content);
+    entry->content_length = content_length;
+
+    return entry;
 }
 
 /**
@@ -19,9 +23,10 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
+    free(entry);
 }
 
 /**
@@ -96,9 +101,14 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *new_cache = malloc(sizeof(*new_cache));
+    new_cache->index = hashtable_create(hashsize, NULL);
+    new_cache->head = NULL;
+    new_cache->tail = NULL;
+    new_cache->max_size = max_size;
+    new_cache->cur_size = 0;
+
+    return new_cache;
 }
 
 void cache_free(struct cache *cache)
@@ -136,14 +146,14 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     // Increment the current size of the cache.
     cache->cur_size++;
 
-    if (cache->cur_size > cache->max_size)
+    while (cache->cur_size > cache->max_size) //look into while loop
     {
-        // Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
-        hashtable_delete(cache->index, path);
         // Remove the cache entry at the tail of the linked list.
-        dllist_remove_tail(cache);
+        ce = dllist_remove_tail(cache);
+        // Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
+        hashtable_delete(cache->index, ce->path);
         // Free the cache entry.
-        cache_free(cache);
+        free_entry(ce);
         // Ensure the size counter for the number of entries in the cache is correct.
     }
 }
