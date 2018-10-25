@@ -5,3 +5,5 @@ DEBUG cache_tests/cache_tests.c:153:
 ----- test_cache_alloc_entry
 DEBUG cache_tests/cache_tests.c:154: 
 ----- test_cache_put
+DEBUG cache_tests/cache_tests.c:155: 
+----- test_cache_get

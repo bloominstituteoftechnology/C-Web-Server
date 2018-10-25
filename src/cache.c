@@ -123,7 +123,6 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         struct cache_entry *rm_entry = dllist_remove_tail(cache);
         hashtable_delete(cache->index, rm_entry->path);
         free(rm_entry);
-        printf("cur-size: %d\n", cache->cur_size);
     }
     dllist_insert_head(cache, entry);
     hashtable_put(cache->index, path, entry);
@@ -135,9 +134,12 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+    if (entry == NULL) {
+        return NULL;
+    }
+    dllist_move_to_head(cache, entry);
+    return entry;
 }
 
 void cache_free(struct cache *cache)
