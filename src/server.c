@@ -135,13 +135,24 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
 
-    if(filedata != NULL) {
-      mime_type = mime_type_get(filepath);
-      send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    struct cache_entry *entry = cache_get(cache, filepath);
+
+    if (entry != NULL) {
+        printf("File found in cache!\n");
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
     } else {
-      resp_404(fd);
+        printf("File not in cache, sending fresh copy\n");
+        filedata = file_load(filepath);
+
+        if(filedata != NULL) {
+            mime_type = mime_type_get(filepath);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+        } else {
+            resp_404(fd);
+        }
     }
 }
 
