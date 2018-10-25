@@ -56,7 +56,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time_t t = time(NULL);
     struct tm *lt = localtime(&t);
 
-
     // Build HTTP response and store it in response
     // printf("Inside send_response");
     unsigned long int response_length = sprintf(response,
@@ -123,28 +122,35 @@ void resp_404(int fd)
 void get_file(int fd, struct cache *cache, char *request_path)
 {
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata = NULL; 
     char *mime_type;
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
 
-    if (filedata == NULL) {
-        snprintf(filepath, sizeof filepath, "%s%sindex.html", SERVER_ROOT, request_path);
-
+    struct cache_entry *entry = cache_get(cache, filepath);
+    
+    if (entry != NULL) {
+        printf("Already Cached\n");
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    } else {
         filedata = file_load(filepath);
-
         if (filedata == NULL) {
-            resp_404(fd);
-            return;
+            snprintf(filepath, sizeof filepath, "%s%sindex.html", SERVER_ROOT, request_path);
+
+            filedata = file_load(filepath);
+
+            if (filedata == NULL) {
+                resp_404(fd);
+                return;
+            }
         }
+        mime_type = mime_type_get(filepath);
+
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    
+        file_free(filedata);
     }
-
-    mime_type = mime_type_get(filepath);
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
 }
 
 /**
