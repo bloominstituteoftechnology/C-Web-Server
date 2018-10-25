@@ -114,13 +114,9 @@ void get_d20(int fd)
     char response_body[8];
     sprintf(response_body, "%d\n", (rand()% 20) + 1);
 
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, sizeof(response_body));
-
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, sizeof(response_body));
 }
 
 /**
@@ -149,6 +145,17 @@ void resp_404(int fd)
     file_free(filedata);
 }
 
+// When a file is requested, first check to see if the path to the file is in
+// the cache (use the file path as the key).
+
+// If it's there, serve it back.
+
+// If it's not there:
+
+// Load the file from disk (see `file.c`)
+// Store it in the cache
+// Serve it
+
 /**
  * Read and return a file from disk or cache
  */
@@ -176,7 +183,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
 
     // Fetch the 404.html file
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT);
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    
+
+    
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
@@ -205,6 +215,8 @@ char *find_start_of_body(char *header)
     ///////////////////
 }
 
+
+
 /**
  * Handle HTTP request and send response
  */
@@ -228,22 +240,45 @@ void handle_http_request(int fd, struct cache *cache)
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Read the three components of the first request line
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
-    sscanf(request, "%s %s %s",  request_type, request_path, request_protocol); // break down the first line of the request buffer into its pieces
+    printf("Got request: %s %s %s\n:", request_type, request_path, request_protocol);
 
-    // printf("Got request: %s %s %s", request_type, request_path, request_protocol);
-
-    // If GET, handle the get endpoints
-
-    if (strcmp(request_type, "GET") == 0) {
-        if(strcmp(request_path, "/d20") == 0) {
-            get_d20(fd); // pass in file descriptor
-        } else {
-            // attempt to retrieve the requested file
-            get_file(fd, cache, request_path);
+    if (strcmp(request_type, " GET"))
+    {
+        if (strcmp(request_path, "/d20") == 0)
+        {
+            printf("d20 has been reached\n");
+            get_d20(fd);
+        }
+        else if (strcmp(request_path, "/") == 0)
+        {
+            printf("Root has been reached\n");
+            get_file(fd, cache, "index.html");
+        }
+        else
+        {
+            printf("404 has been reached\n");
+            resp_404(fd);
         }
     }
+
+    // Read the three components of the first request line
+
+    // sscanf(request, "%s %s %s",  request_type, request_path, request_protocol); // break down the first line of the request buffer into its pieces
+
+    // // printf("Got request: %s %s %s", request_type, request_path, request_protocol);
+
+    // // If GET, handle the get endpoints
+
+    // if (strcmp(request_type, "GET") == 0) {
+    //     if(strcmp(request_path, "/d20") == 0) {
+    //         get_d20(fd); // pass in file descriptor
+    //     } else {
+    //         // attempt to retrieve the requested file
+    //         get_file(fd, cache, request_path);
+    //     }
+    // }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
