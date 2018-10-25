@@ -6,11 +6,14 @@
 #include <time.h>
 #include "hashtable.h"
 #include "cache.h"
+#include <pthread.h>
+#include "server.h"
 
 /**
  * Allocate a cache entry
  */
-struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
+struct cache_entry *
+alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
     struct cache_entry *entry = malloc(sizeof(*entry));
     time_t ltime = time(NULL);
@@ -187,6 +190,7 @@ void cache_delete(struct cache *cache, struct cache_entry *entry)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
+    pthread_mutex_lock(&lock);
     struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
 
     dllist_insert_head(cache, entry);
@@ -199,6 +203,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         hashtable_delete(cache->index, entry->path);
         free_entry(entry);
     }
+    pthread_mutex_unlock(&lock);
 }
 
 /**
@@ -206,10 +211,12 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
+    pthread_mutex_lock(&lock);
     struct cache_entry *entry = hashtable_get(cache->index, path);
 
     if (entry == NULL)
     {
+        pthread_mutex_unlock(&lock);
         return NULL;
     }
 
@@ -230,9 +237,11 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     if (difftime(tcurrent, tcreated_at) > 60.0)
     {
         cache_delete(cache, entry);
+        pthread_mutex_unlock(&lock);
         return NULL;
     }
 
     dllist_move_to_head(cache, entry);
+    pthread_mutex_unlock(&lock);
     return entry;
 }

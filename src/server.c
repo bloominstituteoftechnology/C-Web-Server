@@ -123,9 +123,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
 
-    pthread_mutex_lock(&lock);
     struct cache_entry *entry = cache_get(cache, filepath);
-    pthread_mutex_unlock(&lock);
 
     if (entry != NULL)
     {
@@ -152,10 +150,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
         mime_type = mime_type_get(filepath);
 
         send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
-
-        pthread_mutex_lock(&lock);
         cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
-        pthread_mutex_unlock(&lock);
 
         file_free(filedata);
     }

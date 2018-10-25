@@ -7,4 +7,6 @@ struct arg_struct
     struct cache *arg2;
 };
 
+extern pthread_mutex_t lock;
+
 #endif
