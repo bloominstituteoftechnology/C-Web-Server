@@ -141,7 +141,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
         resp_404(fd);    
         return;
     }
- 
+
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
