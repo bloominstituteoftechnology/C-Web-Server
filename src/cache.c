@@ -21,9 +21,8 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     strcpy(cache_entry->content_type, content_type);
 
     // grab memory for the content string
+    //  NOTE- using content_length in case of binary data (strlen won't work)
     cache_entry->content = malloc(content_length + 1);
-    // strcpy(cache_entry->content, content);
-    // printf("\nCONTENT LENGTH %d\n", content_length);
     memcpy(cache_entry->content, content, content_length);
 
     // numbers are easy - don't even have to free
