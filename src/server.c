@@ -33,6 +33,8 @@
 #include "file.h"
 #include "mime.h"
 #include "cache.h"
+#include "server.h"
+#include <pthread.h>
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -180,12 +182,16 @@ void post_save(int fd, char *body)
     }
 }
 
-void handle_http_request(int fd, struct cache *cache)
+void *handle_http_request(void *arguments)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
     char request_type[8];
     char request_path[1024];
+
+    struct arg_struct *args = arguments;
+    int fd = args->arg1;
+    struct cache *cache = args->arg2;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -193,7 +199,7 @@ void handle_http_request(int fd, struct cache *cache)
     if (bytes_recvd < 0)
     {
         perror("recv");
-        return;
+        pthread_exit(NULL);
     }
 
     sscanf(request, "%s %s", request_type, request_path);
@@ -216,6 +222,7 @@ void handle_http_request(int fd, struct cache *cache)
             post_save(fd, find_start_of_body(request));
         }
     }
+    pthread_exit(NULL);
 }
 
 /**
@@ -226,6 +233,7 @@ int main(void)
     int newfd;                          // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
+    pthread_t thread_id;
 
     struct cache *cache = cache_create(10, 0);
 
@@ -263,10 +271,15 @@ int main(void)
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
 
+        struct arg_struct args;
+        args.arg1 = newfd;
+        args.arg2 = cache;
+
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
-        handle_http_request(newfd, cache);
+        pthread_create(&thread_id, NULL, handle_http_request, &args);
+        pthread_join(thread_id, NULL);
+        // handle_http_request(newfd, cache);
 
         close(newfd);
     }
