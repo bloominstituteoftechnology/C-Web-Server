@@ -41,7 +41,7 @@ char *mime_type_get(char *filename)
     }
     if (strcmp(ext, "jpeg") == 0 || strcmp(ext, "jpg") == 0)
     {
-        return "image/jpeg";
+        return "image/jpg";
     }
     if (strcmp(ext, "css") == 0)
     {

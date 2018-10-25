@@ -16,10 +16,10 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     time_t ltime = time(NULL);
     entry->path = strdup(path);
     entry->content_type = strdup(content_type);
-    entry->content = malloc(content_length);
+    entry->created_at = strdup(asctime(localtime(&ltime)));
+    entry->content = malloc(content_length + 1);
     memcpy(entry->content, content, content_length);
     entry->content_length = content_length;
-    entry->created_at = strdup(asctime(localtime(&ltime)));
     entry->prev = NULL;
     entry->next = NULL;
 
@@ -33,8 +33,8 @@ void free_entry(struct cache_entry *entry)
 {
     free(entry->path);
     free(entry->content_type);
-    free(entry->content);
     free(entry->created_at);
+    free(entry->content);
     free(entry);
 }
 
@@ -95,11 +95,31 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
     struct cache_entry *oldtail = cache->tail;
 
     cache->tail = oldtail->prev;
-    cache->tail->next = NULL;
+
+    if (cache->tail != NULL)
+    {
+        cache->tail->next = NULL;
+    }
 
     cache->cur_size--;
 
     return oldtail;
+}
+
+struct cache_entry *dllist_remove_head(struct cache *cache)
+{
+    struct cache_entry *oldhead = cache->head;
+
+    cache->head = oldhead->next;
+
+    if (cache->head != NULL)
+    {
+        cache->head->prev = NULL;
+    }
+
+    cache->cur_size--;
+
+    return oldhead;
 }
 
 /**
@@ -131,33 +151,31 @@ void cache_free(struct cache *cache)
         free_entry(current_entry);
         current_entry = next_entry;
     }
-
-    free(cache);
 }
 
 void cache_delete(struct cache *cache, struct cache_entry *entry)
 {
-    if (cache->head == entry)
+    if (cache->head == entry && cache->tail == entry)
     {
-        printf("%s\n", entry->next->content_type);
-        // cache->head = cache->head->next;
-        // cache->head->prev = NULL;
+        dllist_remove_head(cache);
+        dllist_remove_tail(cache);
     }
-    // if (cache->tail == entry)
-    // {
-    //     printf("TAIL\n");
-    //     dllist_remove_tail(cache);
-    // }
-    // else
-    // {
-    //     printf("NEITHER\n");
-    //     entry->prev->next = entry->next;
-    //     entry->next->prev = entry->prev;
-    // }
+    else if (cache->head == entry)
+    {
+        dllist_remove_head(cache);
+    }
+    else if (cache->tail == entry)
+    {
+        dllist_remove_tail(cache);
+    }
+    else
+    {
+        entry->prev->next = entry->next;
+        entry->next->prev = entry->prev;
+    }
 
-    printf("GOT HERE\n");
-    // hashtable_delete(cache->index, entry->path);
-    // free_entry(entry);
+    hashtable_delete(cache->index, entry->path);
+    free_entry(entry);
 }
 
 /**
@@ -195,25 +213,25 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
         return NULL;
     }
 
-    // struct tm current, created_at;
+    struct tm current, created_at;
 
-    // memset(&current, 0, sizeof(struct tm));
-    // memset(&created_at, 0, sizeof(struct tm));
+    memset(&current, 0, sizeof(struct tm));
+    memset(&created_at, 0, sizeof(struct tm));
 
-    // time_t tcurrent = time(NULL);
-    // time_t tcreated_at;
+    time_t tcurrent = time(NULL);
+    time_t tcreated_at;
 
-    // strptime(asctime(localtime(&tcurrent)), "%a %b %d %H:%M:%S %Y", &current);
-    // strptime(entry->created_at, "%a %b %d %H:%M:%S %Y", &created_at);
+    strptime(asctime(localtime(&tcurrent)), "%a %b %d %H:%M:%S %Y", &current);
+    strptime(entry->created_at, "%a %b %d %H:%M:%S %Y", &created_at);
 
-    // tcurrent = mktime(&current);
-    // tcreated_at = mktime(&created_at);
+    tcurrent = mktime(&current);
+    tcreated_at = mktime(&created_at);
 
-    // if (1)
-    // {
-    //     cache_delete(cache, entry);
-    //     return NULL;
-    // }
+    if (difftime(tcurrent, tcreated_at) > 60.0)
+    {
+        cache_delete(cache, entry);
+        return NULL;
+    }
 
     dllist_move_to_head(cache, entry);
     return entry;

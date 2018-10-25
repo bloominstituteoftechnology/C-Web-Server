@@ -237,7 +237,6 @@ void *hashtable_get_bin(struct hashtable *ht, void *key, int key_size)
  */
 void *hashtable_delete(struct hashtable *ht, char *key)
 {
-    printf("DELETING\n");
     return hashtable_delete_bin(ht, key, strlen(key));
 }
 

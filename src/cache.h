@@ -6,9 +6,9 @@ struct cache_entry
 {
     char *path; // Endpoint path--key to the cache
     char *content_type;
-    int content_length;
-    void *content;
     char *created_at;
+    void *content;
+    int content_length;
 
     struct cache_entry *prev, *next; // Doubly-linked list
 };

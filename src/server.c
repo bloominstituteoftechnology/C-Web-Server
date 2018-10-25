@@ -53,10 +53,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    time_t rawtime;
-    struct tm *info;
-    time(&rawtime);
-    info = localtime(&rawtime);
+    time_t rawtime = time(&rawtime);
+    struct tm *info = localtime(&rawtime);
 
     int response_length = sprintf(response, "%s\r\nDate: %sConnection: close\r\nContent-Length: %d\r\nContent-Type: %s\r\n\r\n", header, asctime(info), content_length, content_type);
     memcpy(response + response_length, body, content_length);
