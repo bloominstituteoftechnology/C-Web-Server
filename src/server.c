@@ -143,15 +143,23 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     filedata = file_load(filepath);
 
-    if(filedata == NULL) {
-        resp_404(fd);
-        return;
+    struct cache_entry *entry = cache_get(cache, filepath);
+    if(!entry)
+    {
+        if(filedata == NULL) {
+            resp_404(fd);
+            return;
+        }
+        else {
+            snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata, sizeof(filedata));
+            cache_put(cache, filepath, mime_type, filedata, sizeof(filedata));
+        }
+        file_free(filedata);
     }
-    else {
-        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata, sizeof(filedata));;
+    else{
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
     }
-    file_free(filedata);
 }
 
 /**
