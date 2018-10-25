@@ -33,15 +33,27 @@
 #include "file.h"
 #include "mime.h"
 #include "cache.h"
+// #include "file.c"
 
 #define PORT "3490"  // the port users will be connecting to
 
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
 
+
+//Brought over struct from file.h due to compiler issues
+struct file_data {
+    int size;
+    void *data;
+};
+
+extern struct file_data *file_load(char *filename);
+extern void file_free(struct file_data *filedata);
+
+
 /**
  * Send an HTTP response
- *
+ * fd:             The file descriptor of the socket to send the response through.
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
@@ -54,10 +66,29 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    time_t t = time(NULL);
+    struct tm *gm = gmtime(&t);
+
+
+    int response_length = sprintf(response,
+        "%s\n"
+        "Date: %s"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "Connection: close\n"
+        "\n"
+        "%s\n",
+        header,
+        asctime(gm),
+        content_length,
+        content_type,
+        body
+    );
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // sprintf(response, "%s %s %s", header, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -80,6 +111,12 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    srand(time(NULL) + getpid());
+
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand()%20)+1);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 
     // Use send_response() to send it back as text/plain data
 
@@ -122,6 +159,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        snprintf(filepath, sizeof(filepath), "%s/index.html", SERVER_ROOT);
+
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            resp_404(fd);
+            return;
+        }
+
+
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -144,6 +208,10 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char *p;
+    char request_type[8]; // GET or POST
+    char request_path[1024]; // /info etc.
+    char request_protocol[128]; // HTTP/1.1
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -159,12 +227,37 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
+    printf("REQUEST: %s %s %s\n", request_type, request_path, request_protocol);
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
+    // if(strcmp(req_type, "GET") == 0) {
+    //     if(strcmp(req_path, "/") == 0) {
+    //     get_root(fd);
+    //     }
+    //     else if(strcmp(req_path, "/d20") == 0) {
+    //     get_d20(fd);
+    //     }
+    //     else if(strcmp(req_path, "/date") == 0) {
+    //     get_date(fd);
+    //     }
+    //     else {
+    //     resp_404(fd);
+    //     }
+    // }
+    if (strcmp(request_type, "GET") == 0) {
 
+        if (strcmp(request_path, "/d20") == 0) {
+            // Handle any programmatic endpoints here
+            get_d20(fd);
+        } else {
+            // Otherwise try to get a file
+            get_file(fd, cache, request_path);
+        }
+    }
 
     // (Stretch) If POST, handle the post request
 }
