@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 65536 * 10;
     char response[max_response_size];
 
     // Build HTTP response and store it in response
@@ -65,12 +65,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                   "%s\n" // header
                                   "Date: %sConnection: close\n"
                                   "Content-Type: %s\nContent-Length: %d\n"
-                                  "\n"    // end marker for header
-                                  "%s\n", // body
+                                  "\n",    // end marker for header
+                                //   "%s\n", // body
                                   header, asctime(time_tm), content_type,
-                                  content_length, body);
+                                  content_length);
+    memcpy(response + response_length, body, content_length);
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0)
     {
@@ -143,13 +144,13 @@ void get_file(int fd, struct cache *cache, char *request_path)
     //   If it's there, serve it back.
     if (cache_entry != NULL)
     {
-        // printf("\nIT IS CACHED!! :)\n");
+        printf("\nIT IS CACHED!! :)\n");
         send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
     }
     //   If it's not there:
     else
     {
-        // printf("\nHAS TO LOAD THE FILE - NOT CACHED\n");
+        printf("\nHAS TO LOAD THE FILE - NOT CACHED\n");
         // Fetch the file
         filedata = file_load(filepath);
 
@@ -166,6 +167,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
         }
 
         mime_type = mime_type_get(filepath);
+        printf("\nMIME TYPE %s\n", mime_type);
         // printf("\nTHE MIME TYPE IS %s\n", mime_type);
         // printf("\nTHE DATA IS %s\n", filedata->data);
 
@@ -186,9 +188,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
+    // if (strstr(header, "\r\n\r\n") == 0)
 }
 
 /**

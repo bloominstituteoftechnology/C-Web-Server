@@ -9,6 +9,7 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
+    printf("\n\nCACHING NOW!\n\n");
     // grab the memory for the struct
     struct cache_entry *cache_entry = malloc(sizeof *cache_entry);
 
@@ -22,7 +23,8 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 
     // grab memory for the content string
     cache_entry->content = malloc(strlen(content) + 1);
-    strcpy(cache_entry->content, content);
+    // memcpy to handle binary data
+    memcpy(cache_entry->content, content, content_length);
 
     // numbers are easy - don't even have to free
     cache_entry->content_length = content_length;
