@@ -102,6 +102,23 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
     return oldtail;
 }
 
+// Removes the head 
+
+struct cache_entry *dllist_remove_head(struct cache *cache)
+{
+    struct cache_entry *oldhead = cache->head;
+    cache->head = oldhead->next;
+
+    if (cache->head != NULL)
+    {
+        cache->head->prev = NULL;
+    }
+
+    cache->cur_size--;
+
+    return oldhead;
+}
+
 /**
  * Create a new cache
  * 
@@ -186,4 +203,5 @@ void cache_free(struct cache *cache)
         cur_entry = next_entry;
     }
 }
+
 
