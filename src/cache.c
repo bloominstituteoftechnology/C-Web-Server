@@ -122,6 +122,13 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
+    struct cache *cache = malloc(sizeof *cache);
+
+    cache->head = cache->tail = NULL;
+    cache->index = hashtable_create(hashsize, NULL);
+    cache->cur_size = 0;
+
+    return cache;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
