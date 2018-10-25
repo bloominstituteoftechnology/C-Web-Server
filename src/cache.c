@@ -10,12 +10,10 @@
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
     struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
-    new_entry->path = path;
-    new_entry->content_type = content_type;
+    new_entry->path = strdup(path);
+    new_entry->content_type = strdup(content_type);
     new_entry->content_length = content_length;
-    new_entry->content = content;
-    new_entry->prev = NULL;
-    new_entry->next = NULL;
+    new_entry->content = strdup(content);
     return new_entry;
 }
 
@@ -105,7 +103,7 @@ struct cache *cache_create(int max_size, int hashsize)
     new_cache->head = NULL;
     new_cache->tail = NULL;
     new_cache->max_size = max_size;
-    new_cache->cur_size = hashsize;
+    new_cache->cur_size = 0;
     return new_cache;
 }
 
