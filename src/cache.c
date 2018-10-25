@@ -4,11 +4,27 @@
 #include "hashtable.h"
 #include "cache.h"
 
+void cache_free(struct cache *cache)
+{
+    struct cache_entry *cur_entry = cache->head;
+
+    hashtable_destroy(cache->index);
+
+    while (cur_entry != NULL) {
+        struct cache_entry *next_entry = cur_entry->next;
+
+        free_entry(cur_entry);
+
+        cur_entry = next_entry;
+    }
+}
+
 /**
  * Allocate a cache entry
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -105,6 +121,13 @@ struct cache *cache_create(int max_size, int hashsize)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
+    struct cache_entry *ce = alloc_entry(path, content_type, content, content_length);
+
+    dllist_insert_head(cache, ce);
+    hashtable_put(cache->index, path, ce);
+    cache->cur_size++;
+
+    clean_lru(cache);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
