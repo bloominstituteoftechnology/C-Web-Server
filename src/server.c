@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 65536 * 4; // Must be very large to handle jpg
     char response[max_response_size];
 
     // Build HTTP response and store it in response
@@ -69,16 +69,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                 "Date: %s"
                                 "Connection: close\n"
                                 "Content-Length: %d\n"
-                                "Content-Type: %s\n\n"
-                                "%s", 
+                                "Content-Type: %s\n\n", 
                                 header, 
                                 asctime(info), 
                                 content_length, 
-                                content_type, 
-                                body);
+                                content_type);
+
+
+    memcpy(response + response_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
