@@ -69,7 +69,26 @@ _Read through all the main and stretch goals before writing any code to get an o
 
 #### Days 1 and 2
 
-1. Examine `handle_http_request()` in the file `server.c`.
+1. Implement `send_response()`.
+
+   This function is responsible for formatting all the pieces that make up an HTTP response into the proper format that clients expect. In other words, it needs to build a complete HTTP response with the given parameters. It should write the response to the string in the `response` variable.
+   
+   The total length of the header **and** body should be stored in the `response_length` variable so that the `send()` call knows how many bytes to
+   send out over the wire.
+
+   See the [HTTP](#http) section above for an example of an HTTP response and use that to build your own.
+
+   Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
+   content length. `sprintf()` also returns the total number of bytes in the
+   result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file.
+
+   > The HTTP `Content-Length` header only includes the length of the body, not
+   > the header. But the `response_length` variable used by `send()` is the
+   > total length of both header and body.
+
+   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function, and seeing if the client receives the 404 response. 
+
+2. Examine `handle_http_request()` in the file `server.c`.
 
    You'll want to parse the first line of the HTTP request header to see if this is a `GET` or `POST` request, and to see what the path is. You'll use this information to decide which handler function to call.
 
@@ -90,13 +109,11 @@ _Read through all the main and stretch goals before writing any code to get an o
    If you can't find an appropriate handler, call `resp_404()` instead to give
    them a "404 Not Found" response.
 
-2. Implement the `get_d20()` handler. This will call `send_response()`.
+3. Implement the `get_d20()` handler. This will call `send_response()`.
 
-   See above at the beginning of the assignment for what `get_d20()` should
-   pass to `send_response()`.
+   See above at the beginning of the assignment for what `get_d20()` should pass to `send_response()`.
 
-   If you need a hint as to what the `send_response()` call should look like,
-   check out the usage of it in `resp_404()`, just above there.
+   If you need a hint as to what the `send_response()` call should look like, check out the usage of it in `resp_404()`, just above there.
 
    Note that unlike the other responses that send back file contents, the `d20` endpoint will simply compute a random number and send it back. It does not read the number from a file.
 
@@ -104,30 +121,9 @@ _Read through all the main and stretch goals before writing any code to get an o
    > communications path. Usually they point to regular files on disk, but in
    > this case it points to an open _socket_ network connection. All of the code to create and use `fd` has been written already, but we still need to pass it around to the points it is used.
 
-3. Implement `send_response()`.
-
-   This needs to build a complete HTTP response with the given parameters. It
-   should write the response to the string in the `response` variable.
-   
-   The total length of the header **and** body should be stored in the
-   `response_length` variable so that the `send()` call knows how many bytes to
-   send out over the wire.
-
-   See the [HTTP](#http) section above for an example of an HTTP response and
-   use that to build your own.
-
-   Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
-   content length. `sprintf()` also returns the total number of bytes in the
-   result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file. 
-
-   > The HTTP `Content-Length` header only includes the length of the body, not
-   > the header. But the `response_length` variable used by `send()` is the
-   > total length of both header and body.
-
 4. Implement arbitrary file serving.
 
-   Any other URL should map to the `serverroot` directory and files that lie
-   within. For example:
+   Any other URL should map to the `serverroot` directory and files that lie within. For example:
 
    `http://localhost:3490/index.html` serves file `./serverroot/index.html`.
 
@@ -141,15 +137,11 @@ _Read through all the main and stretch goals before writing any code to get an o
 
 #### Days 3 and 4
 
-Implement an LRU cache. This will be used to cache files in RAM so you don't
-have to load them through the OS.
+Implement an LRU cache. This will be used to cache files in RAM so you don't have to load them through the OS.
 
-When a file is requested, the cache should be checked to see if it is there.
-If so, the file is served from the cache. If not, the file is loaded from
-disk, served, and saved to the cache.
+When a file is requested, the cache should be checked to see if it is there. If so, the file is served from the cache. If not, the file is loaded from disk, served, and saved to the cache.
 
-The cache has a maximum number of entries. If it has more entries than the
-max, the least-recently used entries are discarded.
+The cache has a maximum number of entries. If it has more entries than the max, the least-recently used entries are discarded.
 
 The cache consists of a [doubly-linked
 list](https://en.wikipedia.org/wiki/Doubly_linked_list) and a
@@ -234,7 +226,15 @@ fail to find a file there, then try:
 
 and succeed.
 
-#### 3. Expire cache entries
+#### 3. Implement functionality that will allow your server to serve any type of data, not just text data
+
+All the files that the server has been responding with have been text files of some sort. Augment the server such that if a client requests `http://localhost:3490/cat.jpg`, the server is able to fetch and respond with the requested file (of course, the file needs to exist in the server's directory structure). 
+
+Add an image to the `./serverroot` directory and update the `send_response` function such that it can handle _any_ type of data. _Hint: you'll want to look into the `memcpy` function from the C standard library_. 
+
+Note that `file_load` doesn't actually need any modification. It's already been written in such a way that it can handle arbitrary types of file data.
+
+#### 4. Expire cache entries
 
 It doesn't make sense to cache things forever--what if the file changes on disk?
 
@@ -244,7 +244,7 @@ If an item is found in the cache, check to see if it is more than 1 minute old. 
 
 You'll have to add a `cache_delete` function to your cache code that does the work of actually removing entries that are too old from the cache.
 
-#### 4. Concurrency
+#### 5. Concurrency
 
 _Difficulty: Pretty Dang Tough_
 
