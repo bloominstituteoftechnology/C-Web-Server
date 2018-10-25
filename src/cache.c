@@ -133,13 +133,14 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
    hashtable_put(cache->index, entry->path, entry);
 
-   // Incremtn the current size of the cache
+   // Increment the current size of the cache
    cache->cur_size++;
 
     // if the cache size is greater than the max size
 
     if (cache->cur_size > cache->max_size) {
-        // Remove the entry from the hashtable, using the entry's path
+        // Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
+
         hashtable_delete(cache->index, cache->tail->path);
         // Remove the cache entry at the tail of the linked list
         // Free the cache entry
