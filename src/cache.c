@@ -35,6 +35,10 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)  //(void *v_ent, void *varg)
 {
+    free(entry->content_type);
+    free(entry->content);
+    free(entry->path);
+    free(entry);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
