@@ -215,10 +215,6 @@ void handle_http_request(int fd, struct cache *cache) // Passing socket file des
             // resp_404(fd);                      // Any other path, for now, we do a 404 error.
         }
     }
-    else if (strcmp(request_path, "POST") == 0)
-    {
-        // handle POSTING a file
-    }
 
     // Read components of the first request line
 
