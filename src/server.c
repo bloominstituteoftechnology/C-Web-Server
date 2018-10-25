@@ -92,7 +92,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    srand(time(0)); // Seeds the random number generator based on the current time
+    srand(time(NULL) + getpid()); // Seeds the random number generator based on the current time
 
     char response_body[8]; // Set string to send response body, again why 8 bytes?
     sprintf(response_body, "%d\n", (rand()%20) + 1); // Prints the generated number
@@ -229,7 +229,7 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(request_type, "GET") == 0)
     {
         //  Check if it's /d20 and handle that special case
-        if (strcmp(request_route, "d20"))
+        if (strcmp(request_route, "/d20") == 0)
         {
             get_d20(fd);
         }
