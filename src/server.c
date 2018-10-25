@@ -193,6 +193,8 @@ void *handle_http_request(void *arguments)
     int fd = args->arg1;
     struct cache *cache = args->arg2;
 
+    pthread_detach(pthread_self());
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
