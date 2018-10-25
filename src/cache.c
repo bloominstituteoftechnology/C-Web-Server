@@ -11,14 +11,11 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
 
     struct cache_entry *entry = malloc(sizeof(struct cache_entry));
-    entry->path = malloc(strlen(path));
-    entry->content_type = malloc(strlen(content_type));
+
+    entry->path = strdup(path);
+    entry->content_type = strdup(content_type);
     entry->content_length = content_length;
-    entry->content = malloc(strlen(content));
-    
-    strcpy(entry->path, path);
-    strcpy(entry->content_type, content_type);
-    strcpy(entry->content, content);
+    entry->content = strdup(content);
 
     entry->prev = entry->next = NULL;
 
@@ -168,7 +165,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         struct cache_entry *temp = dllist_remove_tail(cache);
 
         hashtable_delete(cache->index, temp->path);
-        
+
         free_entry(temp);
         cache->cur_size--;
     }
