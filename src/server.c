@@ -65,8 +65,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                   "%s\n" // header
                                   "Date: %sConnection: close\n"
                                   "Content-Type: %s\nContent-Length: %d\n"
-                                  "\n",    // end marker for header
-                                //   "%s\n", // body
+                                  "\n", // end marker for header
+                                        //   "%s\n", // body
                                   header, asctime(time_tm), content_type,
                                   content_length);
     memcpy(response + response_length, body, content_length);
@@ -92,8 +92,8 @@ void get_d20(int fd)
     d20 = rand() % 20 + 1;
 
     // set up the "body" of the response
-    char body[4];
-    sprintf(body, "%d\n", d20);
+    char body[16];
+    sprintf(body, "%d", d20);
 
     // Use send_response() to send it back as text/plain data
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
