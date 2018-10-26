@@ -61,7 +61,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // int response_length = sizeof(response)/sizeof(char); Not quite right...
     int response_length = sprintf(response, 
-        "%sn\n"
+        "%s\n"
         "Date: %s"
         "Connection: close\n"
         "Content-Length: %d\n"
