@@ -60,7 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     info = localtime(&rawtime);
 
     int response_length = sprintf(response,
-                                  "%s\n Content-Type: %s\n Server: Lambda C Server\n Content-Length: %d\n Date: %s\n %s\n",
+                                  "%s\nContent-Type: %s\nServer: Lambda C Server\nContent-Length: %d\nDate: %s\n%s\n",
                                   header, content_type, content_length, asctime(info), body);
 
     int rv = send(fd, response, response_length, 0);
