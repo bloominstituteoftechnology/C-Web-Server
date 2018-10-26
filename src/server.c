@@ -151,31 +151,41 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     char filepath[4096];
 
-    struct file_data *filedata;
-    char *mime_type;
+    struct file_data *filedata = NULL;
+    char *mime_type = NULL;
 
     snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
 
-    filedata = file_load(filepath);
+    struct cache_entry *entry = cache_get(cache, filepath);
 
-    if (filedata == NULL) { //checking if filedata returned
-        // handle the case where the user just typed in '/' at the path
-         // serve the index.html file
-        snprintf(filepath, sizeof(filepath), "%s %s/index.html", SERVER_ROOT, request_path);
+    if (entry != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+        return;
+    } else {
+        filedata = file_load(filepath);
 
-        filedata = file_load(filepath); 
-       
-       if (filedata == NULL) {
-          
-           resp_404(fd);
-           return;
-       }   
+        if (filedata == NULL)
+        {   //checking if filedata returned
+            // handle the case where the user just typed in '/' at the path
+            // serve the index.html file
+            snprintf(filepath, sizeof(filepath), "%s %s/index.html", SERVER_ROOT, request_path);
+
+            filedata = file_load(filepath);
+
+            if (filedata == NULL)
+            {
+                resp_404(fd);
+                return;
+            }
+        }
     }
 
     mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
 
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    
     file_free(filedata);
 
 }
