@@ -53,8 +53,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    printf("Size of response: %lu", sizeof response);
-
     // Build HTTP response and store it in response
 
     ///////////////////
@@ -62,7 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // char *response;
-    sprintf(response, "%s\nContent-Type: %s\n\n%s", header, content_type, body);
+    sprintf(response, "%s\nContent-Type: %s\n\n%s\n", header, content_type, body);
 
     // Send it all!
     // int rv = send(fd, response, content_length, 0);
@@ -87,11 +85,25 @@ void get_d20(int fd)
     // IMPLEMENT ME! //
     ///////////////////
 
+    srand(time(NULL));
+    int rand_num = rand() % 20 + 1;
+    char rand_char_num[10];
+    sprintf(rand_char_num, "%d", rand_num);
+
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char header[50];
+    sprintf(header, "HTTP/1.1 200 OK");
+    char mime_type[50];
+    sprintf(mime_type, "text/plain");
+
+    send_response(fd, header, mime_type, rand_char_num, sizeof(rand_num));
+
+
 }
 
 /**
@@ -135,13 +147,13 @@ void get_file(int fd, struct cache *cache, char *request_path)
     if (strcmp(request_path, "/") == 0) {
         sprintf(filepath, "%s/index.html", SERVER_ROOT);
     } else {
-        sprintf(filepath, "%s%s", SERVER_ROOT, request_path);
+        sprintf(filepath, "%s/%s", SERVER_ROOT, request_path);
     }
     filedata = file_load(filepath);
 
     mime_type = mime_type_get(filepath);
     char header[100];
-    sprintf(header, "200 OK");
+    sprintf(header, "HTTP/1.1 200 OK");
     send_response(fd, header, mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
