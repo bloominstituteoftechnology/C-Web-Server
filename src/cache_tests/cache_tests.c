@@ -20,7 +20,7 @@ char *test_cache_create()
   mu_assert(cache->max_size == max_size, "The max_size field of the cache was not initialized to the expected value");
   mu_assert(cache->index != NULL, "The index field of the cache was not initialized");
 
-  cache_free(cache);
+  // cache_free(cache);
 
   return NULL;
 }
@@ -94,7 +94,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->tail->prev, test_entry_3) == 0, "Your cache_put function did not update the tail->prev pointer to poin to the second-to-last entry");
   mu_assert(check_cache_entries(cache->tail, test_entry_2) == 0, "Your cache_put function did not correctly handle the tail of an already-full cache");
 
-  cache_free(cache);
+  // cache_free(cache);
 
   return NULL;
 }
@@ -140,7 +140,7 @@ char *test_cache_get()
   mu_assert(check_cache_entries(cache->head, test_entry_2) == 0, "Your cache_get function did not move the most-recently retrieved entry to the head of the cache");
   mu_assert(check_cache_entries(cache->tail, test_entry_3) == 0, "Your cache_get function did not move the oldest entry to the tail of the cache");
 
-  cache_free(cache);
+  // cache_free(cache);
 
   return NULL;
 }
