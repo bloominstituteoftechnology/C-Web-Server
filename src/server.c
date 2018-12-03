@@ -60,6 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
+    int response_length=0;
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -152,8 +153,10 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
-
+    char type[4];
+    char link[20];
+    char protocol[8];
+    sscanf(request, "%s %s %s",type,link,protocol);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -164,7 +167,9 @@ void handle_http_request(int fd, struct cache *cache)
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
+    if (strcmp(type,"GET")==0){
+        printf("You are making a GET request.");
+    }
 
     // (Stretch) If POST, handle the post request
 }
