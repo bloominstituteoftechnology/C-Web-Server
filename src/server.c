@@ -52,15 +52,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+    time(&rawtime);
+    info = localtime( &rawtime );
     // Build HTTP response and store it in response
+    int response_length=sprintf(response,"%s\nDate: %sConnection: close\nContent-Length: %i\nContent-Type: %s\n\n\n%p",header,asctime(info),content_length,content_type,body);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Send it all!
-    int response_length=0;
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -91,7 +95,7 @@ void get_d20(int fd)
     } else {
         content_length=1;
     }
-    send_response(fd,"HTTP/1.1 200 OK","text/plain",random_number,content_length);
+    send_response(fd,"HTTP/1.1 200 OK","text/plain",&random_number,content_length);
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
@@ -163,7 +167,7 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-    char type[4],url[10],protocol[8];
+    char type[4],url[10];
     sscanf(request, "%s %s",type,url);
     ///////////////////
     // IMPLEMENT ME! //
@@ -180,7 +184,7 @@ void handle_http_request(int fd, struct cache *cache)
     } else if (strcmp(type,"GET")==0) {
         get_file(fd,cache,url);
     } else {
-        resp404(fd);
+        resp_404(fd);
     }
     // (Stretch) If POST, handle the post request
 }
