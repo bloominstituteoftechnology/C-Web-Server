@@ -81,12 +81,17 @@ void get_d20(int fd)
     int random_number=0;
     while (random_number==0) {
         random_number=rand()%20;
-        printf("%i",random_number);
     }
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    int content_length;
+    if (random_number>9) {
+        content_length=2;
+    } else {
+        content_length=1;
+    }
+    send_response(fd,"HTTP/1.1 200 OK","text/plain",random_number,content_length);
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
