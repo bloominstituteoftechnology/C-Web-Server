@@ -95,7 +95,7 @@ void get_d20(int fd)
     // Intitializing random number generator
     srand((unsigned) time(&t));
     r = (rand() % max_number) + 1;
-    c_len = sprintf("%d\n", r);
+    c_len = sprintf(body_number, "%d\n", r);
 
     // Use send_response() to send it back as text/plain data
 
@@ -177,11 +177,24 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    printf("reading request %s\n", request);
+    char method[10], file[30], protocol[30];
 
-    // If GET, handle the get endpoints
+    sscanf(request, "%s%s%s", method, file, protocol);
+    printf("Method: %s, File: %s", method, file);
+
+    // If GET, handle then get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
+
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(file, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            resp_404(fd);
+        }
+    }
 
 
     // (Stretch) If POST, handle the post request
