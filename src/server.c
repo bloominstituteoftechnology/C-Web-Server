@@ -54,7 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response,"%s\n Date: Wed Dec 20 13:05:11 PST 2017\n  Connection: close\n Content-Length: %s\n Content-Type: %s\n \n%s\n",header, content_length, content_type, body );
+    int response_length = sprintf(response,"%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",header, content_length, content_type, body );
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -205,7 +205,7 @@ int main(void)
             perror("accept");
             continue;
         }
-
+        resp_404(newfd);
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
