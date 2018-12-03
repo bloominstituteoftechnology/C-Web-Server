@@ -52,13 +52,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+
+    time(&rawtime);
+    info = localtime(&rawtime);
+
 
     // Build HTTP response and store it in response
+    int response_length = sprintf(response,
+        "header:             %s\n"
+        "content-type:       %s\n"
+        "body:               %s\n"
+        "date/time:          %s\n",
+        header, content_type, body, asctime(info));
 
+    printf("Response: \n%s\n", response);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -182,6 +195,8 @@ int main(void)
 
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
+
+    resp_404(listenfd);
 
     if (listenfd < 0) {
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
