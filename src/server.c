@@ -77,7 +77,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    printf("functioning\n\n");
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -153,14 +153,19 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+    char rType[10], rEndpoint[20], rHTTP[20];
 
+    sscanf(request, "%s %s %s", rType, rEndpoint, rHTTP);
+    printf("%s\n %s\n %s\n", rType, rEndpoint, rHTTP);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
-
+    if(strcmp(rEndpoint, "/d20") == 0) {
+        get_d20(fd); 
+    }
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
@@ -205,7 +210,7 @@ int main(void)
             perror("accept");
             continue;
         }
-
+  
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
