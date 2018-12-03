@@ -95,7 +95,7 @@ void get_d20(int fd)
     srand(time(NULL));
     int r = (rand() % 20) + 1;
 
-    char *body = NULL;
+    char body[3];
     sprintf(body, "%d", r);
     int body_len = strlen(body);
 
@@ -169,10 +169,11 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    char method[32] = NULL;
-    char endpoint[64] = NULL;
-    char http_vers[16] = NULL;
-    sscanf(request, "%s %s %s", method, endpoint, http_vers);
+    char method[32];
+    char endpoint[64];
+    char http_vers[16];
+    printf("Request: %s\n", request);
+    sscanf(request, "%s %s %s", &method, &endpoint, &http_vers);
     printf("Method: %s\n", method);
     printf("Endpoint: %s\n", endpoint);
     printf("HTTP_vers: %s\n", http_vers);
@@ -183,7 +184,8 @@ void handle_http_request(int fd, struct cache *cache)
     //    Otherwise serve the requested file by calling get_file()
 
     if (strcmp(method, "GET") == 0) {
-        if (strcmp(endpoint, "/d20") == 0) {
+        if (strcmp(endpoint, "/d20/") == 0) {
+            printf("Should return d20 number.\n");
             get_d20(fd);
         } else {
             get_file(fd, cache, endpoint);
