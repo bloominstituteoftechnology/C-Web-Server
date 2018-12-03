@@ -135,8 +135,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
-
-
+    if(strcmp(request_path,"/")==0){
+        request_path = "/index.html";
+    }
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT,request_path);
       //check if file excists
     if( access( filepath, F_OK ) == -1 ) {
