@@ -90,10 +90,11 @@ void get_d20(int fd)
     ///////////////////
     int r, c_len;
     time_t t;
+    int max_number = 20;
     char body_number [15];
     // Intitializing random number generator
     srand((unsigned) time(&t));
-    r = (rand() % 20) + 1;
+    r = (rand() % max_number) + 1;
     c_len = sprintf("%d\n", r);
 
     // Use send_response() to send it back as text/plain data
