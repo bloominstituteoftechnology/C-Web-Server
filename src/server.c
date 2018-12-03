@@ -15,7 +15,7 @@
  * 
  * (Posting data is harder to test from a browser.)
  */
-
+// comment
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -54,14 +54,30 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    time_t rawtime;
+    struct tm *info;
+
+    time(&rawtime);
+    info = localtime(&rawtime);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
-    *response = "header: \"%s\"\n content_type:\"%s\"\n body:\"%s\"", header, content_type, body;
+    char *formatted_time = asctime(info);
+    int body_len = strlen(body);
+    sprintf(response, 
+    "%s\n" 
+    "Date: %s" 
+    "Connection: close\n"
+    "Content_Length: %d\n"
+    "Content_Type: %s\n\n"
+    "%s\n", 
+    header, 
+    formatted_time, 
+    body_len, 
+    content_type, 
+    body);
     int response_length = strlen(response);
-
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -186,6 +202,7 @@ int main(void)
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
 
+
     if (listenfd < 0) {
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
@@ -203,6 +220,7 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
+        resp_404(newfd);
         if (newfd == -1) {
             perror("accept");
             continue;
