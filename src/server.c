@@ -54,7 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
+    sprintf(response,"%s\n Wed Dec 20 13:05:11 PST 2017\n  Connection: close\n Content-Length: %s\n Content-Type: %s\n \n%s\n",header, content_length, content_type, body );
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -119,6 +119,7 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
