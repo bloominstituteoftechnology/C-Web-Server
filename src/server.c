@@ -60,9 +60,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     info = localtime(&rawtime);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char *formatted_time = asctime(info);
     int body_len = strlen(body);
     sprintf(response, 
@@ -95,16 +92,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(NULL));
+    int r = (rand() % 20) + 1;
+
+    char body[3];
+    sprintf(body, "%d", r);
+    int body_len = strlen(body);
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, body_len);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -172,17 +169,30 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    char method[32];
+    char endpoint[64];
+    char http_vers[16];
+    printf("Request: %s\n", request);
+    sscanf(request, "%s %s %s", &method, &endpoint, &http_vers);
+    printf("Method: %s\n", method);
+    printf("Endpoint: %s\n", endpoint);
+    printf("HTTP_vers: %s\n", http_vers);
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
-
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
+
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(endpoint, "/d20/") == 0) {
+            printf("Should return d20 number.\n");
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, endpoint);
+        }
+    } else {
+        // TODO: POST
+    }
 
 
     // (Stretch) If POST, handle the post request
@@ -220,7 +230,7 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
-        resp_404(newfd);
+        // resp_404(newfd);
         if (newfd == -1) {
             perror("accept");
             continue;
