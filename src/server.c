@@ -59,6 +59,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
+    *response = "header: \"%s\"\n content_type:\"%s\"\n body:\"%s\"", header, content_type, body;
+    int response_length = strlen(response);
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
