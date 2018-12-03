@@ -177,8 +177,11 @@ void handle_http_request(int fd, struct cache *cache)
     //    Otherwise serve the requested file by calling get_file()
     if (strcmp(type,"GET")==0 && strcmp(url,"/d20")==0){
         get_d20(fd);
+    } else if (strcmp(type,"GET")==0) {
+        get_file(fd,cache,url);
+    } else {
+        resp404(fd);
     }
-
     // (Stretch) If POST, handle the post request
 }
 
