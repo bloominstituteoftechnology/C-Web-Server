@@ -59,6 +59,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
+    response_length should include host header, success or failure, content-length, content-type, connection: close, date
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
