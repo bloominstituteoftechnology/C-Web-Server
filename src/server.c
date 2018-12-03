@@ -61,6 +61,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     sprintf(response, "%s\n%s\n%s\n\n", header, content_type, body);
     int response_length = strlen(response);
 
+    time_t rawtime; 
+    struct tm * timeinfo; 
+
+    time(&rawtime); 
+    timeinfo = localtime(&rawtime); 
+
+    
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
