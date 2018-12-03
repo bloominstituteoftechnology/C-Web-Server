@@ -60,6 +60,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
+
+ time_t t1 = time(NULL);
+    struct tm *ltime = localtime(&t1);
+
+    int response_length = sprintf(response,
+                                  "%s\n"
+                                  "Date: %s" // asctime adds its own newline
+                                  "Connection: close\n"
+                                  "Content-Length: %d\n"
+                                  "Content-Type: %s\n"
+                                  "\n" // End of HTTP header
+                                  "%s\n",
+
+                                  header,
+                                  asctime(ltime),
+                                  content_length,
+                                  content_type,
+                                  body);
+
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -80,6 +99,13 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+     srand(time(NULL) + getpid());
+
+    // Use send_response() to send it back as text/plain data
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand() % 20) + 1);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 
     // Use send_response() to send it back as text/plain data
 
@@ -122,6 +148,34 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];                            
+    char addfilepath[4096];                   
+    struct file_data *filedata;                     
+    
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+    char *mime_type = mime_type_get(filepath);
+
+
+    if(filedata == NULL)
+    {
+        snprintf(addfilepath, sizeof filepath, "%s%s", filepath, "index.html");
+        filedata = file_load(addfilepath);
+        mime_type = mime_type_get(addfilepath);
+
+        if(filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
+    }
+
+    // use original filepath to avoid repeated entries of ./serverroot/index.html
+    cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+
+    file_free(filedata);
 }
 
 /**
@@ -135,6 +189,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    
 }
 
 /**
