@@ -52,16 +52,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-
     // Build HTTP response and store it in response
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
+    int response_length = sprintf(response, "%s\nDate:Mon Dec 3 13:05:11 PST 2018\nContent-Length: %d\nConnection: close\nContent-Type:%s\n\n%s\n",header, content_length, content_type, body);
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
-
     if (rv < 0) {
         perror("send");
     }
@@ -183,6 +183,7 @@ int main(void)
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
 
+    
     if (listenfd < 0) {
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
@@ -194,6 +195,7 @@ int main(void)
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
     
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -204,6 +206,7 @@ int main(void)
             perror("accept");
             continue;
         }
+        resp_404(newfd);
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
