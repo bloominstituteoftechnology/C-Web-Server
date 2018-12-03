@@ -52,6 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    time_t t = time(NULL);
 
     // Build HTTP response and store it in response
 
@@ -60,6 +61,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
+    int response_length=sprintf(response, "%s\nDate: %s\nServer: Lambda 0.0.0.1\nContent-Length: %i\nContent-Type:%s\n\n%s\n", header, asctime(localtime(&t)), content_length,content_type,body); 
+
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -153,7 +156,7 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
+    resp_404(fd);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
