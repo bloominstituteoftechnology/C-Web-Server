@@ -53,12 +53,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
     int response_length = strlen(header) + content_length; 
-
+    // printf("fd %d\n header %s\n content type %s\n body %d\n content length %d\n", fd, header, content_type, body, content_length);
     // Build HTTP response and store it in response
-    sprintf(response, header, content_type, body);
+    sprintf(response, "header: %s\n\ncontent_length: %d\n content_type: %s\n\n body: %d\n",header, content_length, content_type, body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("response\n%s", response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -77,12 +78,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    printf("functioning\n\n");
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    int rNumber = rand() % 20;
+    int fileSize = sizeof(rNumber) * sizeof(int); 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1  200 OK", "text/html", rNumber, fileSize);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -156,7 +159,7 @@ void handle_http_request(int fd, struct cache *cache)
     char rType[10], rEndpoint[20], rHTTP[20];
 
     sscanf(request, "%s %s %s", rType, rEndpoint, rHTTP);
-    printf("%s\n %s\n %s\n", rType, rEndpoint, rHTTP);
+    // printf("%s\n %s\n %s\n", rType, rEndpoint, rHTTP);
 
     ///////////////////
     // IMPLEMENT ME! //
