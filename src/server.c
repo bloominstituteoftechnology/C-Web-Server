@@ -77,7 +77,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    printf("Generating a random number.");
+    int random_number=0;
+    while (random_number==0) {
+        random_number=rand()%20;
+        printf("%i",random_number);
+    }
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -153,10 +158,8 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-    char type[4];
-    char link[20];
-    char protocol[8];
-    sscanf(request, "%s %s %s",type,link,protocol);
+    char type[4],url[10],protocol[8];
+    sscanf(request, "%s %s",type,url);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -167,8 +170,8 @@ void handle_http_request(int fd, struct cache *cache)
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-    if (strcmp(type,"GET")==0){
-        printf("You are making a GET request.");
+    if (strcmp(type,"GET")==0 && strcmp(url,"/d20")==0){
+        get_d20(fd);
     }
 
     // (Stretch) If POST, handle the post request
