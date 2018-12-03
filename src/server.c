@@ -59,7 +59,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
-    response_length should include host header, success or failure, content-length, content-type, connection: close, date
+// response_length should include host header, success or failure,
+// content-length, content-type, connection: close, date
+    char response_length = sprintf(response, "%s\nConnection: Close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, content_length, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -176,6 +178,7 @@ void handle_http_request(int fd, struct cache *cache)
  */
 int main(void)
 {
+    void resp_404(newfd);
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
