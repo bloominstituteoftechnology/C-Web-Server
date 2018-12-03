@@ -94,7 +94,7 @@ void get_d20(int fd)
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -134,6 +134,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char file_path[5000];
+    
+
+
 }
 
 /**
@@ -157,6 +161,11 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
+    char type_of_request[8];
+    char path_of_request[1024]; 
+    char protocol[128]; 
+
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -166,17 +175,30 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
 
+
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", type_of_request, path_of_request, protocol); 
+
+    //check it out  
+    printf("REQuesting: %s %s %s\n", type_of_request, path_of_request, protocol); 
+
 
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
+    if(strcmp(type_of_request, "GET") == 0){
+        //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
+        if(strcmp(path_of_request, "/d20") == 0){
+            get_d20(fd); 
+        } else {
+            get_file(fd, cache, path_of_request);
+        }
+    }
+    
 
     // (Stretch) If POST, handle the post request
 }
