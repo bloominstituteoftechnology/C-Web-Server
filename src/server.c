@@ -1,18 +1,18 @@
 /**
  * webserver.c -- A webserver written in C
- * 
+ *
  * Test with curl (if you don't have it, install it):
- * 
+ *
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
- * 
+ *
  * You can also test the above URLs in your browser! They should work!
- * 
+ *
  * Posting Data:
- * 
+ *
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
- * 
+ *
  * (Posting data is harder to test from a browser.)
  */
 
@@ -45,19 +45,40 @@
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
- * 
+ *
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    int response_length;
+    char t_buff[80];
+    time_t c_time = time(NULL);
+
+    strftime(t_buff, (sizeof t_buff) - 1, "%c", &c_time);
 
     // Build HTTP response and store it in response
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // HTTP/1.1 200 OK
+    // Date: Wed Dec 20 13:05:11 PST 2017
+    // Connection: close
+    // Content-Length: 41749
+    // Content-Type: text/html
+    //
+    //body
+    response_length = sprintf(
+      response,
+      "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+      header,
+      t_buff,
+      content_length,
+      content_type,
+      body
+    );
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -76,7 +97,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -94,7 +115,7 @@ void get_d20(int fd)
 void resp_404(int fd)
 {
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata;
     char *mime_type;
 
     // Fetch the 404.html file
@@ -126,7 +147,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
 /**
  * Search for the end of the HTTP header
- * 
+ *
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
@@ -193,7 +214,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -210,10 +231,11 @@ int main(void)
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        
+
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
+        resp_404(newfd);
         handle_http_request(newfd, cache);
 
         close(newfd);
@@ -223,4 +245,3 @@ int main(void)
 
     return 0;
 }
-
