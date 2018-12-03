@@ -53,10 +53,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
     int response_length;
-    char t_buff[80];
-    time_t c_time = time(NULL);
 
-    strftime(t_buff, (sizeof t_buff) - 1, "%c", &c_time);
+    time_t raw_time;
+    struct tm *info;
+    char t_buff[80];
+    time(&raw_time);
+    info = localtime(&raw_time);
+    strftime(t_buff, sizeof t_buff, "%c", info);
 
     // Build HTTP response and store it in response
 
@@ -98,13 +101,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-
+    int rand_num = (rand() % 20) + 1;
+    char body[8];
+    sprintf(body, "%d", rand_num);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 ok", "text/plain", body, strlen(body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -243,7 +248,6 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
-        resp_404(newfd);
         handle_http_request(newfd, cache);
 
         close(newfd);
