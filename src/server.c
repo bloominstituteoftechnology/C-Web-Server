@@ -52,12 +52,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    int response_length;
 
     // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    response_length = sprintf(response, "%s\n Connection: close\n  Content-Length: %d\n Content-Type: %s\n\n %s\n", header, content_length, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
