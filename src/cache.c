@@ -94,6 +94,7 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
 }
 
 void cache_free(struct cache *cache)
