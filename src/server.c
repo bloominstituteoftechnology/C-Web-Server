@@ -75,17 +75,29 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    int max_num = 20;
+    int min_num = 1;
+    char header = "HTTP/1.1 200 OK";
+    char content_type = "text/plain";
+    int content_length = ;
+
+
     // Generate a random number between 1 and 20 inclusive
+    int randomNum = rand() % (max_num + 1 - min_num) + min_num;
+    char body = printf("%d\n", randomNum);
     
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, header, content_type, body, content_length)
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+// int send_response(int fd, char *header, char *content_type, void *body, int content_length)
+
 }
 
 /**
@@ -159,9 +171,13 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    sscanf(fd, "%d %d %d",request_buffer_size, request, bytes_recvd);
     // If GET, handle the get endpoints
+    if(strcmp()){
 
+    }else{
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
