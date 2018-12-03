@@ -128,6 +128,7 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+  
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -137,11 +138,16 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT,request_path);
-
+      //check if file excists
+    if( access( filepath, F_OK ) == -1 ) {
+        resp_404(fd);
+        return;
+    }
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
          resp_404(fd);
+         return;
     }
         mime_type = mime_type_get(filepath);
 
