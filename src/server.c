@@ -61,9 +61,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
-    int response_length=sprintf(response, "%s\nDate: %s\nServer: Lambda 0.0.0.1\nContent-Length: %i\nContent-Type:%s\n\n%s\n", header, asctime(localtime(&t)), content_length,content_type,body); 
+    int response_length=sprintf(response, "%s\nDate: %s\nConnection: closed\nContent-Length: %i\nContent-Type:%s\r\n", header, asctime(localtime(&t)), content_length,content_type); 
 
-    int rv = send(fd, response, response_length, 0);
+    memcpy(response + response_length, body, content_length);
+
+
+    int rv = send(fd, response, response_length +content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -78,13 +81,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
     
+    // Generate a random number between 1 and 20 inclusive
+    int rannum = rand()%20+1;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char passednum[3];
+    sprintf(passednum,"%d\n",rannum);
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain data",passednum, strlen(passednum));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -147,7 +153,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-
+    char requesttype[128];
+    char requestdest[128];
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -155,8 +162,19 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+    sscanf(request,"%s %s",requesttype,requestdest);
 
-    resp_404(fd);
+    if(strcmp(requesttype,"GET")==0){
+        if(strcmp(requestdest,"/d20")==0){
+            get_d20(fd);
+        }
+        else{
+            resp_404(fd);
+        }
+    }
+   
+    
+    printf("%s\n",requesttype);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
