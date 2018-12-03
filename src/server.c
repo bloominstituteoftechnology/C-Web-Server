@@ -53,7 +53,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+    const int response_length = content_length + strlen(fd) + strlen(header);
+    // Build HTTP response 
+    
+    //and store it in response
+    sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -82,6 +86,7 @@ void get_d20(int fd)
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    // send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
     ///////////////////
     // IMPLEMENT ME! //
