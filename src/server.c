@@ -195,6 +195,8 @@ int main(void)
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
+    resp_404(fd);
+
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
