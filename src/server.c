@@ -176,13 +176,24 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char *method;
+    char *endpoint;
+    char *http_vers;
+    sscanf(request, "%s %s %s", method, endpoint, http_vers);
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
-
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(endpoint, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, endpoint);
+        }
+    } else {
+        // TODO: POST
+    }
 
 
     // (Stretch) If POST, handle the post request
