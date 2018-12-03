@@ -52,8 +52,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    int response_length;
+
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
 
     // Build HTTP response and store it in response
+    response_length = sprintf(response,
+    "%s\n"
+    "Date: %s\n"
+    "Connection: close\n"
+    "Content-length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s",
+    header,
+    asctime(tm),
+    content_length,
+    content_type,
+    body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -177,7 +194,7 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
-
+    resp_404(newfd);
     struct cache *cache = cache_create(10, 0);
 
     // Get a listening socket
