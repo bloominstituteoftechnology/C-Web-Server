@@ -53,16 +53,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
    time_t rawtime;
-   struct tm *info;
+   struct tm *timestamp;
 
    time( &rawtime );
 
    timestamp = localtime( &rawtime );
     // Build HTTP response and store it in response
 
-    sprintf(response, "%s\n %s\n %s\n \n %s\n", header, timestamp, content_type, body);
-
-    content_length = (strlen(header) + strlen(body));
+    int response_length = sprintf(response, "%s\n Date: %s\n content length: %d\n Content type: %s\n \n Body: %s\n", header, asctime(timestamp), content_length, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -195,8 +193,6 @@ int main(void)
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
-    resp_404(fd);
-
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
@@ -217,12 +213,14 @@ int main(void)
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        
+
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
+        resp_404(newfd);        
 
         handle_http_request(newfd, cache);
 
+        
         close(newfd);
     }
 
