@@ -22,7 +22,7 @@ What's already here:
 * `llist.h` and `llist.c` contain an implementation of a doubly-linked list (used solely by the hashable--you don't need it)
 * `cache.h` and `cache.c` are where you will implement the LRU cache functionality for days 3 and 4
 
-## What is a Web Server?
+## What is a Web Server?  
 
 A web server is a piece of software that accepts HTTP requests (e.g. GET
 requests for HTML pages), and returns responses (e.g. HTML pages). Other common uses are GET requests for getting data from RESTful API endpoints, images within web pages, and POST requests to upload data to the server (e.g. a form submission or file upload).
