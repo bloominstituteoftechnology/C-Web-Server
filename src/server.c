@@ -61,7 +61,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
-    int response_length=sprintf(response, "%s\nDate: %s\nConnection: closed\nContent-Length: %i\nContent-Type:%s\r\n", header, asctime(localtime(&t)), content_length,content_type); 
+    int response_length=sprintf(response, "%s\nConnection: close\nContent-Length: %i\nContent-Type:%s\nDate: %s\r\n", header, content_length,content_type, asctime(localtime(&t))); 
 
     memcpy(response + response_length, body, content_length);
 
@@ -131,6 +131,23 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT,request_path);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+         resp_404(fd);
+    }
+        mime_type = mime_type_get(filepath);
+
+       send_response(fd, "HTTP/1.1 200 OK", mime_type,filedata->data, filedata->size);
+
+
 }
 
 /**
@@ -139,12 +156,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
+// char *find_start_of_body(char *header)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! // (Stretch)
+//     ///////////////////
+// }
 
 /**
  * Handle HTTP request and send response
@@ -169,12 +186,12 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
         }
         else{
-            resp_404(fd);
+            get_file(fd,cache,requestdest);
         }
     }
    
     
-    printf("%s\n",requesttype);
+    // printf("%s\n",requesttype);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
