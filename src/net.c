@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 #include "net.h"
 
-#define BACKLOG 10	 // how many pending connections queue will hold
+#define BACKLOG 10	// how many pending connections queue will hold
 
 /**
  * This gets an Internet address, either IPv4 or IPv6
