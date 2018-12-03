@@ -52,6 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    int response_length = 0;
 
     // Build HTTP response and store it in response
 
@@ -61,7 +62,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
-
+    
     if (rv < 0) {
         perror("send");
     }
@@ -145,6 +146,13 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
+    //--initialize request type length ~8
+    char request_type[8];
+    //--initialize request path length ~1024
+    char request_path[1024];
+    //--initialize request protocol length ~16
+    char request_protocol[16];
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -153,14 +161,24 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
 
+    /*use sscanf() https://www.tutorialspoint.com/c_standard_library/c_function_sscanf.htm
+     to take from the request buffer and break the first line into its component pieces, 
+     specify format %s %s %s, type, path, protocol */
+
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+    printf("get request: %s %s %s", request_type, request_path, request_protocol);
+
     // If GET, handle the get endpoints
+    // if (request_type == "GET"){
+    //     mime_type_get()
+    // }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
