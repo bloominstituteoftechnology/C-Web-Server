@@ -140,6 +140,27 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    if (strcmp(request_path, "/") == 0) {
+        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, "/index.html");
+    } else {
+        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+    }
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
 }
 
 /**
@@ -177,11 +198,11 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    printf("reading request %s\n", request);
-    char method[10], file[30], protocol[30];
+    printf("Reading request %s\n", request);
+    char method[10], path[30], protocol[30];
 
-    sscanf(request, "%s%s%s", method, file, protocol);
-    printf("Method: %s, File: %s", method, file);
+    sscanf(request, "%s%s%s", method, path, protocol);
+    printf("Method: %s, File: %s", method, path);
 
     // If GET, handle then get endpoints
 
@@ -189,11 +210,13 @@ void handle_http_request(int fd, struct cache *cache)
     //    Otherwise serve the requested file by calling get_file()
 
     if (strcmp(method, "GET") == 0) {
-        if (strcmp(file, "/d20") == 0) {
+        if (strcmp(path, "/d20") == 0) {
             get_d20(fd);
         } else {
-            resp_404(fd);
+            get_file(fd, cache, path);
         }
+    } else {
+        resp_404(fd);
     }
 
 
