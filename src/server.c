@@ -1,18 +1,18 @@
 /**
  * webserver.c -- A webserver written in C
- * 
+ *
  * Test with curl (if you don't have it, install it):
- * 
+ *
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
- * 
+ *
  * You can also test the above URLs in your browser! They should work!
- * 
+ *
  * Posting Data:
- * 
+ *
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
- * 
+ *
  * (Posting data is harder to test from a browser.)
  */
 
@@ -45,13 +45,21 @@
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
- * 
+ *
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+  // this function builds an HTTP response with all the given parameters: header, content_type, body the actual
+  // content of the request, and content_length the total length of the header and body of the response in bytes
+  // this is so the send() function below  recieves the respond legnth which it needs to snned a message on a socket.
     const int max_response_size = 65536;
     char response[max_response_size];
+    // response is an array of characers so do I need:
+    // response_length = sizeof(respone)/sizeof(char)?
+    // just initalize response length for now
+    int response_length[0];
+
 
     // Build HTTP response and store it in response
 
@@ -76,7 +84,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -94,7 +102,7 @@ void get_d20(int fd)
 void resp_404(int fd)
 {
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata;
     char *mime_type;
 
     // Fetch the 404.html file
@@ -126,7 +134,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
 /**
  * Search for the end of the HTTP header
- * 
+ *
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
@@ -141,6 +149,7 @@ char *find_start_of_body(char *header)
  * Handle HTTP request and send response
  */
 void handle_http_request(int fd, struct cache *cache)
+// this function is where the request is recieved.
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
@@ -193,7 +202,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -210,7 +219,7 @@ int main(void)
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        
+
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
@@ -223,4 +232,3 @@ int main(void)
 
     return 0;
 }
-
