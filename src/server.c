@@ -52,6 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+
     time_t rawtime;
     struct tm *info;
     char buffer[80];
@@ -69,9 +70,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         header, content_type, body, asctime(info));
 
     printf("Response: \n%s\n", response);
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -89,16 +92,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char res_body[8];
+    int random = (rand() % (20 + 1- 1) + 1); 
+    int length = sprintf(res_body, "%d", random); // formula: rand() % ((max + 1 - min) + min)
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", res_body, length);
 }
 
 /**
@@ -166,19 +168,26 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
+    char method[8], path[32], protocol_ver[16];
+    sscanf(request, "%s %s %s", method, path, protocol_ver);
 
     // If GET, handle the get endpoints
-
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
-
+    if (strcmp(method, "GET") == 0){
+        if (strcmp(path, "/d20") == 0){
+            get_d20(fd);
+        }
+        else {
+            printf("get_file()");
+        }
+    }
+    resp_404(fd);
     // (Stretch) If POST, handle the post request
 }
 
