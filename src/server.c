@@ -145,6 +145,10 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    // Added
+    char request_type[8];
+    char resource[1024];
+    char request_protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -154,13 +158,14 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
-
+    sscanf(request, "%s %s %s", request_type, resource, request_protocol);
+    // Print received request
+    printf("Received request: %s %s %s\n:", request_type, resource, request_protocol);
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
