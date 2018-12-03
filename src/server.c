@@ -54,7 +54,22 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
+    // HTTP/1.1 200 OK
+    // Date: Wed Dec 20 13:05:11 PST 2017
+    // Connection: close
+    // Content-Length: 41749
+    // Content-Type: text/html
+    //
+    //body
+    int response_length = sprintf(
+        response,
+        "%s\nDate: %s\nConnection: close\nContent-Length:%d\nContent-Type: %s\n\n%s",
+        header,
+        //time,
+        content_length,
+        content_type,
+        body
+    );
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
