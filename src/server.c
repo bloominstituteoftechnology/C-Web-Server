@@ -54,7 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "header: %s\n content_type: %s\n content_length: %d\n body: %s\n\n", header, content_type, content_length, body)/4 + content_length;
+    int response_length = sprintf(response, "header: %s\n content_type: %s\n content_length: %d\n body: %p\n\n", header, content_type, content_length, body)/4 + content_length;
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -77,7 +77,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-
+    printf("D20 is running\n");
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -160,26 +160,21 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    char line1[3];
-    int ptr = 0;
-    token = strtok(request, " ");
-    line1[ptr] = token
-    ptr++;
-    while (ptr < 3 && token !=NULL) {
-      token = strtok(NULL, " ");
-      line1[ptr] = token;
-      ptr++;
-    }
+    char rreq[20], rfp[20], rvers[20];
+    sscanf(request, "%s %s %s", rreq, rfp, rvers);
+
     // If GET, handle the get endpoints
-    if (strcmp(line1[0], "GET") == 0) {
+    if (strcmp(rreq, "GET") == 0) {
       //    Check if it's /d20 and handle that special case
-      if (strcmp(line1[1], "/d20") == 0) {
-        return get_d20(fd);
+      if (strcmp(rfp, "/d20") == 0) {
+        get_d20(fd);
+      } else {
+        //    Otherwise serve the requested file by calling get_file()
+        get_file(fd, cache, rfp);
       }
-      //    Otherwise serve the requested file by calling get_file()
-      else {
-        if (get_file(fd, cache, line1[1]) ==
-      }
+    }
+    else {
+      resp_404(fd);
     }
     // (Stretch) If POST, handle the post request
 }
