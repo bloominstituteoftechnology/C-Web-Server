@@ -56,7 +56,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
-
+    char *timestamp = asctime(tm);
+    
     // Build HTTP response and store it in response
     response_length = sprintf(response,
     "%s\n"
@@ -67,7 +68,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     "\n"
     "%s",
     header,
-    asctime(tm),
+    timestamp,
     content_length,
     content_type,
     body);
@@ -194,12 +195,11 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
-    resp_404(newfd);
+    
     struct cache *cache = cache_create(10, 0);
 
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
-
     if (listenfd < 0) {
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
@@ -221,7 +221,7 @@ int main(void)
             perror("accept");
             continue;
         }
-
+        resp_404(newfd);
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
