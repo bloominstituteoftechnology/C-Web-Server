@@ -57,7 +57,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int response_length = 0;
 
     // Build HTTP response and store it in response
-    response_length = sprintf(response, header, content_type, body);
+    response_length = sprintf(response, "%s\n content-length:%d\n content-type:%s\n", header, content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
