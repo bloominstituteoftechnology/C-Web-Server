@@ -55,9 +55,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // store the response length as an int 
+    int response_length = strlen(header) + strlen(body);
+    // %s take the arg and print as string
+    printf(response, "%s%s%s", header, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
