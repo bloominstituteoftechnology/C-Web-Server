@@ -64,13 +64,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime); 
     timeinfo = localtime(&rawtime);
     char date= asctime(timeinfo); 
+    char connection[] = "close"; 
 
-    sprintf(response, "%s\n %s\n%s\n%s\n\n", header,date, content_type, body);
+    sprintf(response, "%s\n %s\n%s\n%s\n%s\n\n", header,date,connection, content_type, body);
     int response_length = strlen(response);
-
-     
-
-
 
 
 
