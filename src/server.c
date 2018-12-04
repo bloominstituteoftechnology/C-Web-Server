@@ -60,11 +60,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     info = localtime(&rawtime);
 
-
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "header: %s\ncontent-type: %s\nbody: %s\n", header, content_type, body);
+    int response_length = sprintf(response,
+                            "%s\n"
+                            "Date:%s" // no new line asctime adds its own newline
+                            "Connection: close \n"
+                            "Content-Length: %d\n"
+                            "Content-Type: %s\n"
+                            "\n%s",
+                            header, asctime(info), content_length, content_type, body);
 
-    printf("Response: \n%s\n", response);
+    printf("%s\n", response);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -95,7 +101,7 @@ void get_d20(int fd)
     int length = sprintf(res_body, "%d", random); // formula: rand() % ((max + 1 - min) + min)
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", res_body, length);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", res_body, strlen(res_body));
 }
 
 /**
@@ -170,7 +176,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     char method[8], path[32], protocol_ver[16];
-    sscanf(request, "%s%s%s", method, path, protocol_ver);
+    sscanf(request, "%s %s %s", method, path, protocol_ver);
 
     // If GET, handle the get endpoints
     //    Check if it's /d20 and handle that special case
