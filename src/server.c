@@ -58,7 +58,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // response is an array of characers so do I need:
     // response_length = sizeof(respone)/sizeof(char)?
     // just initalize response length for now
-    int response_length[0];
+    int response_length = 0;
+    int response_length = snprintf(
+      response,
+      "%s\n connection:\n content_length: %d\n content_type: %s\n\n%s", header, content_length, content_type, body
+    );
 
 
     // Build HTTP response and store it in response
