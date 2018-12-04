@@ -55,10 +55,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time_t curr_time;
     char* frmt_curr_time;
     curr_time = time(NULL);
-    frmt_curr_time = ctime(curr_time);
+    frmt_curr_time = ctime(&curr_time);
 
     // Build HTTP response and store it in response
-    int resp_len = sprintf(response, "%c\nDate: %c\nConnection: close\nContent-Length: %d\nContent-Type: %c\n\n", header, frmt_curr_time, content_length, content_type, body);
+    int resp_len = sprintf(response, 
+    "%s\n"
+    "Date: %s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "%s\n\n",
+    header, frmt_curr_time, content_length, content_type, body);
 
     int rv = send(fd, response, resp_len, 0);
 
@@ -122,6 +129,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("get_file");
 }
 
 /**
@@ -135,6 +143,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    printf("find_start_of_body");
 }
 
 /**
@@ -220,7 +229,7 @@ int main(void)
             perror("accept");
             continue;
         }
-
+        resp_404(newfd);
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
