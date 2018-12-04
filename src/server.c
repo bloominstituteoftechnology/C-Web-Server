@@ -56,7 +56,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    response_length = sprintf(response, "%s\n Date: %s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s", header, content_length, content_type, body);
+    response_length = sprintf(response,
+    "%s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s", 
+    header,
+    content_length,
+    content_type,
+    body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -190,7 +200,7 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
-
+    
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
@@ -208,14 +218,15 @@ int main(void)
             perror("accept");
             continue;
         }
-        resp_404(newfd);
+        
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        
+        resp_404(newfd);
+        printf("khoa's segmentation fault");
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
@@ -223,7 +234,7 @@ int main(void)
 
         close(newfd);
     }
-
+    
     // Unreachable code
 
     return 0;
