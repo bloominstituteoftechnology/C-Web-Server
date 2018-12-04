@@ -64,7 +64,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build the HTTP response then store in response
     int response_length = sprintf(response,"%s\n Content-Type: %s\n Server: Keegan C Server\n Content-Length: %d\n Date: %s\n %s", header, content_type, content_length, asctime(info), body);
-    printf("Response: %s", response);
+    printf(" Response: %s", response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
