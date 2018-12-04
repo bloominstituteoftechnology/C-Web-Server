@@ -84,10 +84,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int random;
+    for(int i = 0; i<20, i++){
+      random = rand()%20
+    }
 
     // Use send_response() to send it back as text/plain data
 
