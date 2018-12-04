@@ -57,16 +57,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     time_t curtime;
     time(&curtime);
-    date_now = ctime(&curtime);
+    char date_now = ctime(&curtime);
 
     int response_length =  sprintf(
         response,
+        
         "Header: %s\n"
-        "Date: %s\n"
+        "Date: %d\n"
         "Connection: close\n"
         "Content-Length: %d\n"
         "Content-Type: %s\n"
-        "Body: %s\n",
+        "Body: %p\n",
 
         header,
         date_now,
@@ -172,12 +173,14 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    resp_404(fd);
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
-    sscanf(request, "%s, %s, %s", request_type, request_path, request_protocol);
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
     // If GET, handle the get endpoints
     if(strcmp(request_type, "GET") == 0) {
