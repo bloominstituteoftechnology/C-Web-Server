@@ -55,7 +55,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int response_length = 0;
 
     // Build HTTP response and store it in response
-    response_length = sprintf(response, "Header: %s\n Content-Length: %d\n Content-Type: %s\n Body:\n%s\n", header, content_length, content_type, body);
+    response_length = sprintf(response, "%s\nConnection: close\ncontent-length: %d\ncontent-type: %s\n%s\n", header, content_length, content_type, body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -81,12 +81,15 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char number[16];
+    int rand_num = rand() % 21;
+    int content_length = sprintf(number, "%d", rand_num);
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", number, content_length);
 }
 
 /**
@@ -167,6 +170,23 @@ void handle_http_request(int fd, struct cache *cache)
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
+    char method[32], endpoint[64], protocol[64];
+
+    printf("Request: %s\n", request);
+    sscanf(request, "%s %s %s", method, endpoint, protocol);
+    printf("Method: %s\nEndpoint: %s\nProtocol: %s", method, endpoint, protocol);
+
+    if (strcmp(method, "GET") == 0)
+    {
+        if (strcmp(endpoint, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else
+        {
+            get_file(fd, cache, endpoint);
+        }
+    }
     // (Stretch) If POST, handle the post request
 }
 
@@ -203,7 +223,7 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
-        resp_404(newfd);
+
         if (newfd == -1)
         {
             perror("accept");
@@ -221,6 +241,7 @@ int main(void)
 
         handle_http_request(newfd, cache);
 
+        resp_404(newfd);
         close(newfd);
     }
 
