@@ -66,7 +66,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     int response_length = sprintf(response, "Header: %s"
                                             "Date: %s"
-                                            "Connection %s"
+                                            "Connection: %s"
                                             "Content Length: %d"
                                             "Content Type: %s"
                                             "\n\n"
@@ -96,10 +96,10 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char response_body[8];
-    sprintf(response_body, "%d\n", (rand() % 20) + 1);
+    char response[8];
+    sprintf(response, "%d\n", (rand() % 20) + 1);
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
