@@ -60,10 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // just initalize response length for now
     int response_length = 0;
 
-    response_length = sprintf(
-      response,
-      "%s\n connection:\n content_length: %d\n content_type: %s\n\n%s", header, content_length, content_type, body
-    );
+    response_length = sprintf(response, "%s\n connection: close\n content_length: %d\n content_type: %s\n\n %s", header, content_length, content_type, body);
 
 
     // Build HTTP response and store it in response
@@ -89,11 +86,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    int random;
-    for(int i = 0; i<20; i++){
-      random = rand()%20;
-      printf("%d\n",random );
-    }
+    // need length as well for send response
+    int random, len;
+    // array of characters for sprintf
+    char body_num[15];
+    random = 1 + rand()%21;
+    len = sprintf(body_num, "%d\n", random);
 
 
     // Use send_response() to send it back as text/plain data
@@ -101,6 +99,7 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body_num, len);
 }
 
 /**
@@ -175,11 +174,22 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    printf("request %s\n", request);
+    char method, file, protocol;
+    sscanf(request, "%s %s %s", method, file, protocol);
+    printf("method:%s\n file:%s", method, file );
 
     // If GET, handle the get endpoints
+    if(strcmp(method, "GET") == 0){
+      //    Check if it's /d20 and handle that special case
+      if(strcmp(file, "/d20") == 0){
+        get_d20(fd);
+      }else {
+      //    Otherwise serve the requested file by calling get_file()
+      resp_404(fd);
+      }
+    }
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
 
 
     // (Stretch) If POST, handle the post request
