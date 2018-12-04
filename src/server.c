@@ -171,10 +171,6 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char type[8];
     char path[1024];
     char protocol[128];
@@ -185,7 +181,7 @@ void handle_http_request(int fd, struct cache *cache)
         if(strcmp(path, "/d20") == 0) {
             get_d20(fd);
         }
-    } else {
+    }else {
         resp_404(fd);
     }
     //    Check if it's /d20 and handle that special case
@@ -229,7 +225,6 @@ int main(void)
             perror("accept");
             continue;
         }
-        resp_404(newfd);
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
