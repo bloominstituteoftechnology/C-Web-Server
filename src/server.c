@@ -173,11 +173,32 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
 
+    char response, path, protocol;
+
+    sscanf(request, "%s %s %s", response, path, protocol);
+
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
+    if (strcmp(response, "GET") == 0)
+    {
+        if (strcmp(path, "/d20") == 0)
+        {
+            get_d20();
+        }
+        else
+        {
+            get_file();
+        }
+    }
+    else
+    {
+        fprintf(stderr, "unrecognized response type\n");
+        return;
+    }
+    
 
     // (Stretch) If POST, handle the post request
 }
@@ -226,7 +247,6 @@ int main(void)
             s, sizeof s);
         printf("server: got connection from %s\n", s);
         resp_404(newfd);
-        printf("khoa's segmentation fault");
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
