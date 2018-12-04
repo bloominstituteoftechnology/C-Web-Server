@@ -64,7 +64,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     content_type,
     body
     );
-    
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -90,9 +90,12 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char body[8];
+    int randomNumber = rand() % 21;
+    int len = sprintf(body, "%d", randomNumber); 
 
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, len);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
