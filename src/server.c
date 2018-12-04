@@ -54,11 +54,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    time_t time_seconds;
+    struct tm *newtime;
+    time(&time_seconds);
+    newtime = localtime(&time_seconds);
+    char *formatted_time = asctime(newtime);
+    int body_len = strlen(body);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    sprintf(response,
+    "%s\n"
+    "Date: %s"
+    "Content_Length: %d\n"
+    "Content_Type: %s\n\n"
+    "%s\n",
+    header,
+    formatted_time,
+    body_len,
+    content_type,
+    body);
+    int response_length = strlen(response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -76,16 +90,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    int upper = 20;
+    int lower = 1;
+    int random = (rand() % (upper - lower + 1)) + lower;
+    int content_length = floor (log10 (abs (random))) + 1;
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random, content_length);
 }
 
 /**
@@ -153,18 +163,23 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
-
+    char method[32];
+    char endpoint[64];
+    char http_vers[16];
+    printf("Request: %s\n", request);
+    sscanf(request, "%s %s %s", &method, &endpoint, &http_vers);
     // If GET, handle the get endpoints
+    // Check if it's /d20 and handle that special case
+    // Otherwise serve the requested file by calling get_file()
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
+     if (strcmp(method, "GET")) {
+        if (strcmp(endpoint, "/d20")) {
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, endpoint);
+        }
+    }
 
     // (Stretch) If POST, handle the post request
 }
