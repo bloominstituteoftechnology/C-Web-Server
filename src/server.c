@@ -52,17 +52,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    time_t rawtime;
+    struct tm *info;
+
+    time(&rawtime);
+
+    info = localtime(&rawtime);
 
     int response_length = sprintf(response,
         "%s\n"
         "Connection: close\n"
         "Content-Length: %d\n"
         "Content-Type: %s\n"
+        "Date: %s\n"
         "\n"
         "%s\n",
         header,
         content_length,
         content_type,
+        asctime(info),
         body
     );
     // Build HTTP response and store it in response
@@ -182,7 +190,8 @@ void handle_http_request(int fd, struct cache *cache)
       if(strcmp(path, "/d20") == 0) {
           get_d20(fd);
       } else {
-          get_file(fd, cache, path);
+          // get_file(fd, cache, path);
+          resp_404(fd);
       }
     }
 
