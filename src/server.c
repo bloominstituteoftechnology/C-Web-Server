@@ -82,9 +82,8 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
     printf("Generating a random number.");
     int random_number=0;
-    while (random_number==0) {
-        random_number=rand()%20;
-    }
+    srand(time(NULL));
+    random_number=rand()%20+1;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
