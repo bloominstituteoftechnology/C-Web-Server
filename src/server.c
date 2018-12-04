@@ -125,22 +125,32 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     char path[4096];
     struct file_data *filedata;
+    struct cache_entry *check_cache;
     char *mime_type;
 
     sprintf(path, "%s%s", SERVER_ROOT, request_path);
 
-    filedata = file_load(path);
+    check_cache = cache_get(cache, path);
 
-    if (filedata == NULL) {
-        resp_404(fd);
-        return;
+    if (check_cache != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", check_cache->content_type, check_cache->content, check_cache->content_length);      
+    } else {
+        filedata = file_load(path);
+
+        if (filedata == NULL) {
+            resp_404(fd);
+            return;
+        }
+
+        mime_type = mime_type_get(path);
+
+        cache_put(cache, path, mime_type, filedata->data, filedata->size);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);   
     }
 
-    mime_type = mime_type_get(path);
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
 }
 
 /**
