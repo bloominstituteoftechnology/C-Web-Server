@@ -63,16 +63,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     time(&rawtime); 
     timeinfo = localtime(&rawtime);
-    char date= asctime(timeinfo); 
+    // char date= asctime(timeinfo); 
     char connection[] = "close"; 
 
-    sprintf(response, "%s\n %s\n%s\n%s\n%s\n\n", header,date,connection, content_type, body);
-    int response_length = strlen(response);
+    int response_length = sprintf(response, "%s\n %s\n%s\n%d\n%s\n\n", header,asctime(timeinfo),connection, content_length, content_type);
+    
 
-
+    memcpy(response + response_length, body, content_length); 
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -92,9 +92,10 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand()%20) + 1);
     // Use send_response() to send it back as text/plain data
-    
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -134,7 +135,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char file_path[5000];
+    // char file_path[5000];
+
+    printf("%d, %s, %d\n", fd, request_path, cache->cur_size); 
+    //just to remove the warnings to start server and test my code in other areas. 
     
 
 
@@ -151,6 +155,8 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+
+    return header; //just doing this to get rid of warning for now. 
 }
 
 /**
