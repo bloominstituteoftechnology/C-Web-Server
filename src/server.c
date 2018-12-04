@@ -152,6 +152,36 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //You need all of the URLs to map to the root of the server.
+    //And any files that are within the serverroot should appear
+    //when the URL is called. 
+
+    //you will need to set up routes to the different URLs
+    //'%s%s/index.html' leads to the home page.
+    //"%s/404.html" leads to a 404 error page.
+
+    char filepath[4069]; 
+
+    struct file_data *filedata; 
+    char *mime_type; 
+
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path); 
+
+    filedata = file_load(filepath);
+
+    if(filedata == NULL){
+        snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
+
+        filedata = file_load(filepath);
+
+        if(filedata == NULL){
+            resp_404(fd);
+            return; 
+        }
+    }
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK",  mime_type, filedata->data, filedata->size);
+    file_free(filedata);
 }
 
 /**
