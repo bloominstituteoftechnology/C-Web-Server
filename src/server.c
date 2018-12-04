@@ -48,6 +48,7 @@
  * 
  * Return the value from the send() function.
  */
+
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 65536;
@@ -89,7 +90,8 @@ void get_d20(int fd)
     printf("get_d20_1 %d\n", random);
     // printf("get_d20_2 %ld\n", sizeof(random));
     char randomstr[3];
-    sprintf(randomstr, "%d", random);
+
+    sprintf(randomstr, "%d\n", random);
     // Use send_response() to send it back as text/plain data
     
     // printf("get_d20_3 %d\n", size);
@@ -135,6 +137,26 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("get file%s\n", request_path);
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+    printf("%s\n", filepath);
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find path requested\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
+
 }
 
 /**
@@ -176,9 +198,11 @@ void handle_http_request(int fd, struct cache *cache)
     // char type[8];
     // char file[4];
     // char protocal[8];
+
     char type[8];
     char file[75];
     char protocal[9];
+
     sscanf(request, "%s %s %s", type, file, protocal);
     printf("handle_http_request3. type: %s\nfile: %s\nprotocal: %s\n\n", type, file, protocal);
 
@@ -189,6 +213,7 @@ void handle_http_request(int fd, struct cache *cache)
         {
             get_d20(fd);
         } else {
+            printf("\nfile is not /d20\n");
             get_file(fd, cache, file);
         }
     } 
@@ -251,7 +276,6 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-
         close(newfd);
     }
 
