@@ -59,8 +59,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Content-Length: 41749
     // Content-Type: text/html
 
-    // Build HTTP response and store it in response
-    int response_length = sprintf(response, "Header:%s\nDate:Mon Dec 3 13:05:11 PST 2018\nContent-Length: %d\nConnection: close\nContent-Type:%s\n\n%s\n", header, content_length, content_type, body);
+    time_t rawtime;
+    struct tm *info;
+
+    time(&rawtime);
+
+    info = localtime(&rawtime);
+
+    int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n%s", header, content_length, content_type, asctime(info), body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -91,7 +97,7 @@ void get_d20(int fd)
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, header, );
+    // send_response(fd, header);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -170,12 +176,9 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    sscanf(request_buffer_size, request, bytes_recvd, "%s%s%s");
+    sscanf(request, "%ls", &bytes_recvd);
 
     // If GET, handle the get endpoints
-    if ()
-    {
-    }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
@@ -223,6 +226,7 @@ int main(void)
         }
 
         resp_404(newfd);
+        // commented to test send_response function
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
