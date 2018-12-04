@@ -52,6 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    int response_length = 0;
 
     // Build HTTP response and store it in response
 
@@ -80,7 +81,13 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    srand(getpid() + time(NULL));
 
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand() % 20) + 1);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
+    
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
@@ -144,6 +151,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8];
+    char request_path[1024];
+    char request_protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -159,12 +169,22 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+    printf("Got request: %s %s %s\n", request_type, request_path, request_protocol);
 
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
+    if (strcmp(request_type, "GET") == 0) {
+        if (strcmp(request_path, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            // get_file(fd, cache, request_path);
+            printf("get_file implementation coming soon\n");
+        }
+    }
 
     // (Stretch) If POST, handle the post request
 }
