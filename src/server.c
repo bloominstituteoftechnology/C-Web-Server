@@ -171,6 +171,7 @@ void handle_http_request(int fd, struct cache *cache)
     char path_of_request[1024]; 
     char protocol[128]; 
 
+    
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -179,6 +180,9 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+
+    request[bytes_recvd] = '\0';
+
 
 
 
@@ -191,7 +195,7 @@ void handle_http_request(int fd, struct cache *cache)
     sscanf(request, "%s %s %s", type_of_request, path_of_request, protocol); 
 
     //check it out  
-    printf("REQuesting: %s %s %s\n", type_of_request, path_of_request, protocol); 
+    printf("Requesting: %s %s %s\n", type_of_request, path_of_request, protocol); 
 
 
     // If GET, handle the get endpoints
