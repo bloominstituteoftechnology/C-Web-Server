@@ -34,10 +34,10 @@ char *test_cache_alloc_entry()
   struct cache_entry *ce = alloc_entry(path, content_type, content, strlen(content));
 
   // Check that the allocated entry was initialized with expected values
-  mu_assert(check_strings(ce->path, path) == 0, "Your alloc_entry function did not allocate the path field to the expected string");
-  mu_assert(check_strings(ce->content_type, content_type) == 0, "Your alloc_entry function did not allocate the content_type field to the expected string");
-  mu_assert(check_strings(ce->content, content) == 0, "Your alloc_entry function did not allocate the content field to the expected string");
-  mu_assert(ce->content_length == strlen(content), "Your alloc_entry function did not allocate the content_length field to the expected length");
+  mu_assert(check_strings(ce->path, path) == 0, "Your alloc_entry function did not allocate the path field to the expected string1");
+  mu_assert(check_strings(ce->content_type, content_type) == 0, "Your alloc_entry function did not allocate the content_type field to the expected string2");
+  mu_assert(check_strings(ce->content, content) == 0, "Your alloc_entry function did not allocate the content field to the expected string3");
+  mu_assert(ce->content_length == strlen(content), "Your alloc_entry function did not allocate the content_length field to the expected length4");
 
   free_entry(ce);
 

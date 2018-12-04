@@ -135,6 +135,13 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
+
+    struct cache_entry *cachetest =  cache_get(cache,request_path);
+
+    if(!cachetest){
+        send_response(fd, "HTTP/1.1 200 OK", cachetest->content_type,cachetest->content, cachetest->content_length);
+    }
+
     if(strcmp(request_path,"/")==0){
         request_path = "/index.html";
     }
@@ -146,10 +153,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     }
     filedata = file_load(filepath);
 
-    if (filedata == NULL) {
-         resp_404(fd);
-         return;
-    }
+   
         mime_type = mime_type_get(filepath);
 
        send_response(fd, "HTTP/1.1 200 OK", mime_type,filedata->data, filedata->size);
