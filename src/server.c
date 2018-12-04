@@ -75,24 +75,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    int lower = 20, upper = 0, count = 1; 
-    for (int i = 0; i < count; i++) {
-        int num = (rand() % (upper = lower +1)) + lower;
+    // int lower = 8, upper = 18, count = 1; 
+    // for (int i = 0; i < count; i++) {
+        int *num = (rand() % 20) + 1;
         printf("%d\n", num);
-    }
+    // }
+
     // Generate a random number between 1 and 20 inclusive
   
     // Use current time as  
     // seed for random generator 
-    srand(time(0));
-     
+    // srand(time(0));
+    //  asctime
   
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "200 OK", "text/plain", &num, 3);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -184,6 +185,7 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(endpoint, "/d20") == 0 ) {
             printf("do RNG stuff\n");  
             get_d20(fd);
+            // resp_404(fd);
         }
     } 
     else if (strcmp(operation, "POST") == 0) {
