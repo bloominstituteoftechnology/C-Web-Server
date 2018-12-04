@@ -86,15 +86,19 @@ void get_d20(int fd)
     time_t t;
     srand ((unsigned) time(&t));
     int res = (rand() % 20) + 1;
-    char response[16];
-    sprintf(response, "You rolled a %d\n", res);
+    char response[4];
+    if (res >= 10) {
+      sprintf(response, "%d\n", res);
+    } else {
+      sprintf(response, "0%d\n", res);
+    }
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, sizeof response);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
 }
 
 /**
