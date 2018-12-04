@@ -50,16 +50,21 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+    printf("send_response...\n");
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+    //Calculate time etc
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+    time( &rawtime );
+    info = localtime( &rawtime );
+    printf("Current local time and date: %s\n", asctime(info));
 
-    // store the response length as an int 
-    int response_length = strlen(header) + strlen(body);
-    // %s take the arg and print as string
-    sprintf(response, "%s%s%s", header, content_type, body);
-
+    // Build the HTTP response then store in response
+    int response_length = sprintf(response,"%s\n Content-Type: %s\n Server: Keegan C Server\n Content-Length: %d\n Date: %s\n %s", header, content_type, content_length, asctime(info), body);
+    printf("Response: %s", response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
