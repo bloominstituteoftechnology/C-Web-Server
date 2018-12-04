@@ -58,8 +58,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     info = localtime( &rawtime );
     // Build HTTP response and store it in response
-    int response_length=sprintf(response,"%s\nDate: %sConnection: close\nContent-Length: %i\nContent-Type: %s\n\n\n%p",header,asctime(info),content_length,content_type,body);
-
+    int response_length=sprintf(response,"%s\nDate: %sConnection: close\nContent-Length: %i\nContent-Type: %s\n\n%s",header,asctime(info),content_length,content_type,body);
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -89,13 +89,10 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    int content_length;
-    if (random_number>9) {
-        content_length=2;
-    } else {
-        content_length=1;
-    }
-    send_response(fd,"HTTP/1.1 200 OK","text/plain",&random_number,content_length);
+    char buffer[3];
+    sprintf(buffer,"%d",random_number);
+    
+    send_response(fd,"HTTP/1.1 200 OK","text/plain",buffer,strlen(buffer));
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
@@ -233,9 +230,7 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
         handle_http_request(newfd, cache);
-
         close(newfd);
     }
 
