@@ -58,9 +58,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     frmt_curr_time = ctime(curr_time);
 
     // Build HTTP response and store it in response
-    int resp_len = sprintf(response, "%c\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %c\n\n", header, frmt_curr_time, content_length, content_type, body);
+    int resp_len = sprintf(response, "%c\nDate: %c\nConnection: close\nContent-Length: %d\nContent-Type: %c\n\n", header, frmt_curr_time, content_length, content_type, body);
 
-    // Send it all!
     int rv = send(fd, response, resp_len, 0);
 
     if (rv < 0) {
@@ -145,6 +144,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char *GET = "GET";
+    char *get_match;
+    char *http_action = strchr()
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -154,15 +156,12 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
 
+    if()
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -201,6 +200,7 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
+        resp_404(newfd);
         if (newfd == -1) {
             perror("accept");
             continue;

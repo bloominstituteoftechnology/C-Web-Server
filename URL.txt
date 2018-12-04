@@ -1,3 +1,7 @@
 PullReq:
 https://github.com/LambdaSchool/C-Web-Server/pull/223
 
+
+
+HTTP Request:
+https://stackoverflow.com/questions/41286260/parse-http-request-line-in-c
