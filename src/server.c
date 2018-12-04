@@ -191,6 +191,7 @@ int main(void)
         exit(1);
     }
 
+
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
     // This is the main loop that accepts incoming connections and
@@ -207,6 +208,7 @@ int main(void)
             perror("accept");
             continue;
         }
+        resp_404(newfd);
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
