@@ -50,8 +50,9 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 256000;
     char response[max_response_size];
+    int response_length;
 
     // Build HTTP response and store it in response
     time_t rawtime;
@@ -62,19 +63,38 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     char *formatted_time = asctime(info);
     int body_len = strlen(body);
-    sprintf(response, 
-    "%s\n" 
-    "Date: %s" 
-    "Connection: close\n"
-    "Content_Length: %d\n"
-    "Content_Type: %s\n\n"
-    "%s\n", 
-    header, 
-    formatted_time, 
-    body_len, 
-    content_type, 
-    body);
-    int response_length = strlen(response);
+
+    printf("content_length: %d\n", content_length);
+    if (content_type == "image/jpg" || content_type == "image/gif" || content_type == "image/png") {
+        sprintf(response, 
+        "%s\n" 
+        "Date: %s" 
+        "Connection: close\n"
+        "Content_Length: %d\n"
+        "Content_Type: %s\n\n", 
+        header, 
+        formatted_time, 
+        body_len, 
+        content_type);
+        response_length = strlen(response);
+        memcpy(response + response_length, body, content_length);
+        response_length += content_length;
+    } else {
+        sprintf(response, 
+        "%s\n" 
+        "Date: %s" 
+        "Connection: close\n"
+        "Content_Length: %d\n"
+        "Content_Type: %s\n\n"
+        "%s\n", 
+        header, 
+        formatted_time, 
+        body_len, 
+        content_type, 
+        body);
+        response_length = strlen(response);
+    }
+    
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
