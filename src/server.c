@@ -142,6 +142,24 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata; 
     char *mime_type;
 
+    if (cache->index->request_path){
+        mime_type = mime_type_get(cache->index->request_path);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, cache->index->request_path->content, cache->index->request_path->content_length);
+    }
+    // When a file is requested, first check to see if the path to the file is in
+    // the cache (use the file path as the key).
+
+    // int send_response(int fd, char *header, char *content_type, void *body, int content_length)
+
+    // If it's there, serve it back.
+
+    //  If it's not there:
+
+    // * Load the file from disk (see `file.c`)
+    // * Store it in the cache
+    // * Serve it
+
+
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
     printf("%s\n", filepath);
