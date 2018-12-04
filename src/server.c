@@ -53,9 +53,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
     int response_length = 0;
+    time_t rawtime;
+    struct tm *timeinfo;
+
+    time(&rawtime);
+
+    timeinfo = localtime(&rawtime);
 
     // Build HTTP response and store it in response
-    response_length = sprintf(response, "%s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s", header, content_length, content_type, body);
+    response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n%s", header, content_length, content_type, asctime(timeinfo), body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -75,7 +81,7 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     char numb[10];
-    int rand_num = rand() % 21;
+    int rand_num = rand() % 20 + 1;
     int len = sprintf(numb, "%d", rand_num);
 
 
