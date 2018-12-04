@@ -127,7 +127,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    // Fetch the 404.html file
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
@@ -135,10 +134,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
     {
         resp_404(fd);
     }
-
-    mime_type = mime_type_get(filepath);
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-    file_free(filedata);
+    else
+    {
+        mime_type = mime_type_get(filepath);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+    }
 }
 
 /**
@@ -170,47 +171,49 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-    // else {
-
-    // }
-    char request_type[8];
-    char request_path[1024];
-    char request_protocol[128];
-    // Read the three components of the first request line
-
-    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-
-    // request[request_buffer_size] = "\0";
-
-    //we need to get
-    //type of request eg GET or POST
-    //request path eg /info or /d20
-
-    //USE STRCMP
-    // If GET, handle the get endpoints
-
-    // if request_path == GET --> send response 404
-    if (strcmp(request_type, "GET") == 0)
+    //maybe change to if(bytes_recvd > 0) instead of else and handle bytes_recvd == 0 somehow)
+    else
     {
-        if (strcmp(request_path, "/d20") == 0)
+
+        char request_type[8];
+        char request_path[1024];
+        char request_protocol[128];
+        // Read the three components of the first request line
+
+        sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+        // request[request_buffer_size] = "\0";
+
+        //we need to get
+        //type of request eg GET or POST
+        //request path eg /info or /d20
+
+        //USE STRCMP
+        // If GET, handle the get endpoints
+
+        // if request_path == GET --> send response 404
+        if (strcmp(request_type, "GET") == 0)
         {
-            get_d20(fd);
+            if (strcmp(request_path, "/d20") == 0)
+            {
+                get_d20(fd);
+            }
+            else
+            {
+                //add if statement here somewhere to check for valid path
+                get_file(fd, cache, request_path);
+            }
         }
         else
         {
-            //add if statement here somewhere to check for valid path
-            get_file(fd, cache, request_path);
+            resp_404(fd);
         }
-    }
-    else
-    {
-        resp_404(fd);
-    }
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+        //    Check if it's /d20 and handle that special case
+        //    Otherwise serve the requested file by calling get_file()
 
-    // (Stretch) If POST, handle the post request
+        // (Stretch) If POST, handle the post request
+    }
 }
 
 /**
