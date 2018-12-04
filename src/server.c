@@ -60,8 +60,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     time_t rawtime = time(NULL);
     struct tm *timeinfo;
-
-    time(&rawtime);
     timeinfo = localtime(&rawtime);
     // char date= asctime(timeinfo);
     char connection[] = "close";
@@ -184,7 +182,7 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    request[bytes_recvd] = '\0';
+    request[bytes_recvd] = '\0'; //terminate added. 
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -209,6 +207,10 @@ void handle_http_request(int fd, struct cache *cache)
         {
             get_file(fd, cache, path_of_request);
         }
+    } 
+    else 
+    {
+        resp_404(fd); 
     }
 
     // (Stretch) If POST, handle the post request
