@@ -165,13 +165,31 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    char operation[256];
+    char endpoint[256];
+    char protocol[256];
+
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
-    sscanf(fd, "%d %d %d",request_buffer_size, request, bytes_recvd);
+    sscanf(request, "%s %s %s", &operation, &endpoint, &protocol);
+    /*
+    According to the docs:
+    first argument: string to read from
+    second argument: string that tells sscanf how to parse string to read from
+    additional arguments: string variables to save the result. each variable will
+    correspond to a %. in other words, each value captured with % will be stored
+    in their respective variables
+
+    ---
+    Some dude types in 5 numbers : "5 7 1"
+    char input[6] = { "5 7 1" };
+    int a, b, c;
+    sscanf(input, "%d %d %d", &a, &b, &c);
+    */
     // If GET, handle the get endpoints
     if(strcmp()){
 
