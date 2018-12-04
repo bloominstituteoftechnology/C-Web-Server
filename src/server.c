@@ -61,11 +61,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     info = localtime(&rawtime);
 
-    // int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n\n %s", header, content_length, content_type, asctime(info), body);
     int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n%s", header, content_length, content_type, asctime(info), body);
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -162,14 +158,41 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+    // else {
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    // }
+    char request_type[8];
+    char request_path[1024];
+    char request_protocol[128];
     // Read the three components of the first request line
 
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+    // request[request_buffer_size] = "\0";
+
+    //we need to get
+    //type of request eg GET or POST
+    //request path eg /info or /d20
+
+    //USE STRCMP
     // If GET, handle the get endpoints
+
+    // if request_path == GET --> send response 404
+    if (strcmp(request_type, "GET") == 0)
+    {
+        if (strcmp(request_path, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else
+        {
+            get_file(fd, cache, request_path);
+        }
+    }
+    else
+    {
+        resp_404(fd);
+    }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
@@ -225,10 +248,8 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
-        resp_404(newfd);
-
         handle_http_request(newfd, cache);
-
+        
         close(newfd);
     }
 
