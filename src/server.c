@@ -133,20 +133,26 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct file_data *filedata;
-    
-    if (strcmp(request_path,"/")==0) {
-        filedata=file_load("./serverroot/index.html");
-    } else {
+    struct file_data *filedata=NULL;
+    struct cache_entry *new_entry=cache_get(cache,request_path);
+
+    if (new_entry!=NULL) {
+        send_response(fd,"HTTP/1.1 200 OK",new_entry->content_type,new_entry->content,new_entry->content_length);
+    }
+    else {
         char buffer[256];
         snprintf(buffer,sizeof(buffer),"./serverroot%s",request_path);
         filedata=file_load(buffer);
-    }
-    if (filedata!=NULL) {
+        if (filedata==NULL && strcmp(request_path,"/")==0) {
+            filedata=file_load("./serverroot/index.html");
+        }
+    } 
+    if (filedata==NULL && new_entry==NULL) {
+        resp_404(fd);
+    } else if (filedata!=NULL) {
+        cache_put(cache,request_path,mime_type_get(request_path),filedata->data,filedata->size);
         send_response(fd,"HTTP/1.1 200 OK",mime_type_get(request_path),filedata->data,filedata->size);
         file_free(filedata);
-    } else {
-        resp_404(fd);
     }
 }
 
