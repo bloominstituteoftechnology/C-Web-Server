@@ -54,11 +54,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    // sprintf is writes the data in the string which is the first parameter and returns the number of characters written to the string
+   
+    int response_length = sprintf(response,"%s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s", header, content_length, content_type, body); 
+    printf("response: %s\n", response); 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -193,7 +192,8 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
+    resp_404(newfd);     
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
