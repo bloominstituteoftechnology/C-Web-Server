@@ -52,6 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    int response_length = 0;
 
     // Build HTTP response and store it in response
 
@@ -61,7 +62,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
 // response_length should include host header, success or failure,
 // content-length, content-type, connection: close, date
-    char response_length = sprintf(response, "%s\nConnection: Close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, content_length, content_type, body);
+     content_length = strlen(body);
+
+    response_length = sprintf(response,
+     "%s\n" "Connection: Close\n" "Content-Length: %d\n" "Content-Type: %s\n\n" "%s\n",
+     header, content_length, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -178,7 +183,6 @@ void handle_http_request(int fd, struct cache *cache)
  */
 int main(void)
 {
-    void resp_404(newfd);
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
@@ -201,7 +205,6 @@ int main(void)
     
     while(1) {
         socklen_t sin_size = sizeof their_addr;
-
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
