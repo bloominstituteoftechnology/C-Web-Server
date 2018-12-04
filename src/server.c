@@ -86,15 +86,13 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int randumb = rand() % 21;
+    int send = sprintf("%d", randumb);
 
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", randumb, send);
+// send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 }
 
 /**
@@ -172,9 +170,9 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     printf("request: %s\n fd: %d\n", request, fd);
     // Read the three components of the first request line
-    char type, path;
+    char type[35], path[50];
 
-    sscanf(request, type, path);
+    sscanf(request, "%s" "%s", type, path);
 
     // If GET, handle the get endpoints
     if (strcmp(type, "GET") == 0) {
