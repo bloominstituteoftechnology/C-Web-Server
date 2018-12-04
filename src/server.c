@@ -100,7 +100,7 @@ void get_d20(int fd)
     int random = rand() % 20 + 1;
     sprintf(str, "%d\n", random);
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/html", str, strlen(str));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", str, strlen(str));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -137,9 +137,20 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[256];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+    if(filedata == NULL) {
+        resp_404(fd);
+    }
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -180,6 +191,8 @@ void handle_http_request(int fd, struct cache *cache)
     if(strcmp(type, "GET") == 0) {
         if(strcmp(path, "/d20") == 0) {
             get_d20(fd);
+        }else {
+            get_file(fd, cache, path);
         }
     }else {
         resp_404(fd);
