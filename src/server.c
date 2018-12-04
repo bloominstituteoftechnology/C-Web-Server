@@ -145,16 +145,15 @@ void get_file(int fd, struct cache *cache, char *request_path)
         if (filedata==NULL && strcmp(request_path,"/")==0) {
             filedata=file_load("./serverroot/index.html");
         }
-    } 
-    if (filedata!=NULL) {
-        cache_put(cache,request_path,mime_type_get(request_path),filedata->data,filedata->size);
-        send_response(fd,"HTTP/1.1 200 OK",mime_type_get(request_path),filedata->data,filedata->size);
-        file_free(filedata);
-    } else {
-        resp_404(fd);
+        if (filedata!=NULL) {
+            cache_put(cache,request_path,mime_type_get(request_path),filedata->data,filedata->size);
+            send_response(fd,"HTTP/1.1 200 OK",mime_type_get(request_path),filedata->data,filedata->size);
+            file_free(filedata);
+        } else {
+            resp_404(fd);
+        }
     }
 }
-
 /**
  * Search for the end of the HTTP header
  * 

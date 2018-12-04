@@ -181,5 +181,5 @@ void cache_delete(struct cache *cache,char *path) {
         old_item->next->prev=old_item->prev;
         old_item->prev->next=old_item->next;
     }
-    free(old_item);
+    free_entry(old_item);
 }
