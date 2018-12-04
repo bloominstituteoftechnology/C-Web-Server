@@ -57,7 +57,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int response_length = 0;
 
     // Build HTTP response and store it in response
-    response_length = sprintf(response, "%s\n", "Connection: close\n", "content-length: %d\n", "content-type: %s\n", "\n", header, content_length, content_type, body);
+    response_length = sprintf(response,
+                              "%s\n"
+                              "Connection: close\n"
+                              "Content-Length: %d\n"
+                              "Content-Type: %s\n"
+                              "\n"
+                              "%s",
+                              header,
+                              content_length,
+                              content_type,
+                              body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -164,12 +174,34 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    // printf("%s\n", request);
 
-    // // If GET, handle the get endpoints
-    // sscanf()
+    char *request_type[8];
+    char *request_path[1024];
+    char *request_protocol[128];
 
-    //    Check if it's /d20 and handle that special case
+    bytes_recvd[request_buffer_size] = '\0';
+
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+    printf("Request: %s\n", request)
+
+        // // If GET, handle the get endpoints
+        //    Check if it's /d20 and handle that special case
+        // `strcmp()` for matching the request method and path.
+
+        // You have to use an `if`-`else` block with `strcmp()` to get the job done.
+        if (strcmp(request_type, "GET") == 0)
+    {
+        if (strcmp(request_path, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else
+        {
+            get_file(fd);
+        }
+    }
+
     //    Otherwise serve the requested file by calling get_file()
 
     // (Stretch) If POST, handle the post request
@@ -225,9 +257,9 @@ int main(void)
 
         handle_http_request(newfd, cache);
 
-        close(newfd);
-
         resp_404(newfd);
+
+        close(newfd);
     }
 
     // Unreachable code
