@@ -65,7 +65,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // sprintf - sprintf stands for “String print”.
     // Instead of printing on console,it store output
     // on char buffer which are specified in sprintf
-
+        int response_length = 0; 
     //   int response_length = sprintf(response,
         // //type out all of the header objects.
         // "%s\n"//start of header.
@@ -104,6 +104,12 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    srand(getpid() + time(NULL));
+
+    char response_body[8]; 
+    sprintf(response_body, "%d\n", (rand() % 20) + 1); 
+
+    send_response(fd, "HTTP/1.1 200 ok", "text/plain", response_body, strlen(response_body)); 
 
     // Use send_response() to send it back as text/plain data
 
@@ -168,6 +174,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8]; 
+    char request_path[1024]; 
+    char request_protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -183,13 +192,23 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+        //break the first line into its component pieces
+        //use format specifiyers.
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+    printf("Got request: %s %s %s \n", request_type, request_path, request_protocol);  
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
-
+        if(strcmp(request_type, "GET") == 0){
+            if(strcmp(request_path, "/d20") == 0){
+                get_d20(fd); 
+            } else{
+                //attempt to retrieve the requested file
+                get_file(fd, cache, request_path); //not implemented yet. 
+            }
+        }
     // (Stretch) If POST, handle the post request
 }
 
