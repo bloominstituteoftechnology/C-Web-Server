@@ -48,6 +48,7 @@
  * 
  * Return the value from the send() function.
  */
+
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 65536;
@@ -204,6 +205,7 @@ void handle_http_request(int fd, struct cache *cache)
         } else {
             // get_file(fd, cache, request_path);
             printf("get_file implementation coming soon\n");
+            resp_404(fd);
         }
     }
 
@@ -230,6 +232,7 @@ int main(void)
     }
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
+
     // resp_404(newfd);
 
     // This is the main loop that accepts incoming connections and
