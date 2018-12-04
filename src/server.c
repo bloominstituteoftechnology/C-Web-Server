@@ -81,17 +81,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    printf("get_d20...\n");
+
+    char res_body[8];
+
+    //Set the seed of the PRNG
+    srand(getpid()+time(NULL));
+
+    // Generate a random number between 1 and 20 inclusive and set it to res_body 
+    sprintf(res_body, "%d\n", (rand() % 20) + 1);
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", res_body, sizeof(res_body));
 }
 
 /**
@@ -159,21 +160,34 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Print to see what variables are:
+    printf("\nhandle_http_request...\n");
+    printf("request %s\n", request);
+    printf("bytes_recvd %d\n", bytes_recvd);
+    
+    //Get length of each buffer, double the norm length
+    char req_method[8], req_path[1024], req_protocol[16];
 
-    // Read the three components of the first request line
-    sscanf(request, "%s %s %s", request_type, resource, request_protocol);
-    // Print received request
-    printf("Received request: %s %s %s\n:", request_type, resource, request_protocol);
+    //Extract the 3 variables from http header and place into the variables:
+    sscanf(request, "%s %s %s", req_method, req_path, req_protocol);
+    
+    printf("req_method: %s\n", req_method);
+    printf("req_path: %s\n", req_path);
+
     // If GET, handle the get endpoints
+    if (strcmp(req_method, "GET") == 0){
+        printf("GET...\n");
+        // Check if it's /d20 and handle that special case
+        if (strcmp(req_path, "/d20") == 0){
+            printf("req_path...\n");
+            // Call d20
+            get_d20(fd);
+        }else {
+            // Otherwise serve the requested file by calling get_file()
+            get_file(fd, cache, req_path);
+        }
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
-    // (Stretch) If POST, handle the post request
+    }
 }
 
 /**
@@ -227,7 +241,6 @@ int main(void)
     }
 
     // Unreachable code
-
     return 0;
 }
 
