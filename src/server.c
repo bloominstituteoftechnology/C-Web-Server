@@ -64,14 +64,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // char date= asctime(timeinfo);
     char connection[] = "close";
 
-    int response_length = sprintf(response, "Header: %s"
+    int response_length = sprintf(response, "%s\n"
                                             "Date: %s"
-                                            "Connection: %s"
-                                            "Content Length: %d"
-                                            "Content Type: %s"
-                                            "\n\n"
-                                            "%p",
-                                  header, asctime(timeinfo), connection, content_length, content_type, body);
+                                            "Connection: %s\n"
+                                            "Content Length: %d\n"
+                                            "Content Type: %s\n"
+                                            "\n",
+                                  header, asctime(timeinfo), connection, content_length, content_type);
+
 
     memcpy(response + response_length, body, content_length);
 
@@ -142,8 +142,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // char file_path[5000];
 
-    printf("%d, %s, %d\n", fd, request_path, cache->cur_size);
+    // printf("%d, %s, %d\n", fd, request_path, cache->cur_size);
+    printf("%d, %s, %d\n", fd, request_path);
     //just to remove the warnings to start server and test my code in other areas.
+    resp_404(fd); 
 }
 
 /**
