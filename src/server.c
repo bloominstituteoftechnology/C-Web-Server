@@ -80,16 +80,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int upper = 20;
+    int lower = 0;
+    time_t t = time(0);
+
+    srand(t);
+
+    int num = (rand() % (upper - lower + 1)) + lower; 
 
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num, 4);
 }
 
 /**
@@ -148,7 +149,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-
+    
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -157,20 +158,32 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    resp_404(fd);
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if (bytes_recvd > 0) {
+        // Read the three components of the first request line
+        char type[10];
+        char endpoint[30];
+        char http[10];
+        
+        sscanf(request, "%s %s %s", type, endpoint, http);
+        //printf("%s %s %s\n", type, endpoint, http);
 
-    // Read the three components of the first request line
+        // If GET, handle the get endpoints
+        if (strcmp(type, "GET") == 0) {
+            //    Check if it's /d20 and handle that special case
+            if (strcmp(endpoint, "/d20") == 0) {
+                get_d20(fd);
+            } else {
+                resp_404(fd);
+            }
+            //    Otherwise serve the requested file by calling get_file()
+        }
 
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
-    // (Stretch) If POST, handle the post request
+        // (Stretch) If POST, handle the post request
+        if (strcmp(type, "POST") == 0) {
+        // handle POST
+        }
+    }
+    
 }
 
 /**
