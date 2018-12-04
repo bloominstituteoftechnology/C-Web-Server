@@ -54,7 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "header: %s\n content_type: %s\n content_length: %d\n body: %p\n\n", header, content_type, content_length, body)/4 + content_length;
+    int response_length = sprintf(response, "%s\n content_type: %s\n content_length: %d\n\n%s\n", header, content_type, content_length, body) + content_length;
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -76,15 +76,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    srand(time(NULL));
     // Generate a random number between 1 and 20 inclusive
-    int num = rand()%10 +1;
-    printf("D20 is running, num is %d\n", num);
+    int num = rand()%20 +1;
+    char num_str[16];
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    int length = sprintf(num_str, "%d", num);
+    printf("%s, %d\n", num_str, length);
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num, 1);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num_str, length);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -124,6 +127,17 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    char *mime_type;
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    struct file_data *file = file_load(filepath);
+    if (file == NULL) {
+      fprintf(stderr, "cannot find system file %s\n", filepath);
+      exit(3);
+    }
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, file->data, file->size);
+    file_free(file);
 }
 
 /**
@@ -164,14 +178,19 @@ void handle_http_request(int fd, struct cache *cache)
     char rreq[20], rfp[20], rvers[20];
     sscanf(request, "%s %s %s", rreq, rfp, rvers);
 
+    printf("Path: %s\n", rfp);
     // If GET, handle the get endpoints
     if (strcmp(rreq, "GET") == 0) {
       //    Check if it's /d20 and handle that special case
       if (strcmp(rfp, "/d20") == 0) {
+        printf("it's d20 time\n");
         get_d20(fd);
-      } else {
+      }
+      else {
         //    Otherwise serve the requested file by calling get_file()
         get_file(fd, cache, rfp);
+        // file_load();
+        // resp_404(fd);
       }
     }
     else {
@@ -226,7 +245,6 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
         handle_http_request(newfd, cache);
 
         close(newfd);
