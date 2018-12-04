@@ -52,9 +52,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-    int response_length = 0;
+    int response_length = 0; //total length of both header and body
 
     // Build HTTP response and store it in response
+
+    /*
+    sprintf() for creating the HTTP response
+    https://www.tutorialspoint.com/c_standard_library/c_function_sprintf.htm
+    strlen() for computing the content length
+    sprintf() returns the total number of bytes in the resulting string
+    time() and localtime() functions are included in time.h
+     */
+
+
+    response = sprintf(){
+        
+    }
+
+
+    response_length = sprintf(){
+
+    }
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -77,7 +95,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    fd = rand()%20 + 1;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -161,6 +179,7 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -176,14 +195,19 @@ void handle_http_request(int fd, struct cache *cache)
     printf("get request: %s %s %s", request_type, request_path, request_protocol);
 
     // If GET, handle the get endpoints
-    // if (request_type == "GET"){
-    //     mime_type_get()
-    // }
 
-    //    Check if it's /d20 and handle that special case
+    //    Check if it's /d20 and handle that special case (strcmp == 0 means strings are the same)
     //    Otherwise serve the requested file by calling get_file()
 
-
+    //check if the request is a GET type
+    if (strcmp(request_type, "GET") == 0){
+        // check if the file path is /d20
+        if (strcmp(request_path, "/d20") == 0){
+            get_d20(fd); //fd will be a randomly generated number between 0 and 20
+        } else {
+            get_file(fd, cache, request_path);
+        }
+    }
     // (Stretch) If POST, handle the post request
 }
 
