@@ -56,21 +56,22 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Build HTTP response and store it in response
 
     time_t curtime;
+    struct tm *info;
     time(&curtime);
-    char date_now = ctime(&curtime);
+    info = localtime(&curtime);
 
     int response_length =  sprintf(
         response,
-        
+
         "Header: %s\n"
-        "Date: %d\n"
+        "Date: %s\n"
         "Connection: close\n"
         "Content-Length: %d\n"
         "Content-Type: %s\n"
-        "Body: %p\n",
+        "Body:\n%s\n",
 
         header,
-        date_now,
+        asctime(info),
         content_length,
         content_type,
         body
@@ -161,9 +162,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char request_type;
-    char request_path;
-    char request_protocol;
+    char request_type[30];
+    char request_path[30];
+    char request_protocol[30];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -172,9 +173,7 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
-    resp_404(fd);
-
+   
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -248,6 +247,8 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
+
+        resp_404(newfd);
 
         close(newfd);
     }
