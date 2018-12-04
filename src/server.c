@@ -91,14 +91,8 @@ void get_d20(int fd)
   struct file_data *filedata;
   char *mime_type;
 
-  snprintf(filepath, sizeof filepath, "%s")
-
-    // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    return;
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", rndm, sizeof rndm);
+  return;
 }
 
 /**
