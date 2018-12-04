@@ -152,9 +152,24 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    printf("Requesting %s\n", request);
+
+    char method[5], file[20], protocol[20];
+
+    sscanf(request, "%s %s %s", method, file, protocol);
+    printf("Method: %s, File: %s", method, file);
+
+    if (strcmp(method, "GET") == 0)
+    {
+        if (strcmp(file, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else
+        {
+            resp_404(fd);
+        }
+    }
 
     // Read the three components of the first request line
 
@@ -213,7 +228,7 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
+        resp_404(newfd);
         handle_http_request(newfd, cache);
 
         close(newfd);
@@ -222,5 +237,4 @@ int main(void)
     // Unreachable code
 
     return 0;
-    resp_404();
 }
