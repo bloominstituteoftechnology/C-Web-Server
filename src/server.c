@@ -16,6 +16,7 @@
  * (Posting data is harder to test from a browser.)
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -63,6 +64,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     content_type,
     body
     );
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
