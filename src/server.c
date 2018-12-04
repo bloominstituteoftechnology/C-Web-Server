@@ -38,6 +38,7 @@
 
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
+#define RAND_MAX 20
 
 /**
  * Send an HTTP response
@@ -82,17 +83,22 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
+  int rndm = rand();
+  printf("IN D20! RANDOM >>>>> %d\n",rndm);
+
+  char filepath[4096];
+  struct file_data *filedata;
+  char *mime_type;
+
+  snprintf(filepath, sizeof filepath, "%s")
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    return;
 }
 
 /**
@@ -130,6 +136,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     ///////////////////
     printf("get_file");
+    return;
 }
 
 /**
@@ -140,10 +147,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
+  char *some_char = "find_start_body";
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
     printf("find_start_of_body");
+    return some_char;
 }
 
 /**
@@ -153,13 +162,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char *GET = "GET";
-    char *POST = "POST";
-    char *get_match;
-    char *first_line;
-    char req_method;
-    char req_path;
-    char req_protocol;
+    char req_method[8];
+    char req_path[1024];
+    char req_protocol[128];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -169,27 +174,24 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    char len = strchr('/r/n', request);
-    int cnt = 0;
-    while(cnt < len){
-      first_line[cnt] = request[cnt];
-      cnt++;
-    }
-    sscanf(first_line, "%s %s %s", req_method, req_path, req_protocol);
+    sscanf(request, "%s %s %s", req_method, req_path, req_protocol);
+    printf("REQ METHOD >>>>> %s\n", req_method);
+    printf("REQ PATH >>>>> %s\n", req_path);
 
-    if (req_method == "GET"){
-      if(req_path == "/d20"){
+    if (strcmp(req_method, "GET") != 0){
+      printf("REQ METHOD >>>>> %s\n", req_method);
+      if(strcmp(req_path, "/d20") != 0){
         get_d20(fd);
-      } else if(req_path == "/example"){
-        get_file(fd, cache, fd);
-      } else {
-        resp_404(fd);
-      }
+      } else if(strcmp(req_path, "/example") != 0) {
+        get_file(fd, cache, req_path);
+      } 
+    } else {
+      resp_404(fd);
     }
 
-    if(req_method == "POST"){
-      printf("POST");
-    }
+    // if(req_method == "POST"){
+    //   printf("POST");
+    // }
     // (Stretch) If POST, handle the post request
 }
 
@@ -224,20 +226,20 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
-        resp_404(newfd);
+        // resp_404(newfd);
         if (newfd == -1) {
             perror("accept");
             continue;
         }
-        resp_404(newfd);
-        // Print out a message that we got the connection
+    
+        // // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
         
-        // newfd is a new socket descriptor for the new connection.
-        // listenfd is still listening for new connections.
+        // // newfd is a new socket descriptor for the new connection.
+        // // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
 
