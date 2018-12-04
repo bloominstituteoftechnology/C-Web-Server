@@ -57,7 +57,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
       printf("Response is too big\n");
       return -1;
     }
-    response_length = sprintf("header: %s\ncontent_type: %s\nbody: %s\n", header, content_type, body);
+    response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, content_length,content_type, body);
+    printf("%s\n", response);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -79,16 +80,21 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    time_t t;
+    srand ((unsigned) time(&t));
+    int res = (rand() % 20) + 1;
+    char response[16];
+    sprintf(response, "You rolled a %d\n", res);
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, sizeof response);
 }
 
 /**
@@ -125,6 +131,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char *mime_type = mime_type_get(request_path);
+    printf("Get file req path = %s\n", request_path);
+    struct file_data * f = file_load(request_path);
+    if(f == NULL) resp_404(fd);
+    // resp_404(fd);
+    send_response(fd, "HTTP/1.1 200 ok", mime_type, f->data, f->size);
 }
 
 /**
@@ -150,21 +162,51 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
-
     if (bytes_recvd < 0) {
         perror("recv");
         return;
     }
+    printf("%s\n", request);
 
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    int i = 0;
+    int c = 0;
+    char request_type[10];
+    char request_path[50];
+    char connection_type[50];
     // Read the three components of the first request line
+    for(c = 0;request[i] != ' ';c++){
+      request_type[c] = request[i];
+      i++;
+    }
+    request_type[c] = '\0';
+    i++;
+
+    for(c = 0;request[i] != ' ';c++){
+      request_path[c] = request[i];
+      i++;
+    }
+    request_path[c] = '\0';
+    i++;
+
+    for(c = 0;request[i] != '\n';c++){
+      connection_type[c] = request[i];
+      i++;
+    }
+    connection_type[c] = '\0';
 
     // If GET, handle the get endpoints
-
+    if(strcmp("GET", request_type) == 0){
+      if(strcmp("/", request_path) == 0){
+        char filepath[4096];
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+        get_file(fd, cache, filepath);}
+      else if(strcmp("/d20", request_path) == 0) get_d20(fd);
+      else resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
