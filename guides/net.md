@@ -73,7 +73,7 @@ Connection: close
 Content-Length: 41749
 Content-Type: text/html
 
-<!DOCTYPE html><html><head><title>Lambda School ...
+<!DOCTYPE html><html><head><title>Lambda School ...  this is the body
 ```
 
 The end of the header on both the request and response is marked by a blank line (i.e. two newlines in a row).

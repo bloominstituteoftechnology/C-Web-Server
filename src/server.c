@@ -54,32 +54,50 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     int response_length = 0; //total length of both header and body
 
+    //get time for HTTP header
+    time_t t1 = time(NULL);
+    struct tm *ltime = localtime(&t1);
+
     // Build HTTP response and store it in response
 
     /*
-    sprintf() for creating the HTTP response
+    use sprintf() for creating the HTTP response
     https://www.tutorialspoint.com/c_standard_library/c_function_sprintf.htm
-    strlen() for computing the content length
-    sprintf() returns the total number of bytes in the resulting string
-    time() and localtime() functions are included in time.h
+    Composes a string with the same text that would be printed if format was 
+    used on printf, but instead of being printed, the content is stored as a 
+    C string in the buffer pointed to by str.  Return value is number of bytes
+
+    use strlen() for computing the content length
+
+    use sprintf() to return the total number of bytes in the resulting string
+
+    use time() and localtime() functions are included in time.h
      */
 
+    response_length = sprintf(response,  
+        // construct the response
+        // formatting for subsequent arguments
+        "%s\n" //header
+        "Date: %s"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n",
 
-    response = sprintf(){
-        
-    }
-
-
-    response_length = sprintf(){
-
-    }
+        header,
+        asctime(ltime), 
+        content_length, 
+        content_type
+        );
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
+    memcpy(response + response_length, body, content_length);
+
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
     
     if (rv < 0) {
         perror("send");
@@ -95,16 +113,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    fd = rand()%20 + 1;
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // use srand(getpid()), s "seeding"
+    srand(getpid() + time(NULL));
+
+    // initialize the response body 
+    char response_body[8];
+    // inject an integer into the response body
+    sprintf(response_body, "%d\n", (rand() % 20) + 1); // %20 gives 0-19, + 1 shifts upwards by 1
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 }
 
 /**
