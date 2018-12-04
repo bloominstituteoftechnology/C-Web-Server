@@ -103,7 +103,9 @@ void get_d20(int fd)
     // * content_type: "text/plain", etc.
     // * body:         the data to send.
 
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_num);
+    char length[20];
+    int content_length = sprintf(length, "%d\n", random_num);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_num, content_length);
 
     ///////////////////
     // IMPLEMENT ME! //
