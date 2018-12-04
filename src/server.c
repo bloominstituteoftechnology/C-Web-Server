@@ -99,7 +99,7 @@ void get_d20(int fd)
     char body[8];
     sprintf(body, "%d\n", (rand() % 20) + 1);
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(response));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
