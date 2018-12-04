@@ -79,7 +79,6 @@ void get_d20(int fd)
     int len = sprintf(num, "%d", rand_num);
 
     // Use send_response() to send it back as text/plain data
-
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", num, len);
 }
 
@@ -95,18 +94,14 @@ void resp_404(int fd)
     // Fetch the 404.html file
     snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
     filedata = file_load(filepath);
-
     if (filedata == NULL)
     {
         // TODO: make this non-fatal
         fprintf(stderr, "cannot find system 404 file\n");
         exit(3);
     }
-
     mime_type = mime_type_get(filepath);
-
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
-
     file_free(filedata);
 }
 
@@ -115,9 +110,28 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char path[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(path, sizeof path, "%s/%s", SERVER_ROOT, request_path);
+
+    filedata = file_load(path);
+
+    if (filedata == NULL)
+    {
+        resp_404(fd);
+        return;
+    }
+
+    else
+    {
+        mime_type = mime_type_get(path);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
 }
 
 /**
@@ -163,10 +177,18 @@ void handle_http_request(int fd, struct cache *cache)
         {
             get_d20(fd);
         }
+        else if (strcmp(file, "/") == 0)
+        {
+            get_file(fd, cache, "/index.html");
+        }
         else
         {
-            resp_404(fd);
+            get_file(fd, cache, file);
         }
+    }
+    else
+    {
+        resp_404(fd);
     }
 
     // Read the three components of the first request line
