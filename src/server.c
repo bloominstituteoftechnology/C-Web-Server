@@ -52,7 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-    int response_length = sprintf(response, "Header: %s\n Connection: close\n Content_length: %d\n Content_type: %s\n\n %d\n", header, content_length, content_type, body);
+    int response_length = sprintf(response, " Header: %s\n Connection: close\n Content_length: %d\n Content_type: %s\n\n %d\n", header, content_length, content_type, body);
     // printf("fd %d\n header %s\n content type %s\n body %d\n content length %d\n", fd, header, content_type, body, content_length);
     // Build HTTP response and store it in response
     
