@@ -96,6 +96,7 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    srand(time(0)); // will allow for random set instead of the same numbers each time. 
     char body[8];
     sprintf(body, "%d\n", (rand() % 20) + 1);
     // Use send_response() to send it back as text/plain data
