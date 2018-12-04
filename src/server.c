@@ -74,15 +74,13 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char num[10];
+    int rand_num = rand() % 21;
+    int len = sprintf(num, "%d", rand_num);
 
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num, len);
 }
 
 /**
@@ -228,7 +226,7 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-        resp_404(newfd);
+        // resp_404(newfd);
         handle_http_request(newfd, cache);
 
         close(newfd);
