@@ -38,7 +38,6 @@
 
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
-#define RAND_MAX 20
 
 /**
  * Send an HTTP response
@@ -61,12 +60,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Build HTTP response and store it in response
     int resp_len = sprintf(response, 
     "%s\n"
-    "Date: %s\n"
     "Connection: close\n"
     "Content-Length: %d\n"
     "Content-Type: %s\n"
-    "%s\n\n",
-    header, frmt_curr_time, content_length, content_type, body);
+    "Date: %s\n"
+    "%s",
+    header, content_length, content_type, frmt_curr_time, body);
 
     int rv = send(fd, response, resp_len, 0);
 
@@ -78,20 +77,22 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 }
 
 
+
+
 /**
  * Send a /d20 endpoint response
  */
 void get_d20(int fd)
 {
-
-  int rndm = rand();
+  int min = 1;
+  int max = 20;
+  char random_result[24];
+  int rndm = (rand() % (max + 1 - min)) + min;
+  // sprintf int to char
+  sprintf(random_result, "%d", rndm);
   printf("IN D20! RANDOM >>>>> %d\n",rndm);
 
-  char filepath[4096];
-  struct file_data *filedata;
-  char *mime_type;
-
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", rndm, sizeof rndm);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_result, sizeof random_result);
   return;
 }
 
@@ -126,9 +127,6 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     printf("get_file");
     return;
 }
@@ -160,7 +158,6 @@ void handle_http_request(int fd, struct cache *cache)
     char req_path[1024];
     char req_protocol[128];
 
-    // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
@@ -172,21 +169,15 @@ void handle_http_request(int fd, struct cache *cache)
     printf("REQ METHOD >>>>> %s\n", req_method);
     printf("REQ PATH >>>>> %s\n", req_path);
 
-    if (strcmp(req_method, "GET") != 0){
-      printf("REQ METHOD >>>>> %s\n", req_method);
-      if(strcmp(req_path, "/d20") != 0){
+    if (strcmp(req_method, "GET") == 0) {
+      if(strcmp(req_path, "/d20") == 0){
         get_d20(fd);
-      } else if(strcmp(req_path, "/example") != 0) {
+      } else if (strcmp(req_path, "/example") == 0) {
         get_file(fd, cache, req_path);
       } 
     } else {
       resp_404(fd);
     }
-
-    // if(req_method == "POST"){
-    //   printf("POST");
-    // }
-    // (Stretch) If POST, handle the post request
 }
 
 /**
