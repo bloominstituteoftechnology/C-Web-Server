@@ -54,7 +54,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     time_t rawtime;
     struct tm *info;
-    char buffer[80];
     time(&rawtime);
     info = localtime( &rawtime );
     // Build HTTP response and store it in response
@@ -144,10 +143,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     }
     if (filedata!=NULL) {
         send_response(fd,"HTTP/1.1 200 OK",mime_type_get(request_path),filedata->data,filedata->size);
+        file_free(filedata);
     } else {
         resp_404(fd);
     }
-    file_free(filedata);
 }
 
 /**
