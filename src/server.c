@@ -190,6 +190,9 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", type_of_request, path_of_request, protocol);
+    //sscanf reads formated input from a string so it should grap the input from request and set it to the others. 
+    printf("%s %s %s\n", type_of_request, path_of_request, protocol); 
+    //sscanf is doing as it should  printing out  GET  /d20   and HTTP/1.1
 
     //check it out
     printf("Requesting: %s %s %s\n", type_of_request, path_of_request, protocol);
