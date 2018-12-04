@@ -93,6 +93,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    /* memcpy() allows us to copy ambiguous data types (unlike strcopy) returns void pointer
+     https://www.tutorialspoint.com/c_standard_library/c_function_memcpy.htm
+     response + response_length is the number of bytes to copy response is a char array, also a pointer.
+     Adding response to response length shifts the pointer by an amount equal to response length -- essentially 
+     allows us to move past the header stuff. */
 
     memcpy(response + response_length, body, content_length);
 
@@ -146,6 +151,7 @@ void resp_404(int fd)
 
     // Fetch the 404.html file
     snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
+    
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
@@ -169,6 +175,36 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // initialize file_data
+    struct file_data *filedata; 
+    // initialize pointer to mime_type
+    char *mime_type;
+    
+    // Fetch the file
+    snprintf(request_path, sizeof request_path, "%s/", SERVER_FILES);
+    
+    // use file_load to assign file_data
+    filedata = file_load(request_path);
+    // if file_content is null, indicate failure
+
+    // use mime_get_type to assign mime_type
+    mime_type = mime_type_get(request_path);
+
+    // send the response 
+    // (int fd = fd
+    // char *header = "HTTP/1.1 200 OK" 
+    // char *content_type = mime_type
+    // void *body = file_content->data
+    // int content_length = file_content->size
+    // )
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    // use file_free() to clear
+    file_free(filedata);
+
+    return 0;
 }
 
 /**
@@ -206,7 +242,6 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
 
     ///////////////////
     // IMPLEMENT ME! //
