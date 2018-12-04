@@ -91,11 +91,19 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
 
+    int random_num = rand() % 21;
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+
+    // * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
+    // * content_type: "text/plain", etc.
+    // * body:         the data to send.
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_num);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -256,8 +264,6 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-
-        resp_404(newfd);
 
         close(newfd);
     }
