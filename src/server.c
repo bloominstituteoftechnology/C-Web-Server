@@ -61,6 +61,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     info = localtime(&rawtime);
 
+    //memcpy(end_of_string, body, 16);  end_of_string -> pointer to end of header; char *end = response + strlen(response)
     int response_length = sprintf(response, "%s\n Date: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(info), content_length, content_type, body);
    
     // Send it all!
@@ -123,9 +124,24 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+   char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch the index.html file
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    //printf("filepath: %s\n", filepath);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+    } else {
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
 }
 
 /**
@@ -168,19 +184,22 @@ void handle_http_request(int fd, struct cache *cache)
 
         // If GET, handle the get endpoints
         if (strcmp(type, "GET") == 0) {
-            //    Check if it's /d20 and handle that special case
-            if (strcmp(endpoint, "/d20") == 0) {
+            if (strcmp(endpoint, "/d20") == 0) {    // Check if it's /d20 and handle that special case
                 get_d20(fd);
+                return;
             } else {
-                resp_404(fd);
+                get_file(fd, cache, endpoint);    // Otherwise serve the requested file by calling get_file()
+                return;
             }
-            //    Otherwise serve the requested file by calling get_file()
+            
         }
 
         // (Stretch) If POST, handle the post request
         if (strcmp(type, "POST") == 0) {
         // handle POST
         }
+
+        
     }
     
 }
