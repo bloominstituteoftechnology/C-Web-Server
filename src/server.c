@@ -57,17 +57,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
     char *timestamp = asctime(tm);
-    
+    // send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+
     // Build HTTP response and store it in response
     response_length = sprintf(response,
     "%s\n"
-    "Date: %s\n"
+    "Date: %s"
     "Connection: close\n"
     "Content-length: %d\n"
     "Content-Type: %s\n"
     "\n"
     "%s",
-    header,
+    header,    
     timestamp,
     content_length,
     content_type,
@@ -177,9 +178,15 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    sscanf(request, "%s %s %s", type, path, protocol);
     // If GET, handle the get endpoints
-
+    if(strcmp(type, "GET") == 0) {
+        if(strcmp(path, "/d20") {
+            get_d20(fd);
+        }
+    } else {
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
