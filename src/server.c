@@ -57,7 +57,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int response_length = 0;
 
     // Build HTTP response and store it in response
-    response_length = sprintf(response, "%s\n content-length:%d\n content-type:%s\n", header, content_length, content_type, body);
+    response_length = sprintf(response, "%s\n", "Connection: close\n", "content-length: %d\n", "content-type: %s\n", "\n", header, content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -164,10 +164,10 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    printf("%s\n", request);
+    // printf("%s\n", request);
 
-    // If GET, handle the get endpoints
-    sscanf()
+    // // If GET, handle the get endpoints
+    // sscanf()
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
@@ -226,6 +226,8 @@ int main(void)
         handle_http_request(newfd, cache);
 
         close(newfd);
+
+        resp_404(newfd);
     }
 
     // Unreachable code
