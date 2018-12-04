@@ -122,6 +122,26 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type; 
+
+    snprintf(filepath, sizeof filepath, "%s", request_path);
+    printf("filepath is %s", filepath);
+    filedata = file_load(filepath);
+
+    printf("filedata data is %s\n", filedata->data);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find file\n");
+    }
+
+    mime_type = mime_type_get(request_path);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -167,6 +187,12 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     if(strcmp(rEndpoint, "/d20") == 0) {
         get_d20(fd); 
+    } else {
+        char serverrootDir[100];
+        sprintf(serverrootDir, "./serverroot%s", rEndpoint);
+        printf("serverrootDir is %s\n", serverrootDir);
+
+        get_file(fd, cache, serverrootDir);
     }
     // If GET, handle the get endpoints
 
