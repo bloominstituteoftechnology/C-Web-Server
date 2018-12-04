@@ -80,13 +80,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         content_length,
         content_type
     );
-
     memcpy(response + response_length, body, content_length);
     // The C library function void *memcpy(void *str1,
     // const void *str2, size_t n) copies n characters 
     // from memory area str2 to memory area str1.
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -105,7 +104,7 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    srand(getpid() + time(NULL));
+    srand(time(NULL) + getpid());
 
     char response_body[8]; 
     sprintf(response_body, "%d\n", (rand() % 20) + 1); 
@@ -177,7 +176,7 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
     char request_type[8]; 
     char request_path[1024]; 
-    char request_protocol[16];
+    char request_protocol[128];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
