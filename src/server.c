@@ -138,7 +138,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     struct cache_entry *cachetest =  cache_get(cache,request_path);
 
-    if(!cachetest){
+    if(cachetest){
         send_response(fd, "HTTP/1.1 200 OK", cachetest->content_type,cachetest->content, cachetest->content_length);
     }
 
