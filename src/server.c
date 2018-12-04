@@ -162,15 +162,28 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
+//use sscanf() to read the response type and path from request
+//read to see if GET or POST, then check path
+//call handler based on type
+//maybe check to see if d20 first
+//call resp_404 if no appropriate handler
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    printf("request: %s\n fd: %d\n", request, fd);
     // Read the three components of the first request line
+    char type, path;
+
+    sscanf(request, type, path);
 
     // If GET, handle the get endpoints
-
+    if (strcmp(type, "GET") == 0) {
+        if (strcmp(path, "/d20") == 0) {
+            get_d20(fd);
+        } else { 
+            get_file(fd, cache, path);
+        }
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -212,6 +225,8 @@ int main(void)
             perror("accept");
             continue;
         }
+        // resp_404(newfd);
+        //uncomment this to test send_response
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
