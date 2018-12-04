@@ -66,7 +66,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // char date= asctime(timeinfo); 
     char connection[] = "close"; 
 
-    int response_length = sprintf(response, "Header: %s\n Date: %s\n Connection %s\n Content Length: %d\n Content Type: %s\n\n", header,asctime(timeinfo),connection, content_length, content_type);
+    int response_length = sprintf(response, "Header: %s""Date: %s""Connection %s" "Content Length: %d" "Content Type: %s""\n\n" "%p", header,asctime(timeinfo),connection, content_length, content_type, body);
     
 
     memcpy(response + response_length, body, content_length); 
