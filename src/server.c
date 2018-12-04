@@ -96,10 +96,10 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char response[8];
-    sprintf(response, "%d\n", (rand() % 20) + 1);
+    char body[8];
+    sprintf(body, "%d\n", (rand() % 20) + 1);
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(response));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
