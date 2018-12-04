@@ -95,13 +95,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    srand(time(NULL));
+    char str[8];
+    int random = rand() % 20 + 1;
+    sprintf(str, "%d\n", random);
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", str, strlen(str));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -176,12 +175,14 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char type[8];
+    char path[1024];
+    char protocol[128];
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", type, path, protocol);
     // If GET, handle the get endpoints
     if(strcmp(type, "GET") == 0) {
-        if(strcmp(path, "/d20") {
+        if(strcmp(path, "/d20") == 0) {
             get_d20(fd);
         }
     } else {
