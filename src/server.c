@@ -52,13 +52,34 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-    int response_length = 0;
+    // int response_length = 0;
 
     // Build HTTP response and store it in response
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
 
+    time(&rawtime);
+
+    info = localtime(&rawtime);
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    int response_length = sprintf(response,
+        "%s\n"
+        "Date: %s"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n"
+        "%s",
+        header,
+        asctime(info),
+        content_length,
+        content_type,
+        body);
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -87,7 +108,7 @@ void get_d20(int fd)
     sprintf(response_body, "%d\n", (rand() % 20) + 1);
 
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
-    
+
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
@@ -209,6 +230,7 @@ int main(void)
     }
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
+    // resp_404(newfd);
 
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
