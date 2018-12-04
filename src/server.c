@@ -53,7 +53,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
     int response_length = 0;
+
     // Build HTTP response and store it in response
+
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+
+    time(&rawtime);
+    info = localtime(&rawtime);
+
     response_length = sprintf(response, "%s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s",
     header,
     content_length,
@@ -87,7 +96,7 @@ void get_d20(int fd)
 
     // Use send_response() to send it back as text/plain data  
     srand(getpid() + time(NULL));
-    
+
 	char response_body[8];
     sprintf(response_body, "%d\n", (rand() % 20) + 1);
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
