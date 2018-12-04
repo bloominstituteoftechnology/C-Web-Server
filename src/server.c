@@ -150,6 +150,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     if (filedata==NULL && new_entry==NULL) {
         resp_404(fd);
     } else if (filedata!=NULL) {
+        printf("storing in cache.");
         cache_put(cache,request_path,mime_type_get(request_path),filedata->data,filedata->size);
         send_response(fd,"HTTP/1.1 200 OK",mime_type_get(request_path),filedata->data,filedata->size);
         file_free(filedata);
