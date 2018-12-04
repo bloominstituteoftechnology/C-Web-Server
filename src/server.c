@@ -52,9 +52,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-    //time_t is used to get the calendar time. 
+    // time_t is used to get the calendar time. 
     time_t dateTime = time(NULL);
-    // //struct tm is a structure used to hold the time and date
+    //struct tm is a structure used to hold the time and date
     struct tm *lt = localtime(&dateTime);
 
     // Build HTTP response and store it in response
@@ -65,6 +65,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // sprintf - sprintf stands for “String print”.
     // Instead of printing on console,it store output
     // on char buffer which are specified in sprintf
+
       int response_length = sprintf(response,
         //type out all of the header objects.
         "%s\n"//start of header.
@@ -79,6 +80,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         content_length,
         content_type
     );
+
+    memcpy(response + response_length, body, content_length);
     // The C library function void *memcpy(void *str1,
     // const void *str2, size_t n) copies n characters 
     // from memory area str2 to memory area str1.
@@ -88,7 +91,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     if (rv < 0) {
         perror("send");
     }
-
     return rv;
 }
 
