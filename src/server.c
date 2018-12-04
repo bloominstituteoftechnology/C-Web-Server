@@ -62,12 +62,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response,
-        "header:             %s\n"
-        "content-type:       %s\n"
-        "body:               %s\n"
-        "date/time:          %s\n",
-        header, content_type, body, asctime(info));
+    int response_length = sprintf(response, "header: %s\ncontent-type: %s\nbody: %s\n", header, content_type, body);
 
     printf("Response: \n%s\n", response);
 
@@ -96,7 +91,7 @@ void get_d20(int fd)
     // IMPLEMENT ME! //
     ///////////////////
     char res_body[8];
-    int random = (rand() % (20 + 1- 1) + 1); 
+    int random = (rand() % (20 + 1 - 1) + 1); 
     int length = sprintf(res_body, "%d", random); // formula: rand() % ((max + 1 - min) + min)
 
     // Use send_response() to send it back as text/plain data
@@ -137,6 +132,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+  
 }
 
 /**
@@ -174,7 +170,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     char method[8], path[32], protocol_ver[16];
-    sscanf(request, "%s %s %s", method, path, protocol_ver);
+    sscanf(request, "%s%s%s", method, path, protocol_ver);
 
     // If GET, handle the get endpoints
     //    Check if it's /d20 and handle that special case
@@ -186,8 +182,9 @@ void handle_http_request(int fd, struct cache *cache)
         else {
             printf("get_file()");
         }
+    } else {
+        resp_404(fd);
     }
-    resp_404(fd);
     // (Stretch) If POST, handle the post request
 }
 
@@ -204,8 +201,6 @@ int main(void)
 
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
-
-    resp_404(listenfd);
 
     if (listenfd < 0) {
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
