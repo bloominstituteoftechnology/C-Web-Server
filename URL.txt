@@ -1,7 +1,17 @@
 PullReq:
 https://github.com/LambdaSchool/C-Web-Server/pull/223
 
+C Server (Medium article):
+https://medium.com/from-the-scratch/http-server-what-do-you-need-to-know-to-build-a-simple-http-server-from-scratch-d1ef8945e4fa
+
+C Server (SO):
+https://stackoverflow.com/questions/22077802/simple-c-example-of-doing-an-http-post-and-consuming-the-response
 
 
 HTTP Request:
 https://stackoverflow.com/questions/41286260/parse-http-request-line-in-c
+
+C Socket API:
+https://www.geeksforgeeks.org/accept-system-call/
+http://pubs.opengroup.org/onlinepubs/000095399/functions/recv.html
+

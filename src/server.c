@@ -145,8 +145,12 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
     char *GET = "GET";
+    char *POST = "POST";
     char *get_match;
-    char *http_action = strchr()
+    char *first_line;
+    char req_method;
+    char req_path;
+    char req_protocol;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -156,16 +160,27 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    
-    // Read the three components of the first request line
+    char len = strchr('/r/n', request);
+    int cnt = 0;
+    while(cnt < len){
+      first_line[cnt] = request[cnt];
+      cnt++;
+    }
+    sscanf(first_line, "%s %s %s", req_method, req_path, req_protocol);
 
-    // If GET, handle the get endpoints
+    if (req_method == "GET"){
+      if(req_path == "/d20"){
+        get_d20(fd);
+      } else if(req_path == "/example"){
+        get_file(fd, cache, fd);
+      } else {
+        resp_404(fd);
+      }
+    }
 
-    if()
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
+    if(req_method == "POST"){
+      printf("POST");
+    }
     // (Stretch) If POST, handle the post request
 }
 
