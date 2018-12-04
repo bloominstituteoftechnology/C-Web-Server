@@ -90,14 +90,19 @@ void get_d20(int fd)
     char header = "HTTP/1.1 200 OK";
 
     // Generate a random number between 1 and 20 inclusive
-    fd = rand() % 20 + 1;
+    srand(time(0));
 
+    int random_number = (rand() % 20) + 1;
+
+    char body[10];
+
+    sprintf(body, "%d", random_number);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-    // send_response(fd, header);
+    send_response(fd, header, "text/plain", body, strlen(body));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -174,11 +179,26 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char *request_type[8];
+    char *request_path[1024];
+    char *request_protocol[128];
     // Read the three components of the first request line
-    sscanf(request, "%ls", &bytes_recvd);
+    request[request_buffer_size] = '\0';
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
     // If GET, handle the get endpoints
+    if (!strcmp(request_type, "GET"))
+    {
+        if (!strcmp(path, "/d20"))
+        {
+            get_d20(fd);
+        }
+
+        else
+        {
+            get_file(fd, cache, request_path);
+        }
+    }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
@@ -225,7 +245,7 @@ int main(void)
             continue;
         }
 
-        resp_404(newfd);
+        // resp_404(newfd);
         // commented to test send_response function
 
         // Print out a message that we got the connection
