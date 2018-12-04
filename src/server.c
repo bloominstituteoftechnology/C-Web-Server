@@ -95,7 +95,6 @@ void get_d20(int fd)
     ///////////////////
 
     // Use send_response() to send it back as text/plain data  
-    srand(getpid() + time(NULL));
 
 	char response_body[8];
     sprintf(response_body, "%d\n", (rand() % 20) + 1);
@@ -139,6 +138,19 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if(filedata == NULL) {
+      resp_404(fd);
+    }else{
+      mime_type = mime_type_get(filepath);
+      send_response(fd, "HTTP/1.1 200 ok", mime_type, filedata->data, filedata->size);
+      file_free(filedata);
+    }
 }
 
 /**
@@ -191,7 +203,7 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
         } else {
             // get_file(fd, cache, request_path);
-            printf("get_file implementation coming soon\n");
+            printf("Cannot get\n");
         }
     }
 
