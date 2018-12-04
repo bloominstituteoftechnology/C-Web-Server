@@ -134,6 +134,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     ///////////////////
     struct file_data *filedata;
+    
     if (strcmp(request_path,"/")==0) {
         filedata=file_load("./serverroot/index.html");
     } else {
