@@ -53,11 +53,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    const int response_length = content_length + strlen(fd) + strlen(header);
+    // const int response_length = content_length + strlen(fd) + strlen(header);
     // Build HTTP response 
     
     //and store it in response
-    sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, content_length, content_type, body);
+    const int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -86,13 +86,18 @@ void get_d20(int fd)
     ///////////////////
     srand(time(NULL));
     int random  = rand() % 21;
-
+    printf("get_d20_1 %d\n", random);
+    // printf("get_d20_2 %ld\n", sizeof(random));
+    char randomstr[3];
+    sprintf(randomstr, "%d", random);
     // Use send_response() to send it back as text/plain data
+    
+    // printf("get_d20_3 %d\n", size);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random, sizeof(random));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", randomstr, strlen(randomstr));
 }
 
 /**
@@ -100,6 +105,7 @@ void get_d20(int fd)
  */
 void resp_404(int fd)
 {
+    printf("resp_404\n");
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
@@ -149,6 +155,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+    printf("handle_http_request\n");
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -160,18 +167,39 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
+    printf("\nhandle_http_request2 %s\n", request);
     // Read the three components of the first request line
+    // char type[8];
+    // char file[4];
+    // char protocal[8];
+    char type[8];
+    char file[75];
+    char protocal[9];
+    sscanf(request, "%s %s %s", type, file, protocal);
+    printf("handle_http_request3. type: %s\nfile: %s\nprotocal: %s\n\n", type, file, protocal);
 
     // If GET, handle the get endpoints
+    if(0 == strcmp(type, "GET"))
+    {
+        if(0 == strcmp(file, "/d20"))
+        {
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, file);
+        }
+    } 
+    else
+    {
+        resp_404(fd);
+    }
+
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
 
     // (Stretch) If POST, handle the post request
 }
@@ -207,6 +235,7 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
+        // resp_404(newfd);
         if (newfd == -1) {
             perror("accept");
             continue;
