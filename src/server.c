@@ -52,8 +52,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-
     // Build HTTP response and store it in response
+    // asctime/ ctime(t) | puts("for prints") 
     int response_length = sprintf(response,"%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",header, content_length, content_type, body );
     ///////////////////
     // IMPLEMENT ME! //
@@ -75,8 +75,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    int lower = 20, upper = 0, count = 1; 
+    for (int i = 0; i < count; i++) {
+        int num = (rand() % (upper = lower +1)) + lower;
+        printf("%d\n", num);
+    }
     // Generate a random number between 1 and 20 inclusive
-    
+  
+    // Use current time as  
+    // seed for random generator 
+    srand(time(0));
+     
+  
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -147,6 +157,7 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
 
     // Read request
+    // if (cache->cache_entry)
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
@@ -160,9 +171,27 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    char operation[20], endpoint[60], protocol[15];
+    sscanf(request, "%s %s %s", operation, endpoint , protocol);
+    puts(request);
+    // printf("%s\n", request[0]);
     // If GET, handle the get endpoints
-
+    // puts(operation);
+    
+   if (strcmp(operation, "GET") == 0) {
+        printf("It's a get\n");
+        
+        if (strcmp(endpoint, "/d20") == 0 ) {
+            printf("do RNG stuff\n");  
+            get_d20(fd);
+        }
+    } 
+    else if (strcmp(operation, "POST") == 0) {
+        printf("It's a post\n");
+        // send_response();
+    } else {
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -205,7 +234,7 @@ int main(void)
             perror("accept");
             continue;
         }
-        resp_404(newfd);
+        // resp_404(newfd); //I'll need to return something else here when it is finished
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
