@@ -149,20 +149,18 @@ void get_file(int fd, struct cache *cache, char *request_path)
     file_free(filedata);
 }
 
-/**
+/*
  * Search for the end of the HTTP header
  * 
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-/*
 char *find_start_of_body(char *header)
 {
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
 }
-*/
 
 /**
  * Handle HTTP request and send response
