@@ -60,7 +60,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
+    // TODO: Use memcpy to append the body to response so you can see jpg files
     int response_length = sprintf(response, "%s\nDate:Mon Dec 3 13:05:11 PST 2018\nContent-Length: %d\nConnection: close\nContent-Type:%s\n\n%s\n", header, content_length, content_type, body);
+
+    
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
