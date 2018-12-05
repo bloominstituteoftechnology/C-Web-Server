@@ -50,8 +50,12 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 262144;
     char response[max_response_size];
+
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
 
     time_t rawtime;
     struct tm *info;
@@ -60,6 +64,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     info = localtime(&rawtime);
 
+
     // Build HTTP response and store it in response
     int response_length = sprintf(response,
                             "%s\n"
@@ -67,14 +72,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                             "Connection: close \n"
                             "Content-Length: %d\n"
                             "Content-Type: %s\n"
-                            "\n%s",
-                            header, asctime(info), content_length, content_type, body);
+                            "\n",
+                            header, asctime(info), content_length, content_type);
+
+    memcpy(response+response_length, body, content_length);
 
     printf("%s\n", response);
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -168,6 +171,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    strrchr(header, "\r\n");
 }
 
 /**
