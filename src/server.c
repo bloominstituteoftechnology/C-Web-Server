@@ -81,14 +81,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-
     srand(time(NULL));
     char body[3];
     int num = (rand() % 20) + 1;
     int length = sprintf(body, "%d", num); 
 
     // Use send_response() to send it back as text/plain data
-
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, length);
 
 }
@@ -107,9 +105,12 @@ void resp_404(int fd)
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        // TODO: make this non-fatal
+        char body[] = "404 Not Found: These are not the droids you're looking for.";
+        int length = strlen(body);
+        send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/plain", body, length);
+
         fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        return;
     }
 
     mime_type = mime_type_get(filepath);
@@ -190,17 +191,13 @@ void handle_http_request(int fd, struct cache *cache)
                 get_file(fd, cache, endpoint);    // Otherwise serve the requested file by calling get_file()
                 return;
             }
-            
         }
 
         // (Stretch) If POST, handle the post request
         if (strcmp(type, "POST") == 0) {
         // handle POST
         }
-
-        
     }
-    
 }
 
 /**
