@@ -52,9 +52,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-
+    char *char_body = body;
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "%s\n""content_type: %s\n""content_length: %d\n\n""%s", header, content_type, content_length, body) + content_length;
+    int response_length = sprintf(response,
+    "%s\n"
+    "Content-Type: %s\n"
+    "Content-Length: %d\n\n"
+    "%s",
+    header,
+    content_type,
+    content_length,
+    char_body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -76,7 +84,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // srand(time(NULL));
+    srand(time(NULL));
     // Generate a random number between 1 and 20 inclusive
     int num = rand()%20+1;
     char num_str[15];
