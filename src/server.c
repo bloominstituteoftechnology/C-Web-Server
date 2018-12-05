@@ -143,7 +143,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     char filepath[4096];
     struct file_data *filedata; 
-    char * mime_type;
+    char *mime_type;
 
     sprintf(filepath, "%s%s", SERVER_ROOT, request_path);
 
@@ -155,10 +155,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
     else {
         mime_type = mime_type_get(filepath);
 
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data,filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
     }
-
-    file_free(filedata);
 }
 
 /**
@@ -267,7 +266,7 @@ int main(void)
 
         handle_http_request(newfd, cache);
 
-        resp_404(newfd);
+        // resp_404(newfd);
 
         close(newfd);
     }
