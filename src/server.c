@@ -16,6 +16,43 @@
  * (Posting data is harder to test from a browser.)
  */
 
+/* 
+https://www.geeksforgeeks.org/snprintf-c-library/
+ 
+snprintf()
+
+the snprintf() function formats and stores a series
+of characters and values in the array buffer.  The 
+snprintf() function with the addition of the n argument,
+which indicates the maximum number of characters 
+(including at the end of null character) to be written to buffer.
+
+int snprintf(char *str, size_t size, const char *format, ...);
+
+*str : is a buffer.
+size : is the maximum number of bytes
+(characters) that will be written to the buffer.
+format : C string that contains a format
+string that follows the same specifications as format in printf
+... : the optional ( …) arguments 
+are just the string formats like (“%d”, myint) as seen in printf.
+
+strstr()
+
+https://www.geeksforgeeks.org/strstr-in-ccpp/
+
+This function takes two strings s1 and s2 as an argument and finds 
+the first occurrence of the sub-string s2 in the string s1. The 
+process of matching does not include the terminating 
+null-characters(‘\0’), but function stops there.
+
+char *strstr (const char *s1, const char *s2);
+
+Parameters:
+s1: This is the main string to be examined.
+s2: This is the sub-string to be searched in s1 string.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -50,7 +87,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 65536 * 4;
     char response[max_response_size];
     int response_length = 0; //total length of both header and body
 
@@ -229,6 +266,11 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+
+    //set a char pointer *p;
+
+    //use strstr to find the first occurance of "header" in the string "\n\n"
+
 }
 
 /**
