@@ -11,8 +11,14 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
     ///////////////////
     // IMPLEMENT ME! //
-
     ///////////////////
+
+    struct cache_entry *entry = malloc(sizeof(cache_entry));
+
+    entry->path = path;
+    entry->content_type = content_type;
+    entry->content = content;
+    entry->content_length = content_length;
 }
 
 /**
@@ -20,6 +26,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
+    free(entry);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -135,9 +142,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
     //  * Allocate a new cache entry with the passed parameters.
     // implement alloc_entry function
-    alloc_entry(path, content_type, content, content_length);
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
     //  * Insert the entry at the head of the doubly-linked list.
-    dllist_insert_head();
+    dllist_insert_head(cache, entry);
     //  * Store the entry in the hashtable as well, indexed by the entry's `path`.
     hashtable_put();
     //  * Increment the current size of the cache.
