@@ -12,6 +12,22 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //malloc memory for the struct and the parameters
+    struct cache_entry *new_entry = malloc(sizeof (struct cache_entry)); 
+    new_entry->path = malloc(strlen(path) + 1); // +1 for the null terminator. 
+    new_entry->content_type = malloc(strlen(content_type) + 1); 
+    new_entry->content = malloc(content_length);
+
+
+    //fill in the values. 
+    strcpy(new_entry->path, path); 
+    strcpy(new_entry->content_type, content_type); 
+    new_entry->content_length = content_length; 
+    memcpy(new_entry->content, content, content_length); //memcpy  accepts a void paramater while strcpy accepts a char. Also albe to se the length to copy. 
+    // strcpy(new_entry->content, content); 
+
+    return new_entry; 
+
 }
 
 /**
@@ -22,6 +38,10 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry->content);
+    free(entry->content_length);
+    free(entry->path);
+    free(entry); 
 }
 
 /**

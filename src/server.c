@@ -144,12 +144,13 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char file_path[5000];
     char * type; 
 
+    printf("request path %s\n", request_path); 
     // printf("%d, %s, %d\n", fd, request_path, cache->cur_size);
     // printf("%d, %s, %d\n", fd, request_path);
     //just to remove the warnings to start server and test my code in other areas.
     // resp_404(fd); 
     snprintf(file_path, sizeof(file_path), "%s%s", SERVER_ROOT, request_path);
-    
+
 
     struct file_data *file_data_actual; 
 
@@ -161,6 +162,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     }
 
     type = mime_type_get(file_path);
+    // printf("file path %s\n", file_path); 
 
     send_response(fd, "HTTP/1.1 200 OK", type, file_data_actual->data, file_data_actual->size); 
 
