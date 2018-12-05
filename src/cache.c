@@ -31,6 +31,17 @@ https://www.tutorialspoint.com/c_standard_library/c_function_memcpy.htm
 The C library function void *memcpy(void *str1, const void *str2, size_t n) 
 copies n characters from memory area str2 to memory area str1.
 
+free() - used for free_entry()
+https://www.tutorialspoint.com/c_standard_library/c_function_free.htm
+The C library function void free(void *ptr) deallocates the memory previously 
+allocated by a call to calloc, malloc, or realloc. No return value.
+
+realloc()
+https://www.tutorialspoint.com/c_standard_library/c_function_realloc.htm
+The C library function void *realloc(void *ptr, size_t size) attempts to 
+resize the memory block pointed to by ptr that was previously allocated 
+with a call to malloc or calloc.  Returns a pointer to newly allocated memory.
+
 */
 
 /**
@@ -48,7 +59,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     */
 
     //define cache entry
-    struct cache_entry *cache_entry = malloc(sizeof(*cache_entry));
+    struct cache_entry *cache_entry = malloc(sizeof(*cache_entry)); //returns a pointer
 
     //set content_length
     cache_entry->content_length = content_length;
@@ -85,10 +96,18 @@ void free_entry(struct cache_entry *entry)
     // IMPLEMENT ME! //
     ///////////////////
 
-    //get pointer to least recently used (tail)
+    /*
+    in order to free the memory allocated to an entry, 
+    we need to free the memory associated with each component
+    of that entry. Reference using entry->component, use free 
+    to deallocate the memory (no return value).
+    */
 
-    //remove the tail
-
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
+    free(entry->content_length);
+    free(entry);
 }
 
 /**
@@ -98,13 +117,13 @@ void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
     // Insert at the head of the list
     if (cache->head == NULL) {
-        cache->head = cache->tail = ce;
-        ce->prev = ce->next = NULL;
+        cache->head = cache->tail = ce; //the cache entry is the first and only entry
+        ce->prev = ce->next = NULL; // there are no adjoining items in the list
     } else {
-        cache->head->prev = ce;
-        ce->next = cache->head;
-        ce->prev = NULL;
-        cache->head = ce;
+        cache->head->prev = ce; // the new entry is inserted in front of the head
+        ce->next = cache->head; // the former head becomes the next relative to the new entry
+        ce->prev = NULL; // because the new entry is now the head, it has no previous node
+        cache->head = ce; // the new entry is set as the head
     }
 }
 
@@ -113,22 +132,22 @@ void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
  */
 void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 {
-    if (ce != cache->head) {
+    if (ce != cache->head) { // we don't need to move the entry if it is already at the head
         if (ce == cache->tail) {
-            // We're the tail
+            // if the entry is the tail, we have to set a new tail to be the previous node and the next node to null
             cache->tail = ce->prev;
             cache->tail->next = NULL;
 
         } else {
             // We're neither the head nor the tail
-            ce->prev->next = ce->next;
-            ce->next->prev = ce->prev;
+            ce->prev->next = ce->next; // the next node relative to ce becomes the next node relative to the node previous to ce
+            ce->next->prev = ce->prev; // the previous node relative to ce becomes the previous node relative to the next node to ce
         }
 
-        ce->next = cache->head;
-        cache->head->prev = ce;
-        ce->prev = NULL;
-        cache->head = ce;
+        ce->next = cache->head; // the head of the cache becomes ce's next node
+        cache->head->prev = ce; // ce becomes the previous node relative to cache head
+        ce->prev = NULL; // ce's previous node is null because ce is now the head
+        cache->head = ce; // set ce as head
     }
 }
 
@@ -140,14 +159,14 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
  */
 struct cache_entry *dllist_remove_tail(struct cache *cache)
 {
-    struct cache_entry *oldtail = cache->tail;
+    struct cache_entry *oldtail = cache->tail; //creates a pointer to the old tail
 
-    cache->tail = oldtail->prev;
-    cache->tail->next = NULL;
+    cache->tail = oldtail->prev; // the cache tail becomes the old tail's previous node
+    cache->tail->next = NULL; // the cache tail's next node becomes NULL
 
-    cache->cur_size--;
+    cache->cur_size--; // decrement the size of the cache
 
-    return oldtail;
+    return oldtail; 
 }
 
 /**
@@ -161,6 +180,8 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    
 }
 
 void cache_free(struct cache *cache)
@@ -192,6 +213,25 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    /*
+    Implement `cache_put()` in `cache.c`.
+
+   Algorithm:
+
+   * Allocate a new cache entry with the passed parameters.
+   * Insert the entry at the head of the doubly-linked list.
+   * Store the entry in the hashtable as well, indexed by the entry's `path`.
+   * Increment the current size of the cache.
+   * If the cache size is greater than the max size:
+     * Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
+     * Remove the cache entry at the tail of the linked list (this is the
+       least-recently used one)
+     * Free the cache entry.
+     * Ensure the size counter for the number of entries in the cache is correct.
+    */
+
+
 }
 
 /**
