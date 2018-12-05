@@ -9,9 +9,16 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *ce = malloc(sizeof(struct cache_entry));
+
+    ce->path = path;
+    ce->content_type = content_type;
+    ce->content = content;
+    ce->content_length = content_length;
+    ce->prev = NULL;
+    ce->next = NULL;
+
+    return ce;
 }
 
 /**
@@ -19,9 +26,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if (entry != NULL) free(entry);
 }
 
 /**
@@ -91,9 +96,15 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *c = malloc(sizeof(struct cache));
+
+    c->index = hashtable_create(max_size, NULL);
+    c->head = NULL;
+    c->tail = NULL;
+    c->max_size = max_size;
+    c->cur_size = hashsize;
+
+    return c;
 }
 
 void cache_free(struct cache *cache)

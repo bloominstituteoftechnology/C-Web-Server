@@ -128,7 +128,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata; 
     char *mime_type;
 
-    // Fetch the index.html file
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     //printf("filepath: %s\n", filepath);
     filedata = file_load(filepath);
