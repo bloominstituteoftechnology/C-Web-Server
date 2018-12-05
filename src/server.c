@@ -210,11 +210,7 @@ void handle_http_request(int fd, struct cache *cache)
                 //    Check if it's /d20 and handle that special case
                 if(strcmp(file, "/d20") == 0) {
                         get_d20(fd);
-                } else if(strcmp(file, "/index.html") == 0) {
-                        get_file(fd, cache, "/index.html");
-                } else if(strcmp(file, "/foo/bar/baz.html") == 0) {
-                        get_file(fd, cache, "/foo/bar/baz.html");
-                } else {
+                }  else {
                         //    Otherwise serve the requested file by calling get_file()
                         get_file(fd, cache, file);
                         //resp_404(fd);
@@ -277,6 +273,7 @@ int main(void)
         }
 
         // Unreachable code
+        // socket has been closed can't send any responses.
 
         return 0;
 }
