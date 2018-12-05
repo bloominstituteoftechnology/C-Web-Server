@@ -50,17 +50,36 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 65536 * 4; // Must be very large to handle jpg
     char response[max_response_size];
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Get local time
+    time_t rawtime;
+    struct tm *info;
+
+    time( &rawtime );
+
+    info = localtime( &rawtime );
+
+    // Assemble response string
+    int response_length = sprintf(response, 
+                                "%s\n"
+                                "Date: %s"
+                                "Connection: close\n"
+                                "Content-Length: %d\n"
+                                "Content-Type: %s\n\n", 
+                                header, 
+                                asctime(info), 
+                                content_length, 
+                                content_type);
+
+
+    memcpy(response + response_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -76,16 +95,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(NULL));
+    int random_num = rand() % 20 + 1;
 
     // Use send_response() to send it back as text/plain data
+    char mime_type[] = "text/plain";
+    char random_num_str[3];
+    sprintf(random_num_str, "%d", random_num);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, random_num_str, strlen(random_num_str));
 }
 
 /**
@@ -102,9 +120,9 @@ void resp_404(int fd)
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        char not_found[] = "File for 'not Found' file, not found (meta)";
+        send_response(fd, "HTTP/1.1 404 NOT FOUND", "text/plain", not_found, strlen(not_found));
+
     }
 
     mime_type = mime_type_get(filepath);
@@ -119,9 +137,36 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
+    char filepath[4096];                            // For arbitrary file serving
+    char appendedfilepath[4096];                    // For automatic index.html serving
+    struct file_data *filedata;                     // For arbitrary file serving
+    
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+    char *mime_type = mime_type_get(filepath);
+
+
+    if(filedata == NULL)
+    {
+        snprintf(appendedfilepath, sizeof filepath, "%s%s", filepath, "index.html");
+        filedata = file_load(appendedfilepath);
+        mime_type = mime_type_get(appendedfilepath);
+
+        if(filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
+    }
+
+    // use original filepath to avoid repeated entries of ./serverroot/index.html
+    cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+
+    file_free(filedata);
+
 }
 
 /**
@@ -132,18 +177,49 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
+
+    const char search_for[5] = "\r\n\r\n";
+    char *token;
+
+    token = strstr(header, search_for);
+
+    // Original pointer includes searched_for term, add 5 to get to content
+    return token + 4;
+}
+
+/**
+ * Handle post request and save file in serverroot
+ */
+void post_save(int fd, char *request, int *file_counter)
+{
+    char file_name[256];
+    FILE * fp;
+
+    // Make file name, files stored in SERVER_ROOT
+    sprintf(file_name, "%s/input_file_%d.txt", SERVER_ROOT, (*file_counter)++);   
+
+    // Get body
+    char *start_body = find_start_of_body(request);
+
+    // Open file, write to file
+    fp = fopen(file_name, "w");
+    fwrite(start_body, 1, strlen(start_body), fp);
+
+    fclose(fp);
+
+    char json_return[] = "{\"status\":\"ok\"}";
+
+    send_response(fd, "HTTP/1.1 200 OK", "application/json", json_return, strlen(json_return)); 
 }
 
 /**
  * Handle HTTP request and send response
  */
-void handle_http_request(int fd, struct cache *cache)
+void handle_http_request(int fd, struct cache *cache, int *file_counter)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 65536;          // 64K
     char request[request_buffer_size];
+    char method[10], filePath[256], protocol[20];   // To parse request info
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -153,20 +229,39 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    sscanf(request, "%s %s %s", method, filePath, protocol);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if (strcmp(method, "GET") == 0)
+    {   
+        // Construct string of local path to use as hashtable key
+        char localPath[256];
+        sprintf(localPath, "%s%s", SERVER_ROOT, filePath);
 
-    // Read the three components of the first request line
+        struct cache_entry *entry = cache_get(cache, localPath);
+        if(entry != NULL){          // If we have the entry in our cache
+            
+            printf("Entry in cache\n");
+            send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
 
-    // If GET, handle the get endpoints
+        }
+        else{    
+            
+            printf("Entry not in cache\n");
+            if(strcmp(filePath, "/d20") == 0) { get_d20(fd); }
+            else{ get_file(fd, cache, filePath); }              // get the entry and add to cache
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+        }
+        
+    }
+    else if(strcmp(method, "POST") == 0)
+    {
+        post_save(fd, request, file_counter);
+        resp_404(fd);       // Shouldn't ever arrive here, post_save should send response
+    }
 
-
-    // (Stretch) If POST, handle the post request
+    // Reset request string so future file writes don't retain old values 
+    memset(request, 0, request_buffer_size);
+    
 }
 
 /**
@@ -177,6 +272,9 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
+
+    int file_counter = 1;       // For naming post files ex. input_file_1
+    int *file_counter_p = &file_counter;
 
     struct cache *cache = cache_create(10, 0);
 
@@ -214,7 +312,7 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
-        handle_http_request(newfd, cache);
+        handle_http_request(newfd, cache, file_counter_p);
 
         close(newfd);
     }
