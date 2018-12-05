@@ -138,7 +138,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     }
 
     mime_type = mime_type_get(request_path);
-
+    cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
@@ -167,6 +167,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char *mime_type;
+    char serverrootDir[100];
+
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -179,7 +182,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     sscanf(request, "%s %s %s", rType, rEndpoint, rHTTP);
     // printf("%s\n %s\n %s\n", rType, rEndpoint, rHTTP);
-
+    sprintf(serverrootDir, "./serverroot%s", rEndpoint);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -187,9 +190,11 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     if(strcmp(rEndpoint, "/d20") == 0) {
         get_d20(fd); 
+    } else if(cache_get(cache, rEndpoint)) {
+        mime_type = mime_type_get(serverrootDir);
+        struct cache_entry *ce = cache_get(cache, serverrootDir); 
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, ce, sizeof(ce));
     } else {
-        char serverrootDir[100];
-        sprintf(serverrootDir, "./serverroot%s", rEndpoint);
         printf("serverrootDir is %s\n", serverrootDir);
 
         get_file(fd, cache, serverrootDir);
