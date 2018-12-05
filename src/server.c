@@ -54,7 +54,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     // Build HTTP response and store it in response
     // asctime/ ctime(t) | puts("for prints") 
-    int response_length = sprintf(response,"%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",header, content_length, content_type, body );
+    int response_length = sprintf(
+        response,
+        "%s\n"
+        "Date: Wed Dec 20 13:05:11 PST 2017\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n\n",
+        "%s\n",header, content_length, content_type, body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -77,7 +84,7 @@ void get_d20(int fd)
 {
     // int lower = 8, upper = 18, count = 1; 
     // for (int i = 0; i < count; i++) {
-        int *num = (rand() % 20) + 1;
+        int num = (rand() % 20) + 1;
         printf("%d\n", num);
     // }
 
@@ -93,7 +100,7 @@ void get_d20(int fd)
     ///////////////////
     
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "200 OK", "text/plain", &num, 3);
+    send_response(fd,"HTTP/1.1 200 OK","text/plain",&num,3);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -186,14 +193,16 @@ void handle_http_request(int fd, struct cache *cache)
             printf("do RNG stuff\n");  
             get_d20(fd);
             // resp_404(fd);
+        } else {
+        // get_file()
         }
     } 
     else if (strcmp(operation, "POST") == 0) {
         printf("It's a post\n");
         // send_response();
-    } else {
-        resp_404(fd);
-    }
+    } 
+    resp_404(fd);
+
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -236,7 +245,7 @@ int main(void)
             perror("accept");
             continue;
         }
-        // resp_404(newfd); //I'll need to return something else here when it is finished
+        // resp_404(newfd); //I don't need anything here
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
