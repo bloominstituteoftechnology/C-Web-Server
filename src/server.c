@@ -149,6 +149,18 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    struct cache_entry *found_entry = cache_get(cache, request_path);
+    if(found_entry != NULL){
+      send_response(
+        fd,
+        "HTTP/1.1 200 OK",
+        found_entry->content_type,
+        found_entry->content,
+        found_entry->content_length
+      );
+      return;
+    }
+
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
@@ -161,6 +173,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     }
     mime_type = mime_type_get(filepath);
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
     file_free(filedata);
 }
 
