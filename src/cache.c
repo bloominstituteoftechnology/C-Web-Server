@@ -12,6 +12,13 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *ent = malloc(sizeof(struct cache_entry));
+
+    ent->path = path; 
+    ent->content = content; 
+    ent->content_length = content_length; 
+    ent->content_type = content_type; 
+    return ent; 
 }
 
 /**
@@ -125,6 +132,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
 }
 
 /**
