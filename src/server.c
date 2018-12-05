@@ -81,7 +81,7 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char number[16];
+    char number[8];
     int rand_num = rand() % 21;
     int content_length = sprintf(number, "%d", rand_num);
     // Use send_response() to send it back as text/plain data
@@ -170,7 +170,7 @@ void handle_http_request(int fd, struct cache *cache)
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
-    char method[32], endpoint[64], protocol[64];
+    char method[6], endpoint[64], protocol[64];
 
     printf("Request: %s\n", request);
     sscanf(request, "%s %s %s", method, endpoint, protocol);
@@ -184,7 +184,7 @@ void handle_http_request(int fd, struct cache *cache)
         }
         else
         {
-            get_file(fd, cache, endpoint);
+            resp_404(fd);
         }
     }
     // (Stretch) If POST, handle the post request
