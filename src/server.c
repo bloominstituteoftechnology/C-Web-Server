@@ -79,13 +79,17 @@ void get_d20(int fd)
     int min_num = 1;
     char header = "HTTP/1.1 200 OK";
     char content_type = "text/html";
+    char body[256];
     // mime_type_get() use to find the file extension
 
 
     // Generate a random number between 1 and 20 inclusive
     int randomNum = rand() % (max_num + 1 - min_num) + min_num;
-    char body = printf("%d\n", randomNum);
+    // int randomNum = 5;
+    printf("Random Number: %d\n", randomNum);
+    sprintf(body, "%d", randomNum);
     int content_length = strlen(body);
+    // printf("Body: %s\n", body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -93,12 +97,10 @@ void get_d20(int fd)
 
     // Use send_response() to send it back as text/plain data
     send_response(fd, header, content_type, body, content_length);
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    return body;
-
+    return;
 }
 
 /**
@@ -175,7 +177,7 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    printf("Request: %s\n", request);
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", &operation, &endpoint, &protocol);
 
@@ -184,10 +186,12 @@ void handle_http_request(int fd, struct cache *cache)
     {
         printf("I am a GET request\n");
         if(strcmp(endpoint, "/d20") == 0){
-            printf("d20 get");
+            puts("testing d20");
+            get_d20(fd);
+            return;
         } else if(strcmp(endpoint, "/") == 0){
             printf("server get request");
-        } else if(strcmp(endpoint, "index.html") == 0){
+        } else if(strcmp(endpoint, "/index.html") == 0){
             printf("index.html");
         }else{
             resp_404(fd);
@@ -243,7 +247,7 @@ int main(void)
             perror("accept");
             continue;
         }
-        resp_404(newfd);
+        // resp_404(newfd);
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
