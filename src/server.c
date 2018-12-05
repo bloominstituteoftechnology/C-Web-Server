@@ -219,7 +219,7 @@ void handle_http_request(int fd, struct cache *cache)
     //    Otherwise serve the requested file by calling get_file()
 
     if (strcmp(method, "GET") == 0) {
-        if (strcmp(endpoint, "/d20/") == 0) {
+        if (strcmp(endpoint, "/d20") == 0) {
             printf("Should return d20 number.\n");
             get_d20(fd);
         } else if (strcmp(endpoint, "/") == 0) {
