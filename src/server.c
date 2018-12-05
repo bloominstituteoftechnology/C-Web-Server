@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 1165536;
     char response[max_response_size];
 
     // HTTP/1.1 200 OK
@@ -66,19 +66,31 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     info = localtime(&rawtime);
 
-    int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n%s", header, content_length, content_type, asctime(info), body);
+    int response_length = sprintf(
+        response,
+        "%s\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "Date: %s\n",
+        header,
+        content_length,
+        content_type,
+        asctime(info));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    memcpy(response + response_length, body, content_length);
+    printf("%s", response);
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0)
     {
         perror("send");
     }
 
+    printf("%d", rv);
     return rv;
 }
 
@@ -87,22 +99,21 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    char header = "HTTP/1.1 200 OK";
-
+    // char header = "HTTP/1.1 200 OK";
+    printf("FIRING d20\n");
     // Generate a random number between 1 and 20 inclusive
-    srand(time(0));
 
     int random_number = (rand() % 20) + 1;
 
-    char body[10];
+    char body[128];
 
-    sprintf(body, "%d", random_number);
+    int body_length = sprintf(body, "%d", random_number);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, header, "text/plain", body, strlen(body));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, body_length);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -141,9 +152,25 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        fprintf(stderr, "cannot find system 404 file\n");
+        exit(1);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    // send_response(int fd, char *header, char *content_type, void *body, int content_length)
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -179,23 +206,26 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char *request_type[8];
-    char *request_path[1024];
-    char *request_protocol[128];
+    char request_type[8];
+    char request_path[1024];
+    char request_protocol[128];
     // Read the three components of the first request line
     request[request_buffer_size] = '\0';
     sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
     // If GET, handle the get endpoints
-    if (!strcmp(request_type, "GET"))
+    if (strcmp(request_type, "GET") == 0)
     {
-        if (!strcmp(path, "/d20"))
+        printf("firing get\n");
+        printf("%s\n", request_path);
+        if (strcmp(request_path, "/d20") == 0)
         {
+            printf("firing 220");
             get_d20(fd);
         }
-
         else
         {
+            printf("firing else");
             get_file(fd, cache, request_path);
         }
     }
