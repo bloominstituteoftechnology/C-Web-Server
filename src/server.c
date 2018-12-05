@@ -87,7 +87,7 @@ s2: This is the sub-string to be searched in s1 string.
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536 * 4;
+    const int max_response_size = 131072;
     char response[max_response_size];
     int response_length = 0; //total length of both header and body
 

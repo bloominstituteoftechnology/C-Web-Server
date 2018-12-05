@@ -2,7 +2,7 @@
 #define _WEBCACHE_H_
 
 // Individual hash table entry
-struct cache_entry {
+struct cache_entry { // cache entries can be thought of as augmented doubly linked list nodes
     char *path;   // Endpoint path--key to the cache
     char *content_type;
     int content_length;
