@@ -60,11 +60,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "Date: Wed Dec 20 13:05:11 PST 2017\n"
         "Connection: close\n"
         "Content-Length: %d\n"
-        "Content-Type: %s\n\n",
+        "Content-Type: %s\n\n" // <-- you had an extra comma here d'oh
         "%s\n",header, content_length, content_type, body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("response: %s\n", response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -82,6 +83,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    // Use current time as  
+    // seed for random generator 
+    srand(time(0));
     // int lower = 8, upper = 18, count = 1; 
     // for (int i = 0; i < count; i++) {
         int num = (rand() % 20) + 1;
@@ -89,18 +93,17 @@ void get_d20(int fd)
     // }
 
     // Generate a random number between 1 and 20 inclusive
-  
-    // Use current time as  
-    // seed for random generator 
-    // srand(time(0));
-    //  asctime
+    
   
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    
+    char destination[3]; 
+    // memcpy(destination, num, 3);
+    sprintf(destination, "%d", num); // so since you said this wouldn't convert anything idk if it would work
+    // but it's seg faulting either way and I don't particularly know from what because I think i've tried undoing pretty much everything
     // Use send_response() to send it back as text/plain data
-    send_response(fd,"HTTP/1.1 200 OK","text/plain",&num,3);
+    send_response(fd,"HTTP/1.1 200 OK","text/plain",destination,3);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -137,7 +140,14 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    
+#define DEFAULT_MIME_TYPE "application/octet-stream"
+if(strcmp(mime_type_get(request_path), DEFAULT_MIME_TYPE) == 0) {
+    // regular fileless get
+    printf("No filetype\n");
+    } else {
+        printf("Lets serve a file\n");
+    // serve some files
+    }
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -192,16 +202,21 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(endpoint, "/d20") == 0 ) {
             printf("do RNG stuff\n");  
             get_d20(fd);
+            return;
             // resp_404(fd);
-        } else {
+        }
+        else {
         // get_file()
+        get_file(fd, cache, endpoint);
         }
     } 
     else if (strcmp(operation, "POST") == 0) {
         printf("It's a post\n");
+        return;
         // send_response();
     } 
     resp_404(fd);
+    
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
