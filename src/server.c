@@ -52,18 +52,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
         // this function builds an HTTP response with all the given parameters: header, content_type, body the actual
         // content of the request, and content_length the total length of the header and body of the response in bytes
-        // this is so the send() function below  recieves the respond legnth which it needs to snned a message on a socket.
+        // this is so the send() function below  recieves the respond legnth which it needs to send a message on a socket.
         const int max_response_size = 65536;
         char response[max_response_size];
         // response is an array of characers so do I need:
         // response_length = sizeof(respone)/sizeof(char)?
         // just initalize response length for now
-        int response_length = 0;
+        // date vars:
+        time_t unstructdate;
+        struct tm *date;
+        time(&unstructdate);
+        date = localtime(&unstructdate);
+        //make body into char:
+        char *body_char = body;
 
-        response_length = sprintf(response, "%s\n connection: close\n content_length: %d\n content_type: %s\n\n %s", header, content_length, content_type, body);
 
 
         // Build HTTP response and store it in response
+        int response_length = 0;
+
+        response_length = sprintf(response, "%s\n connection: close\n content_length: %d\n content_type: %s\n date: %s\n%s", header, content_length, content_type, asctime(date), body_char);
 
         ///////////////////
         // IMPLEMENT ME! //
@@ -153,7 +161,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
         // if there is no file data: 404
         if(filedata == NULL) {
                 resp_404(fd);
-                printf("\n%what's going on\n");
+                //printf("\n%what's going on\n");
                 return;
         }
 
