@@ -50,8 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 6553700;
-    char response[max_response_size];
+    char response[65537000];
     time_t t = time(NULL);
 
     // Build HTTP response and store it in response
