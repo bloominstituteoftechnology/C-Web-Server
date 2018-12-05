@@ -50,17 +50,16 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 185536;
+    const int max_response_size = 1185536;
     char response[max_response_size];
-    int response_length = 0;
+    // int response_length = 0;
 
     // Build HTTP response and store it in response
-
 // response_length should include host header, success or failure,
 // content-length, content-type, connection: close, date
-    content_length = strlen(body);
+    // response[max_response_size] = '\0';
 
-    response_length = sprintf(
+    int response_length = sprintf(
      response,
      "%s\n"
      "Connection: close\n"
@@ -70,11 +69,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
      content_length,
      content_type);
     //removes body for memcpy above
-
 //memcpy because there are null terms in the cat.jpg file
 //we do this so it does not stop reading after the null term
     memcpy(response + response_length, body, content_length);
-
     // Send it all!
     int rv = send(fd, response, response_length + content_length, 0);
                                    //adds content length here for the memcpy
