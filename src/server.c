@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 1165536;
     char response[max_response_size];
 
     // The total length of the header **and** body should be stored in the `response_length` variable
@@ -63,19 +63,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "Connection: close\n"
         "Content-Length: %d\n"
         "Content-Type: %s\n"
-        "\n"
-        "%s",
+        "\n",
         header,
         content_length,
-        content_type,
-        body);
+        content_type);
+
+    memcpy(response + response_length, body, content_length);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0)
     {
@@ -104,9 +104,9 @@ void get_d20(int fd)
     // * content_type: "text/plain", etc.
     // * body:         the data to send.
 
-    char length[20];
-    int content_length = sprintf(length, "%d\n", random_num);
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_num, content_length);
+    char body[20];
+    int content_length = sprintf(body, "%d\n", random_num);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, content_length);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -145,22 +145,30 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    FILE *fp;
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    printf("Enter file name\n");
-    gets(request_path);
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
 
-    fp = fopen(request_path, "r");
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
 
-    if (fp == NULL)
+    if (filedata == NULL)
     {
-        perror("Error opening that file.\n");
+        fprintf(stderr, "cannot find that file\n");
         exit(1);
     }
 
-    printf("The files contents are:\n", cache);
+    mime_type = mime_type_get(filepath);
+
+    // send_response(int fd, char *header, char *content_type, void *body, int content_length)
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
+
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
 }
 
 /**
@@ -199,22 +207,22 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
 
-    char *request_type[8];
-    char *request_path[1024];
-    char *request_protocol[128];
+    char request_type[8];
+    char request_path[1024];
+    char request_protocol[128];
 
-    bytes_recvd[request_buffer_size] = '\0';
+    request[request_buffer_size] = '\0';
 
     sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
-    printf("Request: %s\n", request)
+    printf("Request: %s\n", request);
 
-        // // If GET, handle the get endpoints
-        //    Check if it's /d20 and handle that special case
-        // `strcmp()` for matching the request method and path.
+    // // If GET, handle the get endpoints
+    //    Check if it's /d20 and handle that special case
+    // `strcmp()` for matching the request method and path.
 
-        // You have to use an `if`-`else` block with `strcmp()` to get the job done.
-        if (strcmp(request_type, "GET") == 0)
+    // You have to use an `if`-`else` block with `strcmp()` to get the job done.
+    if (strcmp(request_type, "GET") == 0)
     {
         if (strcmp(request_path, "/d20") == 0)
         {
@@ -222,7 +230,7 @@ void handle_http_request(int fd, struct cache *cache)
         }
         else
         {
-            get_file(fd);
+            get_file(fd, cache, request_path);
         }
     }
 
