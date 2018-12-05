@@ -146,10 +146,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // the cache (use the file path as the key).
 
     //-------------this is porbably going to be a variable with cache_get
-    if (cache->index->request_path){
+    struct cache_entry *got_cache = cache_get(cache, request_path);
+    if (got_cache->path){
         // If it's there, serve it back.
-        mime_type = mime_type_get(cache->index->request_path);
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, cache->index->request_path->content, cache->index->request_path->content_length);
+        mime_type = mime_type_get(got_cache->path);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, got_cache->content, got_cache->content_length);
     //  If it's not there:
     } else {
         snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
@@ -159,24 +160,19 @@ void get_file(int fd, struct cache *cache, char *request_path)
         if (filedata == NULL) {
             // TODO: make this non-fatal
             fprintf(stderr, "cannot find path requested\n");
-            exit(3);
+            resp_404(fd);
+            // exit(3);
+            return;
         }
 
         mime_type = mime_type_get(filepath);
     // * Store it in the cache
-        cache_put(cache, path, mime_type, filedata->data, filedata->size);
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
     // * Serve it
         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
     }
 
-
-
-
-
-    
-
     file_free(filedata);
-
 }
 
 /**
@@ -220,28 +216,23 @@ void handle_http_request(int fd, struct cache *cache)
     // char protocal[8];
 
     char type[8];
-    char file[75];
-    char protocal[9];
+    char fileName[1024];
+    char protocal[128];
 
-    sscanf(request, "%s %s %s", type, file, protocal);
-    printf("handle_http_request3. type: %s\nfile: %s\nprotocal: %s\n\n", type, file, protocal);
+    sscanf(request, "%s %s %s", type, fileName, protocal);
+    printf("handle_http_request3. type: %s\nfile: %s\nprotocal: %s\n\n", type, fileName, protocal);
 
     // If GET, handle the get endpoints
     if(0 == strcmp(type, "GET"))
     {
-        if(0 == strcmp(file, "/d20"))
+        if(0 == strcmp(fileName, "/d20"))
         {
             get_d20(fd);
         } else {
             printf("\nfile is not /d20\n");
-            get_file(fd, cache, file);
+            get_file(fd, cache, fileName);
         }
     } 
-    else
-    {
-        resp_404(fd);
-    }
-
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()

@@ -12,7 +12,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache_entry *new = calloc(sizeof(struct cache_entry));
+    struct cache_entry *new = malloc(sizeof(struct cache_entry));
     new->content = content;
     new->content_length = content_length;
     new->path = path;
@@ -141,7 +141,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 //    * Insert the entry at the head of the doubly-linked list.
     dllist_insert_head(cache, new_entry);
 //    * Store the entry in the hashtable as well, indexed by the entry's `path`.
-    hahstable_put(cache->index, path );
+    hashtable_put(cache->index, path, content);
 //    * Increment the current size of the cache.
     add_entry_count(cache->index, 1);
 //    * If the cache size is greater than the max size:
