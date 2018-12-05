@@ -57,17 +57,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int response_length = 0;
 
     // Build HTTP response and store it in response
-    response_length = sprintf(response,
-                              "%s\n"
-                              "Connection: close\n"
-                              "Content-Length: %d\n"
-                              "Content-Type: %s\n"
-                              "\n"
-                              "%s",
-                              header,
-                              content_length,
-                              content_type,
-                              body);
+    response_length = sprintf(
+        response,
+        "%s\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n"
+        "%s",
+        header,
+        content_length,
+        content_type,
+        body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -144,9 +145,22 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    FILE *fp;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("Enter file name\n");
+    gets(request_path);
+
+    fp = fopen(request_path, "r");
+
+    if (fp == NULL)
+    {
+        perror("Error opening that file.\n");
+        exit(1);
+    }
+
+    printf("The files contents are:\n", cache);
 }
 
 /**
