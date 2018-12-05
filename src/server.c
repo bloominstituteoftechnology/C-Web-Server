@@ -165,17 +165,30 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     char method[10], path[100], protocol[20];
     sscanf(request, "%s %s %s", method, path, protocol);
+    char rootPath;
+    FILE *fp;
     // If GET, handle the get endpoints
      if (strcmp(method, "GET") == 0) {
         printf("GET request\n");
          if (strcmp(path, "/d20") == 0) {
             printf("d20\n");
             get_d20(fd); 
+            }
+            else {
+                sprintf(rootPath, "/serverroot%s", path);
+                if (fopen(rootPath, "r") != NULL) {
+                    fp = fopen(rootPath, "r");
+                    printf("%s opened", rootPath);
+                }
+                else {
+                    resp_404(fd);
+                }
+            
         }
+    }  
         else{
             resp_404(fd);
             } 
-    }  
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
