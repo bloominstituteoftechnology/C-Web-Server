@@ -61,8 +61,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     info = localtime(&rawtime);
 
     int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s ", header, content_length, content_type, body);
-    // Connection: close\n  Content-Length: %d\n Content-Type: %s\n\n %s\n"
-    // content_length, content_type, body
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -136,7 +134,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
 
     // Fetch the index.html file
-    snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
@@ -200,7 +198,7 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(file, "/d20") == 0) {
             get_d20(fd);
         } else {
-            get_file(fd, cache, request);
+            get_file(fd, cache, file);
         }
     } else {
         resp_404(fd);
