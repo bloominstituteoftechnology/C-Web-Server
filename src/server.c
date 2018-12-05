@@ -141,8 +141,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     //for content-type header
     char *mime_type;
-    // print
-    sprintf(routepath, "%s%s", SERVER_ROOT, request_path);
+    // print out filepath conditional on the endpint, using snprintf to limit size of buffer:
+    if (strcmp(routepath, "/") == 0){
+      snprintf(routepath, sizeof(routepath), "%s%s", SERVER_ROOT, "/index.html");
+    } else {
+      snprintf(routepath, sizeof(routepath), "%s%s", SERVER_ROOT, request_path);
+    }
 
     filedata = file_load(routepath);
     //also from file.c
@@ -196,7 +200,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     printf("request %s\n", request);
-    char method[4], file[15], protocol[15];
+    char method[10], file[30], protocol[30];
     sscanf(request, "%s %s %s", method, file, protocol);
     printf("method:%s\n file:%s", method, file );
 
