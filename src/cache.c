@@ -116,10 +116,13 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // new_hash  = hashtable_create(,NULL);
     struct cache *new_cache = malloc(sizeof(struct cache *));
-    cache->head = NULL; 
-    cache->tail = NULL; 
-    cache->max_size = max_size; 
-    cache->cur_size = 0;  
+    new_cache->head = NULL; 
+    new_cache->tail = NULL; 
+    new_cache->max_size = max_size; 
+    new_cache->cur_size = 0;  
+
+
+    return new_cache; 
 
 }
 
