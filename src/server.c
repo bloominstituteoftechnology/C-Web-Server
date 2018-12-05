@@ -75,7 +75,7 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
 
     char num[10];
-    int rand_num = rand() % 21;
+    int rand_num = rand() % 21 + 1;
     int len = sprintf(num, "%d", rand_num);
 
     // Use send_response() to send it back as text/plain data
