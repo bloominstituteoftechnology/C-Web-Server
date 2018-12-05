@@ -39,7 +39,7 @@
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
 
-#define DEBUG 1
+#define DEBUG 0
 
 /**
  * Send an HTTP response
@@ -153,7 +153,14 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
 
     snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(request_path);
+    filedata = file_load(filepath);
+
+    #if DEBUG
+    printf("---requestpath:\t%s\n", request_path);
+    printf("---filepath:\t%s\n", filepath);
+    printf("---fullpath:\t%s%s\n", SERVER_ROOT, request_path);
+    printf("---filedata NULL?\t%d\n", filedata == NULL);
+    #endif
 
     if(filedata == NULL)
     {
@@ -220,6 +227,7 @@ void handle_http_request(int fd, struct cache *cache)
             return;
         } else if(strcmp(endpoint, "/") == 0){
             puts("server get request");
+            resp_404(fd);
         }else{
             get_file(fd, cache, endpoint);
         }
