@@ -254,7 +254,7 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
+        printf("anything");
         resp_404(newfd); //test
         handle_http_request(newfd, cache);
 
