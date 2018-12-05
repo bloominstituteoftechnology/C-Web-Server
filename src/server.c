@@ -55,9 +55,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+        response_length = sprintf(response, "%s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s", header, content_length, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -77,15 +75,13 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char numb[10];
+    int rand_num = rand() % 21;
+    int len = sprintf(numb, "%d", rand_num);
 
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", numb, len);
 }
 
 /**
@@ -119,9 +115,18 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char path[4096];
+    struct file_data *filedata;
+    char *mime_type;
+     sprintf(path, "%s%s", SERVER_ROOT, request_path);
+     filedata = file_load(path);
+     if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+     mime_type = mime_type_get(path);
+     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+     file_free(filedata);
 }
 
 /**
@@ -159,12 +164,22 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    printf("Request %s\n", request);
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
+    sscanf(request, "%s %s %s", method, file, protocol);
+    printf("Method: %s, File: %s", method, file);
+    if (strcmp(method, "GET") == 0) {
+          if (strcmp(file, "/d20") == 0) {
+            get_d20(fd);
+        } else if (strcmp(file, "/") == 0) {
+            get_file(fd, cache, "/index.html");
+        } else {
+            get_file(fd, cache, file);
+        }
+    }
 
     // (Stretch) If POST, handle the post request
 }
