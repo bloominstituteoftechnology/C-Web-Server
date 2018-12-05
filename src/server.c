@@ -51,7 +51,7 @@
 
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 185536;
     char response[max_response_size];
     // int response_length = 0;
 
@@ -73,17 +73,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "Connection: close\n"
         "Content-Length: %d\n"
         "Content-Type: %s\n"
-        "\n"
-        "%s",
+        "\n",
         header,
         asctime(info),
         content_length,
-        content_type,
-        body);
+        content_type
+        );
 
+    memcpy(response + response_length, body, content_length);
+    // printf("%d\n", response_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
