@@ -161,7 +161,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     //Insert the entry at the head of the doubly-linked list.
     dllist_insert_head(cache, new_entry);
     //Store the entry in the hashtable as well, indexed by the entry's path.
-    
+    hashtable_put(cache->index, path, new_entry); 
     // Increment the current size of the cache.
     cache->cur_size++; 
     /*
@@ -171,6 +171,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         Free the cache entry.
         Ensure the size counter for the number of entries in the cache is correct.
     */
+   if(cache->cur_size > cache->max_size){
+       
+   }
 
 
 }
