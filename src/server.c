@@ -136,27 +136,28 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char routepath[4096];
+    char file[4096];
     // from file.c:
     struct file_data *filedata;
     //for content-type header
     char *mime_type;
     // print out filepath conditional on the endpint, using snprintf to limit size of buffer:
-    if (strcmp(routepath, "/") == 0){
-      snprintf(routepath, sizeof(routepath), "%s%s", SERVER_ROOT, "/index.html");
+    if (strcmp(file, "/index.html") == 0){
+      snprintf(file, sizeof(file), "%s%s", SERVER_ROOT, "/index.html");
     } else {
-      snprintf(routepath, sizeof(routepath), "%s%s", SERVER_ROOT, request_path);
+      snprintf(file, sizeof(file), "%s%s", SERVER_ROOT, request_path);
     }
 
-    filedata = file_load(routepath);
+    filedata = file_load(file);
     //also from file.c
     // if there is no file data: 404
     if(filedata == NULL){
       resp_404(fd);
+      printf("\n%what's going on\n");
       return;
     }
 
-    mime_type = mime_type_get(routepath);
+    mime_type = mime_type_get(file);
     // send back resposne filedata->data is the body, and filedata->size is size of the file in bytes.
     send_response(fd,"HTTP/1.1 200 OK",  mime_type, filedata->data, filedata->size);
     // which frees the struct and the filedata member
