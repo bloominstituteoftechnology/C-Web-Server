@@ -60,7 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char buffer[80];
     time( &rawtime );
     info = localtime( &rawtime );
-    printf("Current local time and date: %s\n", asctime(info));
+    printf("Local date and time: %s\n", asctime(info));
 
     // Build the HTTP response then store in response
     int response_length = sprintf(response,"%s\n Content-Type: %s\n Server: Keegan C Server\n Content-Length: %d\n Date: %s\n %s", header, content_type, content_length, asctime(info), body);
@@ -125,9 +125,40 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Request path
+    printf("request_path: %s\n", request_path);
+
+    // Get the file
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT,request_path);
+    
+    // File path
+    printf("filepath: %s\n", filepath);
+    // Pass in filepath to file load function and store in filedata struct
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // Route to index.html
+        printf("Inside first if block...");
+        snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
+
+        filedata = file_load(filepath);
+
+        if (filedata == NULL){
+            printf("Inside second if block...");
+            resp_404(fd);
+            return;
+        }
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
