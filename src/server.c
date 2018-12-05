@@ -91,7 +91,7 @@ void get_d20(int fd)
 
     // Use send_response() to send it back as text/plain data
 
-    send_response(fd, "HTTP/1.1 404 NOT FOUND", randumb, send);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", randumb, send);
 // send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 }
 
