@@ -17,6 +17,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     new_entry->content_type=strdup(content_type);
     new_entry->content=content;
     new_entry->content_length=content_length;
+    new_entry->created_at=time(NULL);
     return new_entry;
 }
 

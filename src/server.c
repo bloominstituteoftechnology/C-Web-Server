@@ -134,9 +134,13 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     ///////////////////
     struct file_data *filedata=NULL;
-    struct cache_entry *new_entry=cache_get(cache,request_path);
-    if (new_entry!=NULL) {
-        send_response(fd,"HTTP/1.1 200 OK",new_entry->content_type,new_entry->content,new_entry->content_length);
+    struct cache_entry *cached_item=cache_get(cache,request_path);
+    if (cached_item!=NULL && difftime(time(NULL),cached_item->created_at)>=60) {
+        cache_delete(cache,request_path);
+        cached_item=NULL;
+    }
+    if (cached_item!=NULL) {
+        send_response(fd,"HTTP/1.1 200 OK",cached_item->content_type,cached_item->content,cached_item->content_length);
     }
     else {
         char buffer[256];
