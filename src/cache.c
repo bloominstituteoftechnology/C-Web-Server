@@ -9,7 +9,7 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    struct cache_entry *ce = malloc(sizeof(struct));
+    struct cache_entry *ce = malloc(sizeof(struct cache_entry));
 
     ce->path = path; 
     ce->content_type = content_type; 
@@ -133,11 +133,17 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
     struct cache_entry *ce = alloc_entry(path, content_type, content, content_length); 
     dllist_insert_head(cache, ce); 
-    int ceSize = sizeof(ce);
+    int ceSize = sizeof(ce) * sizeof(int);
 
-    struct hashtable *ht = hashtable_create(ceSize, 10);
+    struct hashtable *ht = hashtable_create(ceSize, sizeof(struct hashtable));
     hashtable_put(ht, path, ce); 
-
+    cache->cur_size = cache->cur_size + 1;
+    if(cache->cur_size > cache->max_size) {
+        dllist_remove_tail(cache); 
+        hashtable_delete(ht, path); 
+        free_entry(ce);
+        cache->cur_size = cache->cur_size - 1; 
+    } 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
