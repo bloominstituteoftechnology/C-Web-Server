@@ -18,8 +18,6 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     c_entry->content_type = content_type;
     c_entry->content = content;
     c_entry->content_length = content_length;
-    c_entry->prev = NULL;
-    c_entry->next = NULL;
 
     return c_entry;
 
