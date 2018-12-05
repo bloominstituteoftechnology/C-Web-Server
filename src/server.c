@@ -182,6 +182,7 @@ void handle_http_request(int fd, struct cache *cache)
             {
                 fp = fopen(rootPath, "r");
                 printf("%s opened\n", rootPath);
+                send_response(fd, "HTTP/1.1 200 OK", mime_type_get(rootPath), fp, sizeof(fp));
             }
             else
             {
