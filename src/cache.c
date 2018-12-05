@@ -156,6 +156,8 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //Allocate a new cache entry with the passed parameters.
+    struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length); 
 }
 
 /**
