@@ -85,7 +85,6 @@ void get_d20(int fd)
 
     char res_body[8];
 
-    //Set the seed of the PRNG
     srand(getpid()+time(NULL));
 
     // Generate a random number between 1 and 20 inclusive and set it to res_body 
