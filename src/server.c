@@ -206,9 +206,9 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     printf("Reading request %s\n", request);
-    char method[10], path[30], protocol[30];
+    char method[8], path[1024], protocol[128];
 
-    sscanf(request, "%s%s%s", method, path, protocol);
+    sscanf(request, "%s %s %s", method, path, protocol);
     printf("Method: %s, File: %s", method, path);
 
     // If GET, handle then get endpoints
