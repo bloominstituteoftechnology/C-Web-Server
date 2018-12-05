@@ -136,7 +136,6 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         struct cache_entry *old_tail = dllist_remove_tail(cache);
         cache->tail->prev = old_tail->prev->prev;
         free_entry(old_tail);
-        
     }
 }
 
@@ -145,7 +144,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    void *entry = hashtable_get(cache->index, path);
+    struct cache_entry *entry = hashtable_get(cache->index, path);
     if (entry == NULL) {
         return NULL;
     }
