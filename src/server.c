@@ -50,27 +50,34 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 185536;
     char response[max_response_size];
     int response_length = 0;
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
 // response_length should include host header, success or failure,
 // content-length, content-type, connection: close, date
-     content_length = strlen(body);
+    content_length = strlen(body);
 
-    response_length = sprintf(response,
-     "%s\n" "Connection: Close\n" "Content-Length: %d\n" "Content-Type: %s\n\n" "%s\n",
-     header, content_length, content_type, body);
+    response_length = sprintf(
+     response,
+     "%s\n"
+     "Connection: close\n"
+     "Content-Length: %d\n"
+     "Content-Type: %s\n\n",
+     header,
+     content_length,
+     content_type);
+    //removes body for memcpy above
+
+//memcpy because there are null terms in the cat.jpg file
+//we do this so it does not stop reading after the null term
+    memcpy(response + response_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
-
+    int rv = send(fd, response, response_length + content_length, 0);
+                                   //adds content length here for the memcpy
     if (rv < 0) {
         perror("send");
     }
@@ -85,14 +92,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    char str[128];
     int randumb = rand() % 21;
-    int send = sprintf("%d", randumb);
+    int send = sprintf(str,"%d", randumb);
 
     // Use send_response() to send it back as text/plain data
 
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", randumb, send);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", str, send);
 // send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+// int fd, char *header, char *content_type, void *body, int content_length
 }
 
 /**
@@ -126,9 +134,25 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch the 404.html file
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -165,12 +189,10 @@ void handle_http_request(int fd, struct cache *cache)
 //call handler based on type
 //maybe check to see if d20 first
 //call resp_404 if no appropriate handler
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
     printf("request: %s\n fd: %d\n", request, fd);
     // Read the three components of the first request line
-    char type[35], path[50];
+    char type[35], path[128];
 
     sscanf(request, "%s" "%s", type, path);
 
