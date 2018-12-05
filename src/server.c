@@ -147,7 +147,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     } else {
       snprintf(file, sizeof(file), "%s%s", SERVER_ROOT, request_path);
     }
-
+    //load the file
     filedata = file_load(file);
     //also from file.c
     // if there is no file data: 404
@@ -211,7 +211,7 @@ void handle_http_request(int fd, struct cache *cache)
       if(strcmp(file, "/d20") == 0){
         get_d20(fd);
       } else if(strcmp(file, "/index.html") == 0){
-        get_file(fd, cache, "index.html");
+        get_file(fd, cache, "/index.html");
       } else if(strcmp(file, "/foo/bar/baz.html") == 0){
         get_file(fd, cache, "/foo/bar/baz.html");
       }
