@@ -55,8 +55,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-     time_t rawtime;
-    struct tm *info;
+  
 
     int response_length = sprintf(response, 
     "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent_Length: %d\nContent_Type: %s\n\n%s\n",header,
@@ -135,6 +134,21 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char fpath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+     sprintf(fpath, "%s%s", SERVER_ROOT, request_path);
+     filedata = file_load(fpath);
+
+     if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+     mime_type = mime_type_get(fpath);
+
+     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+     
+     file_free(filedata);
 }
 
 /**
@@ -164,6 +178,30 @@ void handle_http_request(int fd, struct cache *cache)
     if (bytes_recvd < 0) {
         perror("recv");
         return;
+    }
+    
+        // Read the three components of the first request line
+        char method[8];
+        char endpoint[32];
+        char http_vers[8];
+        
+        sscanf(request, "%s %s %s", method, endpoint, http_vers);
+       
+
+        // If GET, handle the get endpoints
+    if (strcmp(method, "GET") == 0) {
+    if (strcmp(endpoint, "/d20") == 0) {   
+        get_d20(fd);
+        } 
+    else {
+        get_file(fd, cache, endpoint);    
+        }
+        
+
+        // (Stretch) If POST, handle the post request
+       
+
+        
     }
 
 
@@ -217,7 +255,7 @@ int main(void)
             perror("accept");
             continue;
         }
-        resp_404(newfd);
+    
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
