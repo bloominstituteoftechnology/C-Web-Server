@@ -158,6 +158,21 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     //Allocate a new cache entry with the passed parameters.
     struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length); 
+    //Insert the entry at the head of the doubly-linked list.
+    dllist_insert_head(cache, new_entry);
+    //Store the entry in the hashtable as well, indexed by the entry's path.
+    
+    // Increment the current size of the cache.
+    cache->cur_size++; 
+    /*
+     If the cache size is greater than the max size:
+        Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
+        Remove the cache entry at the tail of the linked list.
+        Free the cache entry.
+        Ensure the size counter for the number of entries in the cache is correct.
+    */
+
+
 }
 
 /**
