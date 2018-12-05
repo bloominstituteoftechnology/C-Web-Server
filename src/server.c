@@ -52,15 +52,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    time_t t = time(NULL);
+    struct tm *info = localtime(t);
 
     // Build HTTP response and store it in response
+    int response_length = sprintf(response, "%s\nDate:%sConnection: close\nContent-Length: %d\nContent-Type:%s\n\n\%s\n", header, asctime(info), content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -80,8 +83,12 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    srand(getpid() + time(NULL));
 
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand() % 20) + 1);
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -144,6 +151,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[4];
+    char request_path[128];
+    char request_http[128];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -160,11 +170,21 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
 
+    sscanf(request, "%s %s %s\n", request_type, request_path, request_http);
+
     // If GET, handle the get endpoints
-
+    if(strcmp(request_type, "GET") == 0){
+    
     //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+        if(strcmp(request_path, "/d20") == 0)
+            get_d20(fd);
 
+    //    Otherwise serve the requested file by calling get_file()
+        else
+            get_file(fd, cache, request_path);
+    }
+    else
+        resp_404(fd);
 
     // (Stretch) If POST, handle the post request
 }
