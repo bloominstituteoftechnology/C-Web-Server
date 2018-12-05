@@ -136,6 +136,27 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char routepath[4096];
+    // from file.c:
+    struct file_data *filedata;
+    //for content-type header
+    char *mime_type;
+    // print
+    sprintf(routepath, "%s%s", SERVER_ROOT, request_path);
+
+    filedata = file_load(routepath);
+    //also from file.c
+    // if there is no file data: 404
+    if(filedata == NULL){
+      resp_404(fd);
+      return;
+    }
+
+    mime_type = mime_type_get(routepath);
+    // send back resposne filedata->data is the body, and filedata->size is size of the file in bytes.
+    send_response(fd,"HTTP/1.1 200 OK",  mime_type, filedata->data, filedata->size);
+    // which frees the struct and the filedata member
+    file_free(filedata);
 }
 
 /**
@@ -175,7 +196,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     printf("request %s\n", request);
-    char method, file, protocol;
+    char method[4], file[15], protocol[15];
     sscanf(request, "%s %s %s", method, file, protocol);
     printf("method:%s\n file:%s", method, file );
 
@@ -186,7 +207,8 @@ void handle_http_request(int fd, struct cache *cache)
         get_d20(fd);
       }else {
       //    Otherwise serve the requested file by calling get_file()
-      resp_404(fd);
+      get_file(fd, cache, file);
+      //resp_404(fd);
       }
     }
 
