@@ -64,7 +64,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         time(&unstructdate);
         date = localtime(&unstructdate);
         //make body into char:
-        char *body_char = body;
+        char* body_char;
+        body_char = (char*)body;
 
 
 
