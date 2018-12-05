@@ -176,8 +176,10 @@ void cache_delete(struct cache *cache,char *path) {
     struct cache_entry *old_item=hashtable_delete(cache->index,path);
     if (old_item->next==NULL && old_item->prev) {
         old_item->prev->next=NULL;
+        cache->tail=old_item->prev;
     } else if (old_item->prev==NULL && old_item->next) {
         old_item->next->prev=NULL;
+        cache->head=old_item->next;
     } else {
         old_item->next->prev=old_item->prev;
         old_item->prev->next=old_item->next;
