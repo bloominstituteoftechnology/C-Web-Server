@@ -39,6 +39,8 @@
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
 
+#define DEBUG 1
+
 /**
  * Send an HTTP response
  *
@@ -77,18 +79,23 @@ void get_d20(int fd)
 {
     int max_num = 20;
     int min_num = 1;
-    char header = "HTTP/1.1 200 OK";
-    char content_type = "text/html";
+    char header[] = "HTTP/1.1 200 OK";
+    char content_type[] = "text/html";
     char body[256];
     // mime_type_get() use to find the file extension
 
+    srand(unsigned) time(&t);
 
     // Generate a random number between 1 and 20 inclusive
-    int randomNum = rand() % (max_num + 1 - min_num) + min_num;
-    // int randomNum = 5;
-    printf("Random Number: %d\n", randomNum);
+    int randomNum = 
+    // int randomNum = 20;
     sprintf(body, "%d", randomNum);
-    int content_length = strlen(body);
+    int content_length = strlen(body) + 1;
+    #if DEBUG
+    printf("Random Number: %d\n", randomNum);
+    printf("body: %s\n", body);
+    printf("content length: %d\n", content_length);
+    #endif
     // printf("Body: %s\n", body);
 
     ///////////////////
