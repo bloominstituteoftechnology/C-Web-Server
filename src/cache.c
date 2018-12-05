@@ -122,9 +122,14 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *new_cache_entry = malloc(sizeof(struct cache_entry)); 
+    new_cache_entry->path = path; 
+    new_cache_entry->content_type = content_type; 
+    new_cache_entry->content_length = content_length; 
+    new_cache_entry->content = content; 
+    new_cache_entry->next = NULL; 
+    new_cache_entry->prev = NULL; 
+    
 }
 
 /**
