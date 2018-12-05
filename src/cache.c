@@ -122,9 +122,24 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+// Allocate a new cache entry with the passed parameters. -initialize a char?
+//      struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)?
+// Insert the entry at the head of the doubly-linked list.
+//       -maybe use dllist_insert_head(struct cache *cache, struct cache_entry *ce)
+// Store the entry in the hashtable as well, indexed by the entry's path.
+//       -is this the cache?
+// Increment the current size of the cache. 
+//      ????????
+// If the cache size is greater than the max size:
+//      ??????????
+// Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
+//      struct cache_entry *dllist_remove_tail(struct cache *cache)?
+// Remove the cache entry at the tail of the linked list.
+//          same as above??????
+// Free the cache entry.
+//      free(cache)?
+// Ensure the size counter for the number of entries in the cache is correct.
+//      ?????????
 }
 
 /**
