@@ -82,20 +82,20 @@ void get_d20(int fd)
     char header[] = "HTTP/1.1 200 OK";
     char content_type[] = "text/html";
     char body[256];
+    time_t t;
+    int i, n;
     // mime_type_get() use to find the file extension
+    n = 1;
 
-    srand(unsigned) time(&t);
+    srand((unsigned) time(&t));
 
     // Generate a random number between 1 and 20 inclusive
-    int randomNum = 
+    int randomNum = rand() % 20;
     // int randomNum = 20;
     sprintf(body, "%d", randomNum);
     int content_length = strlen(body) + 1;
-    #if DEBUG
-    printf("Random Number: %d\n", randomNum);
-    printf("body: %s\n", body);
-    printf("content length: %d\n", content_length);
-    #endif
+    // #if DEBUG
+    // #endif
     // printf("Body: %s\n", body);
 
     ///////////////////
@@ -191,9 +191,9 @@ void handle_http_request(int fd, struct cache *cache)
     // If GET, handle the get endpoints
     if (strcmp(operation, "GET") == 0)
     {
-        printf("I am a GET request\n");
+        // printf("I am a GET request\n");
         if(strcmp(endpoint, "/d20") == 0){
-            puts("testing d20");
+            // puts("testing d20");
             get_d20(fd);
             return;
         } else if(strcmp(endpoint, "/") == 0){
