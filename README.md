@@ -163,7 +163,6 @@ The hashtable code is already written and can be found in `hashtable.c`.
        least-recently used one)
      * Free the cache entry.
      * Ensure the size counter for the number of entries in the cache is correct.
-     * Decrement the current size of the cache.
 
 2. Implement `cache_get()` in `cache.c`.
 
