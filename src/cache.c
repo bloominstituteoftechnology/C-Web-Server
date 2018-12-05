@@ -91,9 +91,9 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache nu_cache;
+    nu_cache.max_size = max_size;
+    nu_cache.cur_size = hashsize;
     
 }
 
@@ -122,10 +122,14 @@ void cache_free(struct cache *cache)
  * NOTE: doesn't check for duplicate cache entries
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
-{
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+{ 
+  struct cache_entry an_entry;
+  strcpy(an_entry.path, path);
+  strcpy(an_entry.content_type, content_type);
+  strcpy(an_entry.content_length, content_length);
+  strcpy(an_entry.content, content);
+
+
 }
 
 /**
