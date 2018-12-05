@@ -84,7 +84,7 @@ void get_d20(int fd)
 
     // Use send_response() to send it back as text/plain data
     char body[256]; 
-    char response_length = sprintf(body, "%d", r);
+    int response_length = sprintf(body, "%d", r);
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, response_length);
     //send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 
@@ -164,17 +164,17 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     char method[10], path[100], protocol[20];
-     fscanf(request, "%s %s %s", method, path, protocol);
+    sscanf(request, "%s %s %s", method, path, protocol);
     // If GET, handle the get endpoints
      if (strcmp(method, "GET") == 0) {
-        printf("GET request");
-/*         if (strcmp(path, "/d20") == 0) {
-            printf("d20");
-            ; 
-        }*/
-/*         else{
+        printf("GET request\n");
+         if (strcmp(path, "/d20") == 0) {
+            printf("d20\n");
+            get_d20(fd); 
+        }
+        else{
             resp_404(fd);
-            } */
+            } 
     }  
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
