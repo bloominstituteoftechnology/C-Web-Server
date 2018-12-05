@@ -60,7 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     info = localtime(&rawtime);
 
-    int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n%s\n ", header, content_length, content_type, asctime(info), body);
+    int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s ", header, content_length, content_type, body);
     // Connection: close\n  Content-Length: %d\n Content-Type: %s\n\n %s\n"
     // content_length, content_type, body
 
@@ -131,6 +131,24 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch the index.html file
+    snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -139,12 +157,14 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
+/*
 char *find_start_of_body(char *header)
 {
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
 }
+*/
 
 /**
  * Handle HTTP request and send response
@@ -168,20 +188,22 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    char method[5];
-    char file[20];
-    char protocol[20];
+    char method[10];
+    char file[1000];
+    char protocol[1000];
 
     sscanf(request, "%s %s %s", method, file, protocol);
     printf("Method: %s\n", method);
 
-    // If GET, handle the get endpoints
+    // If GET, handle the get endpointsgit
     if (strcmp(method, "GET") == 0) {
         if (strcmp(file, "/d20") == 0) {
             get_d20(fd);
         } else {
-            resp_404(fd);
+            get_file(fd, cache, request);
         }
+    } else {
+        resp_404(fd);
     }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
