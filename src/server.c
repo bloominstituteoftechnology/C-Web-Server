@@ -60,7 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     timestamp = localtime(&rawtime);
     // Build HTTP response and store it in response
 
-    int response_length = sprintf(response, "%s\n  content length: %d\n Date: %s Content type: %s\n \n Body: %s\n", header,  content_length, asctime(timestamp), content_type, body);
+    int response_length = sprintf(response, "%s\n  content length: %d\n Date: %s Content type: %s\n \n Body: %s\n", header, content_length, asctime(timestamp), content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -83,12 +83,10 @@ void get_d20(int fd)
     int r = (rand() % 20) + 1;
 
     // Use send_response() to send it back as text/plain data
-    char body[256]; 
+    char body[256];
     int response_length = sprintf(body, "%d", r);
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, response_length);
     //send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
-
-
 }
 
 /**
@@ -165,30 +163,37 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     char method[10], path[100], protocol[20];
     sscanf(request, "%s %s %s", method, path, protocol);
-    char rootPath;
+    int rootPath_size;
+    char rootPath[rootPath_size];
     FILE *fp;
     // If GET, handle the get endpoints
-     if (strcmp(method, "GET") == 0) {
+    if (strcmp(method, "GET") == 0)
+    {
         printf("GET request\n");
-         if (strcmp(path, "/d20") == 0) {
+        if (strcmp(path, "/d20") == 0)
+        {
             printf("d20\n");
-            get_d20(fd); 
-            }
-            else {
-                sprintf(rootPath, "/serverroot%s", path);
-                if (fopen(rootPath, "r") != NULL) {
-                    fp = fopen(rootPath, "r");
-                    printf("%s opened", rootPath);
-                }
-                else {
-                    resp_404(fd);
-                }
-            
+            get_d20(fd);
         }
-    }  
-        else{
-            resp_404(fd);
-            } 
+        else
+        {
+            rootPath_size = sprintf(rootPath, "./serverroot%s", path);
+            if (fopen(rootPath, "r") != NULL)
+            {
+                fp = fopen(rootPath, "r");
+                printf("%s opened\n", rootPath);
+            }
+            else
+            {
+                printf("file not found\n");
+                resp_404(fd);
+            }
+        }
+    }
+    else
+    {
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -242,7 +247,7 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-        
+
         handle_http_request(newfd, cache);
 
         close(newfd);
