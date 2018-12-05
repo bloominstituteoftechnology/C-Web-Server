@@ -176,20 +176,28 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     ///////////////////
 
-    // initialize file_data
+    // initialize the file path (I was confusing request_path and file path)
+    char filepath[4096];
+    // initialize file_data struct
     struct file_data *filedata; 
     // initialize pointer to mime_type
     char *mime_type;
     
     // Fetch the file
-    snprintf(request_path, sizeof request_path, "%s/", SERVER_FILES);
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
     
     // use file_load to assign file_data
-    filedata = file_load(request_path);
+    filedata = file_load(filepath);
     // if file_content is null, indicate failure
 
+    if (filedata == NULL) {
+        // this deals with the / path
+        snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
+        filedata = file_load(filepath);
+    }
+
     // use mime_get_type to assign mime_type
-    mime_type = mime_type_get(request_path);
+    mime_type = mime_type_get(filepath);
 
     // send the response 
     // (int fd = fd
@@ -203,8 +211,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     // use file_free() to clear
     file_free(filedata);
-
-    return 0;
 }
 
 /**
