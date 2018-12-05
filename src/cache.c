@@ -114,6 +114,13 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // new_hash  = hashtable_create(,NULL);
+    struct cache *new_cache = malloc(sizeof(struct cache *));
+    cache->head = NULL; 
+    cache->tail = NULL; 
+    cache->max_size = max_size; 
+    cache->cur_size = 0;  
+
 }
 
 void cache_free(struct cache *cache)
@@ -156,3 +163,19 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     // IMPLEMENT ME! //
     ///////////////////
 }
+
+
+/*
+Available hash functions 
+
+extern struct hashtable *hashtable_create(int size, int (*hashf)(void *, int, int));
+extern void hashtable_destroy(struct hashtable *ht);
+extern void *hashtable_put(struct hashtable *ht, char *key, void *data);
+extern void *hashtable_put_bin(struct hashtable *ht, void *key, int key_size, void *data);
+extern void *hashtable_get(struct hashtable *ht, char *key);
+extern void *hashtable_get_bin(struct hashtable *ht, void *key, int key_size);
+extern void *hashtable_delete(struct hashtable *ht, char *key);
+extern void *hashtable_delete_bin(struct hashtable *ht, void *key, int key_size);
+extern void hashtable_foreach(struct hashtable *ht, void (*f)(void *, void *), void *arg);
+
+*/
