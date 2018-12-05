@@ -166,6 +166,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     mime_type = mime_type_get(filepath);
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
     file_free(filedata);
 }
 
