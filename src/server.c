@@ -194,6 +194,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
         // this deals with the / path
         snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
         filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            resp_404(fd);
+            return;
+        }
     }
 
     // use mime_get_type to assign mime_type
