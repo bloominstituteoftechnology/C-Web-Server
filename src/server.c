@@ -142,9 +142,31 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    // char request_path[4096];
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    char header[] = "HTTP/1.1 200 OK";
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(request_path);
+
+    if(filedata == NULL)
+    {
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(request_path);
+    
+    send_response(fd, header, mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
+
 }
 
 /**
@@ -197,12 +219,13 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
             return;
         } else if(strcmp(endpoint, "/") == 0){
-            printf("server get request");
-        } else if(strcmp(endpoint, "/index.html") == 0){
-            printf("index.html");
+            puts("server get request");
         }else{
-            resp_404(fd);
+            get_file(fd, cache, endpoint);
         }
+        // else if(strcmp(endpoint, "/index.html") == 0){
+
+        // }
     }else if(strcmp(operation, "POST") == 0){
         printf("I am a POST request\n");
     }
