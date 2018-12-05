@@ -54,6 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     // Build HTTP response and store it in response
     // asctime/ ctime(t) | puts("for prints") 
+    // TODO: memcpy() to get the body in stuff 
     int response_length = sprintf(
         response,
         "%s\n"
@@ -66,10 +67,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
     printf("response: %s\n", response);
-
+    printf("res len =========> %d\n",response_length);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
-
+    puts("we made it past rv woooooo\n");
     if (rv < 0) {
         perror("send");
     }
@@ -140,14 +141,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-#define DEFAULT_MIME_TYPE "application/octet-stream"
-if(strcmp(mime_type_get(request_path), DEFAULT_MIME_TYPE) == 0) {
-    // regular fileless get
-    printf("No filetype\n");
-    } else {
-        printf("Lets serve a file\n");
-    // serve some files
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+    if (filedata == NULL) {
+        resp_404(fd);
+        return;
     }
+
+    mime_type = mime_type_get(filepath);
+
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
+    
+
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -215,7 +229,7 @@ void handle_http_request(int fd, struct cache *cache)
         return;
         // send_response();
     } 
-    resp_404(fd);
+}
     
 
     //    Check if it's /d20 and handle that special case
@@ -223,7 +237,7 @@ void handle_http_request(int fd, struct cache *cache)
 
 
     // (Stretch) If POST, handle the post request
-}
+
 
 /**
  * Main
