@@ -12,12 +12,13 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache_entry newentry = malloc(sizeof(struct cache_entry));
+    struct cache_entry *newentry = malloc(sizeof(struct cache_entry));
     newentry->path = strdup(path);
     newentry->content_type = strdup(content_type);
     newentry->content_length = content_length;
     newentry->content = malloc(content_length+1);
-    memcpy(newentry->content, content, sizeof(newentry->content));
+    memcpy(newentry->content, content, content_length);
+    printf("COOONNNNTTTEEEENNNNNTTTT: %s\n", newentry->content);
     return newentry;
 }
 
@@ -108,11 +109,13 @@ struct cache *cache_create(int max_size, int hashsize)
     // IMPLEMENT ME! //
     ///////////////////
     struct cache *newcache = malloc(sizeof(struct cache));
-    newcache->index = hashtable_create();
+    newcache->index = hashtable_create(NULL, NULL);
     newcache->max_size = max_size;
     newcache->cur_size = hashsize;
-    newcache->head = calloc(1, sizeof(struct cache_entry));
-    newcache->tail = calloc(1, sizeof(struct cache_entry));
+    newcache->head = malloc(sizeof(struct cache_entry));
+    newcache->head = NULL;
+    newcache->tail = malloc(sizeof(struct cache_entry));
+    newcache->tail = NULL;
     return newcache;
 }
 
@@ -145,13 +148,13 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache_entry *newentry = alloc_entry(path, content_type, content, length);
+    struct cache_entry *newentry = alloc_entry(path, content_type, content, content_length);
 
     if (cache->cur_size >= cache->max_size) {
-      hashtable_delete(cache->index, cache->tail->path)
+      hashtable_delete(cache->index, cache->tail->path);
       free_entry(dllist_remove_tail(cache));
     }
-    dllist_insert_head(newentry);
+    dllist_insert_head(cache, newentry);
     hashtable_put(cache->index, newentry->path, newentry->content);
     cache->cur_size++;
 }
