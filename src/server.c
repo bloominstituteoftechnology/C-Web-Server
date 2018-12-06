@@ -137,7 +137,7 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-void cacheable (int fd, struct cache *cache, char *file_path)
+bool cacheable (int fd, struct cache *cache, char *file_path)
 {
     struct file_data *data; 
     struct cache_entry   *entry;
@@ -148,7 +148,12 @@ void cacheable (int fd, struct cache *cache, char *file_path)
     if (entry != NULL){
         //returns NULL IF IT DOESN'T exist. 
         send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length); 
+        return true; 
+    } else {
+        return false; 
     } 
+
+
 }
 void get_file(int fd, struct cache *cache, char *request_path)
 {
@@ -158,12 +163,21 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char file_path[5000];
     char * type; 
 
+    bool in_cache; 
+    
+
     printf("request path %s\n", request_path); 
     // printf("%d, %s, %d\n", fd, request_path, cache->cur_size);
     // printf("%d, %s, %d\n", fd, request_path);
     //just to remove the warnings to start server and test my code in other areas.
     // resp_404(fd); 
     snprintf(file_path, sizeof(file_path), "%s%s", SERVER_ROOT, request_path);
+
+    in_cache = cacheable(fd, cache, file_path); //added in for cache. 
+
+    if(!in_cache){
+
+    
 
 
     struct file_data *file_data_actual; 
@@ -181,8 +195,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
     send_response(fd, "HTTP/1.1 200 OK", type, file_data_actual->data, file_data_actual->size); 
 
     //free the struct 
-    file_free(file_data_actual); 
-
+    file_free(file_data_actual);
+     
+    }
     
 
 }
