@@ -85,6 +85,7 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
     srand(time(NULL));
     int random  = rand() % 21;
     printf("get_d20_1 %d\n", random);
@@ -118,7 +119,7 @@ void resp_404(int fd)
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
+        fprintf(stderr, "\ncannot find system 404 file\n");
         exit(3);
     }
 
@@ -139,7 +140,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     printf("get file%s\n", request_path);
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *cur_filedata;
     char *mime_type;
 
     // When a file is requested, first check to see if the path to the file is in
@@ -152,33 +153,35 @@ void get_file(int fd, struct cache *cache, char *request_path)
         // printf("got_cache->path %s\n", got_cache->path);
 
     if(got_cache != NULL){
-        printf("file is there\n");
+        printf("file is in cache\n");
         // If it's there, serve it back.
         mime_type = mime_type_get(got_cache->path);
         send_response(fd, "HTTP/1.1 200 OK", mime_type, got_cache->content, got_cache->content_length);
     //  If it's not there:
     } else {
-        printf("file is NOT there\n");
-        snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
-        filedata = file_load(filepath);
+        printf("file is NOT in cache\n");
+        snprintf(filepath, sizeof(filepath), "%s/%s", SERVER_ROOT, request_path);
+        printf("filepath %s\n", filepath);
     // * Load the file from disk (see `file.c`)
-        printf("%s\n", filepath);
-        if (filedata == NULL) {
+    cur_filedata = file_load(filepath);
+        printf("beforeif statement");
+        if (cur_filedata == NULL) {
+        printf("if statement");
             // TODO: make this non-fatal
             fprintf(stderr, "cannot find path requested\n");
             resp_404(fd);
             // exit(3);
-            return;
-        }
-
+            return 0;
+        } 
+        printf("below if statement");
         mime_type = mime_type_get(filepath);
     // * Store it in the cache
-        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+        cache_put(cache, filepath, mime_type, cur_filedata->data, cur_filedata->size);
     // * Serve it
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, cur_filedata->data, cur_filedata->size);
     }
 
-    file_free(filedata);
+    file_free(cur_filedata);
 }
 
 /**
