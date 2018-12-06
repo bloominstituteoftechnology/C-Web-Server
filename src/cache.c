@@ -12,6 +12,8 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    cache_entry->path;
+    cache_entry->contnet
 }
 
 /**
@@ -22,6 +24,7 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry);
 }
 
 /**
@@ -86,7 +89,7 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
 /**
  * Create a new cache
  * 
- * max_size: maximum number of entries in the cache
+ * max_size: maximum number of entries   in the cache
  * hashsize: hashtable size (0 for default)
  */
 struct cache *cache_create(int max_size, int hashsize)
@@ -94,6 +97,9 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
+    // create a cache struct
+
 }
 
 void cache_free(struct cache *cache)
