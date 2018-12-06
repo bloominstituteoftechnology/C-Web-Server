@@ -73,7 +73,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                             "\n",
                                   header, asctime(timeinfo), connection, content_length, content_type);
 
-
     memcpy(response + response_length, body, content_length);
 
     // Send it all!
@@ -97,7 +96,7 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    srand(time(0)); // will allow for random set instead of the same numbers each time. 
+    srand(time(0)); // will allow for random set instead of the same numbers each time.
     char body[8];
     sprintf(body, "%d\n", (rand() % 20) + 1);
     // Use send_response() to send it back as text/plain data
@@ -137,23 +136,24 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-bool cacheable (int fd, struct cache *cache, char *file_path)
+bool cacheable(int fd, struct cache *cache, char *file_path)
 {
-    struct file_data *data; 
-    struct cache_entry   *entry;
-    char *type; 
+    struct file_data *data;
+    struct cache_entry *entry;
+    char *type;
 
-    entry = cache_get(cache, file_path); 
+    entry = cache_get(cache, file_path);
 
-    if (entry != NULL){
-        //returns NULL IF IT DOESN'T exist. 
-        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length); 
-        return true; 
-    } else {
-        return false; 
-    } 
-
-
+    if (entry != NULL)
+    {
+        //returns NULL IF IT DOESN'T exist.
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 void get_file(int fd, struct cache *cache, char *request_path)
 {
@@ -161,45 +161,42 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     ///////////////////
     char file_path[5000];
-    char * type; 
+    char *type;
 
-    bool in_cache; 
-    
+    bool in_cache;
 
-    printf("request path %s\n", request_path); 
+    printf("request path %s\n", request_path);
     // printf("%d, %s, %d\n", fd, request_path, cache->cur_size);
     // printf("%d, %s, %d\n", fd, request_path);
     //just to remove the warnings to start server and test my code in other areas.
-    // resp_404(fd); 
+    // resp_404(fd);
     snprintf(file_path, sizeof(file_path), "%s%s", SERVER_ROOT, request_path);
+    //When a file is requested, first check to see if the path to the file is in the cache (use the file path as the key).
+    in_cache = cacheable(fd, cache, file_path); //added in for cache.
+    //If it's not there:
+    if (!in_cache)
+    {
 
-    in_cache = cacheable(fd, cache, file_path); //added in for cache. 
+        struct file_data *file_data_actual;
 
-    if(!in_cache){
+        file_data_actual = file_load(file_path);
 
-    
+        if (file_data_actual == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
 
+        type = mime_type_get(file_path);
+        // printf("file path %s\n", file_path);
 
-    struct file_data *file_data_actual; 
+        send_response(fd, "HTTP/1.1 200 OK", type, file_data_actual->data, file_data_actual->size);
 
-    file_data_actual = file_load(file_path);
-
-    if(file_data_actual == NULL){
-        resp_404(fd); 
-        return; 
+        //store it in the cache required 
+        cache_put(cache, file_path, type, file_data_actual->data, file_data_actual->size); 
+        //free the struct
+        file_free(file_data_actual);
     }
-
-    type = mime_type_get(file_path);
-    // printf("file path %s\n", file_path); 
-
-    send_response(fd, "HTTP/1.1 200 OK", type, file_data_actual->data, file_data_actual->size); 
-
-    //free the struct 
-    file_free(file_data_actual);
-     
-    }
-    
-
 }
 
 /**
@@ -238,7 +235,7 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    request[bytes_recvd] = '\0'; //terminate added. 
+    request[bytes_recvd] = '\0'; //terminate added.
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -246,8 +243,8 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", type_of_request, path_of_request, protocol);
-    //sscanf reads formated input from a string so it should grap the input from request and set it to the others. 
-    printf("%s %s %s\n", type_of_request, path_of_request, protocol); 
+    //sscanf reads formated input from a string so it should grap the input from request and set it to the others.
+    printf("%s %s %s\n", type_of_request, path_of_request, protocol);
     //sscanf is doing as it should  printing out  GET  /d20   and HTTP/1.1
 
     //check it out
@@ -266,10 +263,10 @@ void handle_http_request(int fd, struct cache *cache)
         {
             get_file(fd, cache, path_of_request);
         }
-    } 
-    else 
+    }
+    else
     {
-        resp_404(fd); 
+        resp_404(fd);
     }
 
     // (Stretch) If POST, handle the post request
