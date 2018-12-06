@@ -9,19 +9,40 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
+    new_entry->path = path;
+    new_entry->content_type = content_type;
+    new_entry->content_length = content_length;
+    new_entry->content = content;
+
+    return new_entry;
 }
+
+// struct cache_entry {
+//     char *path;   // Endpoint path--key to the cache
+//     char *content_type;
+//     int content_length;
+//     void *content;
+
+//     struct cache_entry *prev, *next; // Doubly-linked list
+// };
+
+    // struct cache *new_cache = malloc(sizeof(struct cache));
+    // struct hashtable *new_ht = hashtable_create(hashsize, NULL);
+    // new_cache->index = new_ht;
+    // new_cache->head = NULL;
+    // new_cache->tail = NULL;
+    // new_cache->max_size = max_size;
+    // new_cache->cur_size = 0;
+
+    // return new_cache;
 
 /**
  * Deallocate a cache entry
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry);
 }
 
 /**
@@ -91,10 +112,21 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *new_cache = malloc(sizeof(struct cache));
+    struct hashtable *new_ht = hashtable_create(hashsize, NULL);
+    new_cache->index = new_ht;
+    new_cache->head = NULL;
+    new_cache->tail = NULL;
+    new_cache->max_size = max_size;
+    new_cache->cur_size = 0;
+
+    return new_cache;
 }
+
+    // struct hashtable *index;
+    // struct cache_entry *head, *tail; // Doubly-linked list
+    // int max_size; // Maxiumum number of entries
+    // int cur_size;
 
 void cache_free(struct cache *cache)
 {
@@ -140,11 +172,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 // Ensure the size counter for the number of entries in the cache is correct.
     if (cache->cur_size > cache->max_size) {
 //cache_entry *dllist_remove_tail(struct cache *cache)
-        dllist_remove_tail(cache->index);
 //*hashtable_delete(struct hashtable *ht, char *key)
         hashtable_delete(cache->index, path);
-        free(cache);
-        cache->cur_size--;
+        free_entry(dllist_remove_tail(cache));
     }
 }
 
