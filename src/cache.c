@@ -11,10 +11,12 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
     struct cache_entry *ce = malloc(sizeof(struct cache_entry));
     
-    ce->path = path; 
-    ce->content_type = content_type; 
+    ce->path = strdup(path); 
+    ce->content_type = strdup(content_type); 
     ce->content_length = content_length;
     ce->content = content; 
+
+    return ce;
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -26,6 +28,8 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
+    free(entry->path);
+    free(entry->content_type);
     free(entry); 
     ///////////////////
     // IMPLEMENT ME! //
@@ -143,16 +147,16 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
     dllist_insert_head(cache, ce); 
     
-    int ceSize = sizeof *ce;
+    hashtable_put(cache->index, path, ce); 
+    cache->cur_size += 1;
 
-    struct hashtable *ht = hashtable_create(ceSize, NULL);
-    hashtable_put(ht, path, ce); 
-    cache->cur_size = cache->cur_size + 1;
     if(cache->cur_size > cache->max_size) {
-        dllist_remove_tail(cache); 
-        hashtable_delete(ht, path); 
-        free_entry(ce);
-        cache->cur_size = cache->cur_size - 1; 
+        struct cache_entry *tailCe = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, tailCe->path);
+        free_entry(tailCe);
+        if(cache->cur_size > cache->max_size) {
+            cache->cur_size-=1;
+        }
     }
 
     ///////////////////
