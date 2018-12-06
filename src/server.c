@@ -52,16 +52,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-
     // Build HTTP response and store it in response
-
+    // asctime/ ctime(t) | puts("for prints") 
+    // TODO: memcpy() to get the body in stuff 
+    int response_length = sprintf(
+        response,
+        "%s\n"
+        "Date: Wed Dec 20 13:05:11 PST 2017\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n\n" // <-- you had an extra comma here d'oh
+        "%s\n",header, content_length, content_type, body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    printf("response: %s\n", response);
+    printf("res len =========> %d\n",response_length);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
-
+    puts("we made it past rv woooooo\n");
     if (rv < 0) {
         perror("send");
     }
@@ -75,14 +84,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    // Use current time as  
+    // seed for random generator 
+    srand(time(0));
+    // int lower = 8, upper = 18, count = 1; 
+    // for (int i = 0; i < count; i++) {
+        int num = (rand() % 20) + 1;
+        printf("%d\n", num);
+    // }
+
     // Generate a random number between 1 and 20 inclusive
     
+  
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char destination[3]; 
+    // memcpy(destination, num, 3);
+    sprintf(destination, "%d", num); // so since you said this wouldn't convert anything idk if it would work
+    // but it's seg faulting either way and I don't particularly know from what because I think i've tried undoing pretty much everything
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd,"HTTP/1.1 200 OK","text/plain",destination,3);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -119,6 +141,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+    if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
+    
+
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -146,6 +189,7 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
 
     // Read request
+    // if (cache->cache_entry)
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
@@ -159,15 +203,41 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    char operation[20], endpoint[60], protocol[15];
+    sscanf(request, "%s %s %s", operation, endpoint , protocol);
+    puts(request);
+    // printf("%s\n", request[0]);
     // If GET, handle the get endpoints
+    // puts(operation);
+    
+   if (strcmp(operation, "GET") == 0) {
+        printf("It's a get\n");
+        
+        if (strcmp(endpoint, "/d20") == 0 ) {
+            printf("do RNG stuff\n");  
+            get_d20(fd);
+            return;
+            // resp_404(fd);
+        }
+        else {
+        // get_file()
+        get_file(fd, cache, endpoint);
+        }
+    } 
+    else if (strcmp(operation, "POST") == 0) {
+        printf("It's a post\n");
+        return;
+        // send_response();
+    } 
+}
+    
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
 
     // (Stretch) If POST, handle the post request
-}
+
 
 /**
  * Main
@@ -204,7 +274,7 @@ int main(void)
             perror("accept");
             continue;
         }
-
+        // resp_404(newfd); //I don't need anything here
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),

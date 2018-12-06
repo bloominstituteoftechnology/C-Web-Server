@@ -54,7 +54,7 @@ We will write a simple web server that returns files and some specialized data o
 Examine the skeleton source code in `server.c` and `cache.c` for which pieces you'll need to implement.
 
 **IMPORTANT** _Spend some time inventorying the code to see what is where. Write down notes. Write an outline. Note which functions call which other functions. Time spent up front doing this will reduce overall time spent down the road._
-
+pr
 _The existing code is all one big hint on how to attack the problem._
 
 For the portions that are already written, study the moderately-well-commented code to see how it works.
@@ -78,8 +78,8 @@ _Read through all the main and stretch goals before writing any code to get an o
 
    See the [HTTP](#http) section above for an example of an HTTP response and use that to build your own.
 
-   Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
-   content length. `sprintf()` also returns the total number of bytes in the
+   Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing content length.
+    `sprintf()` also returns the total number of bytes in the
    result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file.
 
    > The HTTP `Content-Length` header only includes the length of the body, not
@@ -100,7 +100,7 @@ _Read through all the main and stretch goals before writing any code to get an o
    (`GET`, `POST`) and the path (`/d20` or other file path.) You can start by
    just checking for `/d20` and then add arbitrary files later.
 
-   Hint: `strcmp()` for matching the request method and path. Another hint:
+   Hint: ` ` for matching the request method and path. Another hint:
    `strcmp()` returns `0` if the strings are the _same_!
 
    > Note: you can't `switch()` on strings in C since it will compare the string pointer values instead of the string contents. You have to use an
