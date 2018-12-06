@@ -158,7 +158,15 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *get_entry = hashtable_get(cache->index, path);
+
+    if (get_entry == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        dllist_move_to_head(cache, get_entry);
+        return get_entry;
+    }
 }
