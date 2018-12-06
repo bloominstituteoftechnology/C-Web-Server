@@ -163,14 +163,21 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
     snprintf(filepath, sizeof filepath, "%s%s",SERVER_ROOT, request_path);
     printf("filepath: %s\n", filepath);
-    filedata = file_load(filepath);
-    if (filedata == NULL) {
-    resp_404(fd);
+    struct cache_entry *entry = cache_get(cache , filepath);
+    // check to see if there is an entry in the cache at the filepath
+    // return that data if it's there , otherwise load the file from the disk
+    if (entry != NULL) {
+        send_response(fd,"HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    } else {
+        filedata = file_load(filepath);
+        if (filedata == NULL) {
+        resp_404(fd);
+        }
+        mime_type = mime_type_get(filepath);
+        send_response(fd,"HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+
     }
-    mime_type = mime_type_get(filepath);
-    send_response(fd,"HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-    file_free(filedata);
-    
 }
 
 /**
