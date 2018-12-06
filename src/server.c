@@ -121,6 +121,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("Inside get_file top");
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    struct cache_entry *cache_check = cache_get(cache, request_path);
+
+    if (cache_check != NULL)
+    {
+        send_response(fd, "HTTP/1.1 200 OK", cache_check->content_type, cache_check->content, cache_check->content_length);
+    }
+    else
+    {
+        filedata = file_load(filepath);
+
+        if (filedata == NULL)
+        {
+            resp_404(fd);
+        }
+
+        mime_type = mime_type_get(filepath);
+
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
 }
 
 /**
@@ -174,11 +201,18 @@ void handle_http_request(int fd, struct cache *cache)
     {
         if (strcmp(endpoint, "/d20") == 0)
         {
+            printf("\n/d20 conditional\n");
             get_d20(fd);
+        }
+        else if (strcmp(endpoint, "/") == 0)
+        {
+            printf("\n/ conditional\n");
+            get_file(fd, cache, "/index.html");
         }
         else
         {
-            resp_404(fd);
+            printf("\nother file conditional\n");
+            get_file(fd, cache, endpoint);
         }
     }
     // (Stretch) If POST, handle the post request
