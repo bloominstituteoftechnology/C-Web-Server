@@ -12,6 +12,17 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //Allocate the memory
+    struct cache_entry* cache_entry_inst = malloc(sizeof(struct cache_entry));
+
+    //Define/init the attribtes or properties of the obj/DS
+    cache_entry_inst->path = path;
+    cache_entry_inst->content_type = content_type;
+    cache_entry_inst->content_length = content_length;
+    cache_entry_inst->content = content;
+
+    //return the DS
+    return cache_entry_inst;
 }
 
 /**
@@ -22,6 +33,8 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+   free(entry);
+
 }
 
 /**
@@ -94,6 +107,15 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+   struct cache* cache = malloc(sizeof(struct cache));
+   cache->index = hashtable_create(hashsize, NULL);
+   cache->head = NULL;
+   cache->tail = NULL;
+   cache->max_size = max_size;
+   cache->cur_size = 0;
+   return cache;
+
+
 }
 
 void cache_free(struct cache *cache)
