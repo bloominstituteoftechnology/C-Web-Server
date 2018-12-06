@@ -149,7 +149,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
         printf("before cache_get\n");
     struct cache_entry *got_cache = cache_get(cache, request_path);
         printf("after cache_get\n");
-    if (got_cache->path){
+        // printf("got_cache->path %s\n", got_cache->path);
+
+    if(got_cache != NULL){
         printf("file is there\n");
         // If it's there, serve it back.
         mime_type = mime_type_get(got_cache->path);

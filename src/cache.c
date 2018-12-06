@@ -15,14 +15,26 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 
     //copy and make a new pointer so that it cant be messed with 
     struct cache_entry *new = malloc(sizeof(struct cache_entry));
-    // char *copy = strcpy(//something, content);//look at string copy and dupe
 
-    new->content = content;//malloc
-    new->content_length = content_length;
-    new->path = path;
-    new->content_type = content_type;
+    char *new_path = malloc(sizeof path);
+    char *new_content_length = malloc(sizeof content_length);
+    char *new_content_type = malloc(sizeof content_type);
+    void *new_content = malloc(sizeof content);
 
-    //return 
+    strcpy(new_path, path);//look at string copy and dupe
+    strcpy(new_content_length, content_length);//look at string copy and dupe
+    strcpy(new_content_type, content_type);//look at string copy and dupe
+    
+    new_content = content;//look at string copy and dupe
+
+    new->content = new_content;//malloc
+    new->content_length = new_content_length;
+    new->path = new_path;
+    new->content_type = new_content_type;
+    new->prev = NULL;
+    new->next = NULL;
+    
+    return new;
 }
 
 /**
@@ -111,7 +123,7 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     struct cache *foobar = malloc(sizeof(foobar));
     
-    foobar->index = hashtable_create(hashsize, NULL);//------------------max_size?
+    foobar->index = hashtable_create(max_size, NULL);//------------------max_size?
     foobar->head = NULL;
     foobar->tail = NULL;
     foobar->max_size = max_size;
