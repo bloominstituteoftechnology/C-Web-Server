@@ -11,18 +11,22 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
     ///////////////////
     // IMPLEMENT ME! //
-    struct cache_entry *ce = malloc(sizeof *ce);
+    // struct cache_entry *ce = malloc(sizeof *ce);
+    struct cache_entry *ce = malloc(sizeof(struct cache_entry));
 
-    ce->path = malloc(strlen(path) + 1);
-    strcpy(ce->path, path);
+    // ce->path = malloc(strlen(path) + 1);
+    // strcpy(ce->path, path);
+    ce->path = strdup(path);
 
-    ce->content_type = malloc(strlen(content_type) + 1);
-    strcpy(ce->content_type, content_type);
+    // ce->content_type = malloc(strlen(content_type) + 1);
+    // strcpy(ce->content_type, content_type);
+    ce->content_type = strdup(content_type);
 
     ce->content_length = content_length;
 
-    ce->content = malloc(content_length);
-    memcpy(ce->content, content, content_length);
+    // ce->content = malloc(content_length);
+    ce->content = content;
+    // memcpy(ce->content, content, content_length);
 
     return ce;
 }
@@ -36,7 +40,7 @@ void free_entry(struct cache_entry *entry)
     // IMPLEMENT ME! //
     free(entry->path);
     free(entry->content_type);
-    free(entry->content);
+    // free(entry->content);
     free(entry);
 }
 
