@@ -66,11 +66,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "%s\nConnection: Close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n%s",
         header, content_length, content_type, asctime(date), body
     );
+    // dest -> pointer to the memory location to copy to
+    // src -> body -> pointer to the memory location to copy from
+    // count -> cocntent_length -> number of bytes to copy
+    
     //memcpy(response, body, content_length);
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
