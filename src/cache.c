@@ -164,11 +164,14 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         // Remove the entry from the hashtable, using the entry's path and the hashtable_delete function
         hashtable_delete(cache->index, cache->tail->path);
         // Remove the cache entry at the tail of the linked list (this is the least-recently used one)
-        dllist_remove_tail(cache);
+        struct cache_entry *oldtail = dllist_remove_tail(cache);
         // Free the cache entry
         free_entry(oldtail);
         // Ensure the size counter for the number of entries in the cache is correct.
-        cache->cur_size--;
+        if (cache->cur_size > cache->max_size) {
+            cache->cur_size--;
+        }
+        
     }
 
 
