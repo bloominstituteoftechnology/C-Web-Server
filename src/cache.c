@@ -106,7 +106,6 @@ void free_entry(struct cache_entry *entry)
     free(entry->path);
     free(entry->content_type);
     free(entry->content);
-    free(entry->content_length);
     free(entry);
 }
 
@@ -281,13 +280,20 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     // IMPLEMENT ME! //
     ///////////////////
 
+    //create a cache_entry
+    struct cache_entry *cache_entry;
+
     // Attempt to find the cache entry pointer by path in the hash table.
-    hashtable_get(cache->index, path);
+    cache_entry = hashtable_get(cache->index, path);
     // If not found, return NULL.
+    if(cache_entry == NULL){
+        return NULL;
+    };
     
     // Move the cache entry to the head of the doubly-linked list.
+    dllist_move_to_head(cache, cache_entry);
 
     // Return the cache entry pointer.
-
+    return cache_entry;
 
 }
