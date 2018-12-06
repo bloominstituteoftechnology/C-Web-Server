@@ -9,12 +9,16 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    struct cache_entry *new_cache_entry = malloc(sizeof(cache_entry));
+    struct cache_entry *new_cache_entry = malloc(sizeof(struct cache_entry));
 
     new_cache_entry->path = path;
     new_cache_entry->content_type = content_type;
     new_cache_entry-> content = content;
     new_cache_entry->content_length = content_length;
+    new_cache_entry->prev = NULL;
+    new_cache_entry->next = NULL;
+
+    return new_cache_entry;
 }
 
 /**
@@ -22,9 +26,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry);
 }
 
 /**
@@ -94,9 +96,14 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *new_cache_entry = malloc(sizeof(struct cache));
+    new_cache_entry->index = hashtable_create(hashsize, NULL);
+    new_cache_entry->max_size = max_size;
+    new_cache_entry->head = NULL;
+    new_cache_entry->tail = NULL;
+    new_cache_entry->cur_size = 0;
+
+    return new_cache_entry;
 }
 
 void cache_free(struct cache *cache)
@@ -125,9 +132,12 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Allocate a new cache entry with the passed parameters.
+    struct cache_entry *new_cache_entry = alloc_entry(path, content_type, content, content_length);
+    // Insert the entry at the head of the doubly-linked list.
+    dllist_insert_head(cache, new_cache_entry);
+    // Store the entry in the hashtable as well, indexed by the entry's `path`.
+
 }
 
 /**
