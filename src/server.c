@@ -217,57 +217,70 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];
     // initialize file_data struct
     struct file_data *filedata; 
+    // initialize the cache_entry struct
+    struct cache_entry *cache_entry;
     // initialize pointer to mime_type
     char *mime_type;
     
-    // look for the file in the cache using get cache and the request_path as the identifier?
-
-
+    // look for the file in the cache using cache_get() and the request_path as the identifier?
+    cache_entry = cache_get(cache, request_path);
 
     // if there is a corresponding file, get it using send_response() function
-
-
-
-    // else, the file is not in the cache, use send_response to get file the regular way
-
-
-
-
-    // Fetch the file
-    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
-    
-    // use file_load to assign file_data
-    filedata = file_load(filepath);
-    // if file_content is null, indicate failure
-
-    if (filedata == NULL) {
-        // this deals with the / path
-        snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
-        filedata = file_load(filepath);
-
-        if (filedata == NULL) {
-            resp_404(fd);
-            return;
-        }
+    if (cache_entry != NULL)
+    {
+        // send_response(int fd, char *header, char *content_type, void *body, int content_length)
+        send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length); 
     }
 
-    // use mime_get_type to assign mime_type
-    mime_type = mime_type_get(filepath);
+    // else, the file is not in the cache, use send_response to get file the regular way
+    else
+    {
+        // Fetch the file
+        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+        
+        // use file_load to assign file_data
+        filedata = file_load(filepath);
+        // if file_content is null, indicate failure
 
-    // send the response 
-    // (int fd = fd
-    // char *header = "HTTP/1.1 200 OK" 
-    // char *content_type = mime_type
-    // void *body = file_content->data
-    // int content_length = file_content->size
-    // )
+        if (filedata == NULL) {
+            // this deals with the / path
+            snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
+            filedata = file_load(filepath);
 
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            if (filedata == NULL) {
+                resp_404(fd);
+                return;
+            }
+        }
 
-    // then add the file to the cache for later access
+        // use mime_get_type to assign mime_type
+        mime_type = mime_type_get(filepath);
 
-    // use file_free() to clear
-    file_free(filedata);
+        // send the response 
+        // (int fd = fd
+        // char *header = "HTTP/1.1 200 OK" 
+        // char *content_type = mime_type
+        // void *body = file_content->data
+        // int content_length = file_content->size
+        // )
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        // then add the file to the cache for later access
+        /* cache_put(
+            struct cache *cache, this is the inputted cache
+            char *path, this is the filepath
+            char *content_type, this is the mime_type of the file
+            void *content, this is the content of the file
+            int content_length, this is the size of the file
+            )
+        */
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);   
+
+        // use file_free() to clear
+        file_free(filedata); 
+    }
+    return 0;
 }
 
 /**
