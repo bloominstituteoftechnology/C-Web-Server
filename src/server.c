@@ -146,13 +146,17 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // the cache (use the file path as the key).
 
     //-------------this is porbably going to be a variable with cache_get
+        printf("before cache_get\n");
     struct cache_entry *got_cache = cache_get(cache, request_path);
+        printf("after cache_get\n");
     if (got_cache->path){
+        printf("file is there\n");
         // If it's there, serve it back.
         mime_type = mime_type_get(got_cache->path);
         send_response(fd, "HTTP/1.1 200 OK", mime_type, got_cache->content, got_cache->content_length);
     //  If it's not there:
     } else {
+        printf("file is NOT there\n");
         snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
         filedata = file_load(filepath);
     // * Load the file from disk (see `file.c`)
@@ -216,7 +220,7 @@ void handle_http_request(int fd, struct cache *cache)
     // char protocal[8];
 
     char type[8];
-    char fileName[1024];
+    char fileName[128];
     char protocal[128];
 
     sscanf(request, "%s %s %s", type, fileName, protocal);

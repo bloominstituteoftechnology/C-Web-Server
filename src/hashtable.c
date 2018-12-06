@@ -204,7 +204,9 @@ void *hashtable_get(struct hashtable *ht, char *key)
  */
 void *hashtable_get_bin(struct hashtable *ht, void *key, int key_size)
 {
-    int index = ht->hashf(key, key_size, ht->size);
+    printf("inside hashtable_get_bin\n");
+    int index = ht->hashf(key, key_size, ht->size);//this is original 
+    printf("after hashf\n");
 
     struct llist *llist = ht->bucket[index];
 

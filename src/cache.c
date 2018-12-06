@@ -100,10 +100,14 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache *foobar = malloc(sizeof(max_size));
+    struct cache *foobar = malloc(sizeof(foobar));
+
+    foobar->index = //thing
+    foobar->head = //thing
+    foobar->tail = //thing
     foobar->max_size = max_size;
     foobar->cur_size = hashsize;
-
+    return foobar;
 }
 
 void cache_free(struct cache *cache)
@@ -171,15 +175,19 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    
+    printf("inside cache_get\n");
 //    * Attempt to find the cache entry pointer by `path` in the hash table.
-    struct cache_entry *found_entry = hashtable_get(cache->index, path);
+    struct cache_entry *found_entry = hashtable_get(cache, path);
+    printf("after hashtable_get\n");
 //    * If not found, return `NULL`.
     if(found_entry == NULL){
+    printf("NULL\n");
         return NULL;
     }
 //    * Move the cache entry to the head of the doubly-linked list.
+    printf("before cache_put\n");
     cache_put(cache, found_entry->path, found_entry->content_type, found_entry->content, found_entry->content_length);
+    printf("after cache_put\n");
 //    * Return the cache entry pointer.
     return cache->head;
 }
