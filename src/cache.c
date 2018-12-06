@@ -21,6 +21,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     entry->content_length = content_length;
     entry->content = content;
 
+    return entry;
 }
 
 /**
@@ -104,6 +105,12 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct created_cache* = malloc(sizeof(struct cache));
+    created_cache->index = hashtable_create(hashtable, NULL);
+    created_cache->head = NULL;
+    created_cache->tail = NULL;
+    created_cache->cur_size = 0;
+    created_cache->max_size = max_size;
 }
 
 void cache_free(struct cache *cache)
@@ -137,7 +144,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // Allocate a new cache entry with the passed parameters.
     struct cache_entry *new_dll;
-    new_dll = alloc_entry(path, content_type, content_length);
+    new_dll = alloc_entry(path, content_type, content_length, content);
     // insert new element into doubly linked list at the head
     dllist_insert_head(cache, new_dll);
     //put entry(now as a dll) into hashtable
