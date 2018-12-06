@@ -94,11 +94,20 @@ void get_d20(int fd)
     // IMPLEMENT ME! //
     ///////////////////
 
+    srand(time(NULL));
+    int random_number;
+    random_number = (rand() % 20) + 1;
+    char num_to_string[8];
+
+    int num_length = sprintf(num_to_string, "%d", random_number);
+
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num_to_string, num_length);
 }
 
 /**
@@ -173,7 +182,8 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
 
-    char response, path, protocol;
+    char response[8], path[1024], protocol[128];
+
 
     sscanf(request, "%s %s %s", response, path, protocol);
 
@@ -186,11 +196,11 @@ void handle_http_request(int fd, struct cache *cache)
     {
         if (strcmp(path, "/d20") == 0)
         {
-            get_d20();
+            get_d20(fd);
         }
         else
         {
-            get_file();
+            get_file(fd, cache, path);
         }
     }
     else
