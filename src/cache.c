@@ -105,7 +105,7 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct created_cache* = malloc(sizeof(struct cache));
+    struct cache created_cache* = malloc(sizeof(struct cache));
     created_cache->index = hashtable_create(hashtable, NULL);
     created_cache->head = NULL;
     created_cache->tail = NULL;
