@@ -9,11 +9,22 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    cache_entry->path;
-    cache_entry->contnet
+
+    struct cache_entry *newCache = malloc(sizeof(struct cache));
+    newCache->path = path;
+    newCache->content_type = content_type;
+    newCache->content = content;
+    newCache->content_length = content_length;
+
+    return newCache;
+    
+
+    // Return the pointer to the new cache_entry
+
 }
 
 /**
