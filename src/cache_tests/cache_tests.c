@@ -36,6 +36,9 @@ char *test_cache_alloc_entry()
   // Check that the allocated entry was initialized with expected values
   mu_assert(check_strings(ce->path, path) == 0, "Your alloc_entry function did not allocate the path field to the expected string");
   mu_assert(check_strings(ce->content_type, content_type) == 0, "Your alloc_entry function did not allocate the content_type field to the expected string");
+  printf("\"%s\"\n", content);
+  printf("\"%s\"\n", ce->content);
+  printf("%d\n", check_strings(ce->content, content));
   mu_assert(check_strings(ce->content, content) == 0, "Your alloc_entry function did not allocate the content field to the expected string");
   mu_assert(ce->content_length == strlen(content), "Your alloc_entry function did not allocate the content_length field to the expected length");
 
@@ -81,7 +84,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->head->next->prev, test_entry_3) == 0, "Your cache_put function did not update the head->next->prev pointer to point to the new head entry");
   mu_assert(check_cache_entries(cache->head->next->next, test_entry_1) == 0, "Your cache_put function did not update the head->next->next pointer to point to the tail entry");
   mu_assert(check_cache_entries(cache->tail->prev, test_entry_2) == 0, "Your cache_put function did not update the tail->prev pointer to poin to the second-to-last entry");
-  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not correctly update the tail pointer of the cache"); 
+  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not correctly update the tail pointer of the cache");
 
   // Add in a fourth entry to the cache
   cache_put(cache, test_entry_4->path, test_entry_4->content_type, test_entry_4->content, test_entry_4->content_length);
@@ -152,6 +155,7 @@ char *all_tests()
   mu_run_test(test_cache_create);
   mu_run_test(test_cache_alloc_entry);
   mu_run_test(test_cache_put);
+  printf("%s\n", "On to the next!");
   mu_run_test(test_cache_get);
 
   return NULL;
