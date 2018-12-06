@@ -138,9 +138,7 @@ void resp_404(int fd)
  */
 bool cacheable(int fd, struct cache *cache, char *file_path)
 {
-    struct file_data *data;
     struct cache_entry *entry;
-    char *type;
 
     entry = cache_get(cache, file_path);
 
