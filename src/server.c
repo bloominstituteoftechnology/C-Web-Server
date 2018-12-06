@@ -152,9 +152,23 @@ void get_file(int fd, struct cache *cache, char *request_path)
       send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
       
       file_free(filedata);
+    } else {
+      snprintf(filepath, sizeof filepath, "%s/%s", ".", an_entry->path);
+      filedata = file_load(filepath);
+
+      if (filedata == NULL) {
+          // TODO: make this non-fatal
+          fprintf(stderr, "cannot find system 404 file\n");
+          exit(3);
+      }
+      filedata = file_load(filepath);
+
+      mime_type = mime_type_get(filepath);
+
+      send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+      
+      file_free(filedata);
     }
-
-
 }
 
 /**

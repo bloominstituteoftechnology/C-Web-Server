@@ -13,7 +13,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
   an_entry->path = strdup(path);
   an_entry->content_type = strdup(content_type);
   an_entry->content = strdup(content);
-  an_entry->content_length = strdup(content_length);
+  an_entry->content_length = content_length;
   return an_entry;
 }
 
@@ -99,7 +99,9 @@ struct cache *cache_create(int max_size, int hashsize)
   nu_cache->cur_size = hashsize;
   nu_cache->index = malloc(sizeof(struct hashtable));
   nu_cache->head = malloc(sizeof(struct cache_entry));
+  nu_cache->head = NULL;
   nu_cache->tail = malloc(sizeof(struct cache_entry));
+  nu_cache->tail = NULL;
   nu_cache->index = hashtable_create(128, NULL);
 
   return nu_cache;
@@ -128,17 +130,23 @@ void cache_free(struct cache *cache)
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 { 
   struct cache_entry *an_entry = alloc_entry(path, content_type, content, content_length);
+
   if(cache->cur_size < cache->max_size){
+    printf("1st >>> CURR_SIZE when < MAX >>>> %d\n", cache->cur_size);
     dllist_insert_head(cache, an_entry);
     hashtable_put(cache->index, an_entry->path, an_entry);
+    cache->cur_size += 1;
+    printf("2nd >>> CURR_SIZE when < MAX >>>> %d\n", cache->cur_size);
   } else if ( cache->cur_size >= cache->max_size ) {
     struct cache_entry *ol_yellow = dllist_remove_tail(cache);
     hashtable_delete(cache->index, an_entry->path);
     free_entry(ol_yellow);
     dllist_insert_head(cache, an_entry);
     hashtable_put(cache->index, an_entry->path, an_entry);
+    cache->cur_size += 1;
+    printf("CURR_SIZE when CURR is MAX >>>> %d\n", cache->cur_size);
   } else {
-    printf("Error performing PUT.");
+    printf("Error performing PUT.\n");
   }
   return;
 }
