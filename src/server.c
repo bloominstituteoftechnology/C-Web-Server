@@ -125,22 +125,32 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-   char filepath[4096];
-    struct file_data *filedata; 
-    char *mime_type;
-
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    //printf("filepath: %s\n", filepath);
-    filedata = file_load(filepath);
-
-    if (filedata == NULL) {
-        resp_404(fd);
+    // check to see if the path to the file is in the cache
+    struct cache_entry *target_entry = cache_get(cache, request_path);
+    // If it's there, serve it back
+    if (target_entry != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", target_entry->content_type, target_entry->content, target_entry->content_length);
     } else {
-        mime_type = mime_type_get(filepath);
+        // If it's not there:
+        char filepath[4096];
+        struct file_data *filedata; 
+        char *mime_type;
 
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+        // Load the file from disk
+        filedata = file_load(filepath);
 
-        file_free(filedata);
+        if (filedata == NULL) {
+            resp_404(fd);
+        } else {
+            mime_type = mime_type_get(filepath);
+            // Store it in the cache
+            cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+            // Serve it
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+            file_free(filedata);
+        }
     }
 }
 
@@ -153,7 +163,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 char *find_start_of_body(char *header)
 {
     ///////////////////
-    // IMPLEMENT ME! // (Stretch)
+    // (Stretch)
     ///////////////////
 }
 
