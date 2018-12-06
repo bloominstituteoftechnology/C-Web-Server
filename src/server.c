@@ -91,10 +91,10 @@ void get_d20(int fd)
     ///////////////////
     char body[8];
     int randomNumber = rand() % 21;
-    int len = sprintf(body, "%d", randomNumber); 
+    sprintf(body, "%d\n", randomNumber); 
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, len);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -182,26 +182,26 @@ void handle_http_request(int fd, struct cache *cache)
     
         // Read the three components of the first request line
         char method[8];
-        char endpoint[32];
-        char http_vers[8];
+        char endpoint[1024];
+        char http_vers[128];
         
         sscanf(request, "%s %s %s", method, endpoint, http_vers);
        
 
         // If GET, handle the get endpoints
-    if (strcmp(method, "GET") == 0) {
-    if (strcmp(endpoint, "/d20") == 0) {   
-        get_d20(fd);
-        } 
-    else {
-        get_file(fd, cache, endpoint);    
+        if (strcmp(method, "GET") == 0) {
+            if (strcmp(endpoint, "/d20") == 0) {   
+                get_d20(fd);
+                } 
+            else {
+                get_file(fd, cache, endpoint);    
+                }
         }
-        
 
         // (Stretch) If POST, handle the post request
        
 
-        
+
     }
 
 
@@ -218,7 +218,7 @@ void handle_http_request(int fd, struct cache *cache)
 
 
     // (Stretch) If POST, handle the post request
-}
+
 
 /**
  * Main
