@@ -6,24 +6,16 @@
 
 /**
  * Allocate a cache entry
- */
+ *///                                                            filedata->data  file_data->size
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    // typedef struct cache_entry  {
-    //     char *path;
-    //     char *content_type;
-    //     void *content;
-    //     int content_length;
-    // } cache_entry;
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    
-    struct cache_entry *c = malloc(sizeof(struct cache_entry));
-    c->path = path;
-    c->content_type = content_type;
-    c->content_length = content_length;
-    c->content = content;
+    struct cache_entry *ce = malloc(sizeof(struct cache_entry));
+    ce->content = malloc(content_length);
+    ce->path = path;
+    ce->content_type = content_type;
+    ce->content_length = content_length;
+
+    memcpy(ce->content, content, content_length);
     
 }
 
@@ -32,9 +24,8 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry->content);
+    free(entry);
 }
 
 /**
@@ -104,9 +95,12 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *c = malloc(sizeof(struct cache));
+    
+    
+    c->max_size = max_size;
+    c->cur_size = 0;
+
 }
 
 void cache_free(struct cache *cache)
