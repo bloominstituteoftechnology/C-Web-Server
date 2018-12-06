@@ -155,16 +155,6 @@ The hashtable code is already written and can be found in `hashtable.c`.
 
    Algorithm:
 
-   - Allocate a new cache entry with the passed parameters.
-   - Insert the entry at the head of the doubly-linked list.
-   - Store the entry in the hashtable as well, indexed by the entry's `path`.
-   - Increment the current size of the cache.
-   - If the cache size is greater than the max size:
-     - Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
-     - Remove the cache entry at the tail of the linked list.
-     - Free the cache entry.
-     - Ensure the size counter for the number of entries in the cache is correct.
-
 2. Implement `cache_get()` in `cache.c`.
 
    Algorithm:
