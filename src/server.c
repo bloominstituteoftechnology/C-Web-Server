@@ -127,10 +127,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type; 
 
     snprintf(filepath, sizeof filepath, "%s", request_path);
-    printf("filepath is %s", filepath);
+    printf("filepath is %s\n", filepath);
     filedata = file_load(filepath);
 
-    printf("filedata data is %s\n", filedata->data);
+    printf("filedata is %s\f", filedata->data);
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
@@ -196,7 +196,7 @@ void handle_http_request(int fd, struct cache *cache)
         send_response(fd, "HTTP/1.1 200 OK", mime_type, ce, sizeof(ce));
     } else {
         printf("serverrootDir is %s\n", serverrootDir);
-
+        printf("cache in server side %d\n", cache->cur_size);
         get_file(fd, cache, serverrootDir);
     }
     // If GET, handle the get endpoints
