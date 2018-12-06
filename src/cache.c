@@ -9,9 +9,11 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+ struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
+    new_entry->path = path;
+    new_entry->content_type = content_type;
+    new_entry->content_length = content_length;
+    new_entry->content = content;
 }
 
 /**
@@ -19,9 +21,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if (entry != NULL) {
+        free(entry);
+    }
 }
 
 /**
@@ -29,20 +31,17 @@ void free_entry(struct cache_entry *entry)
  */
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
-    // Insert at the head of the list
-    if (cache->head == NULL)
-    {
-        cache->head = cache->tail = ce;
-        ce->prev = ce->next = NULL;
-    }
-    else
-    {
-        cache->head->prev = ce;
-        ce->next = cache->head;
-        ce->prev = NULL;
-        cache->head = ce;
-    }
-}
+     // Insert at the head of the list
+     if (cache->head == NULL) {
+         cache->head = cache->tail = ce;
+         ce->prev = ce->next = NULL;
+     } else {
+         cache->head->prev = ce;
+         ce->next = cache->head;
+         ce->prev = NULL;
+         cache->head = ce;
+     }
+ }
 
 /**
  * Move a cache entry to the head of the list
@@ -96,9 +95,7 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+struct cache* cache = malloc(sizeof(struct cache));
 }
 
 void cache_free(struct cache *cache)
