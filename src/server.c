@@ -198,6 +198,10 @@ void handle_http_request(int fd, struct cache *cache)
             {
                 get_d20(fd);
             }
+            else if (strcmp(request_path, "/") == 0)
+            {
+                get_file(fd, cache, "/index.html"); 
+            }
             else
             {
                 //add if statement here somewhere to check for valid path

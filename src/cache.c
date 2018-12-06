@@ -142,7 +142,6 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     //Increment the current size of the cache.
     cache->cur_size++;
 
-    //turn the below into a while loop
     //If the cache size is greater than the max size:
     struct cache_entry *tail;
 
@@ -157,7 +156,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
         // Free the cache entry.
         free_entry(new_entry);
-        
+
         // Ensure the size counter for the number of entries in the cache is correct.
     }
 }
