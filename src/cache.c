@@ -94,9 +94,15 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *new_cache = malloc (sizeof(struct cache));
+    struct hashtable *hash_table = hashtable_create(hashsize, NULL);
+    new_cache->head = NULL;
+    new_cache->tail =  NULL;
+    new_cache->cur_size = 0;
+    new_cache->max_size = max_size;
+    new_cache->index = hash_table;
+
+    return new_cache;
 }
 
 void cache_free(struct cache *cache)
