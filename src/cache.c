@@ -103,7 +103,7 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    
+
 }
 
 void cache_free(struct cache *cache)
@@ -135,6 +135,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
 }
 
 /**
