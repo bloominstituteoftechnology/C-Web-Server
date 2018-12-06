@@ -12,14 +12,14 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache_entry* newfile = malloc(sizeof(struct cache_entry));
+    struct cache_entry* addentry = malloc(sizeof(struct cache_entry));
 
-    newfile ->path = path;
-    newfile ->content_type = content_type;
-    newfile ->content_length = content_length;
-    newfile ->content = content;
+    addentry ->path = path;
+    addentry ->content_type = content_type;
+    addentry ->content_length = content_length;
+    addentry ->content = content;
 
-    return newfile;
+    return addentry;
 }
 
 /**
@@ -144,11 +144,11 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache_entry *newfile = alloc_entry(path, content_type, content, content_length);
+    struct cache_entry *addentry = alloc_entry(path, content_type, content, content_length);
 
-    dllist_insert_head(cache, newfile);
+    dllist_insert_head(cache, addentry);
 
-    hashtable_put(cache->index, newfile->path, newfile);
+    hashtable_put(cache->index, addentry->path, addentry);
 
     cache->cur_size++;
 
