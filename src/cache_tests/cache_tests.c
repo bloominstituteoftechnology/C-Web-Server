@@ -7,12 +7,15 @@
 
 char *test_cache_create()
 {
+  printf("Test Passed\n");
   int max_size = 10;
   int hash_size = 0;
 
+  printf("Test Passed\n");
   struct cache *cache = cache_create(max_size, hash_size);
 
   // Check that each field of the cache struct was initialized to the proper value
+  printf("Test Passed\n");
   mu_assert(cache, "Your cache_create function did not return a valid pointer to the created cache");
   printf("Test Passed\n");
   mu_assert(cache->head == NULL, "The head pointer of the cache should be initialized to NULL");
@@ -153,6 +156,7 @@ char *test_cache_get()
 
 char *all_tests()
 {
+  printf("\nalls_tests\n");
   mu_suite_start();
 
   mu_run_test(test_cache_create);
