@@ -139,7 +139,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     ///////////////////
     printf("get file%s\n", request_path);
-    char filepath[4096];
+    char *filepath[4096];
     struct file_data *cur_filedata;
     char *mime_type;
 
@@ -160,18 +160,19 @@ void get_file(int fd, struct cache *cache, char *request_path)
     //  If it's not there:
     } else {
         printf("file is NOT in cache\n");
-        snprintf(filepath, sizeof(filepath), "%s/%s", SERVER_ROOT, request_path);
+        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
         printf("filepath %s\n", filepath);
     // * Load the file from disk (see `file.c`)
-    cur_filedata = file_load(filepath);
-        printf("beforeif statement");
+        printf("\"%s\"\n", filepath);
+        cur_filedata = file_load(filepath);
+        printf("\nbeforeif statement\n");
         if (cur_filedata == NULL) {
         printf("if statement");
             // TODO: make this non-fatal
             fprintf(stderr, "cannot find path requested\n");
             resp_404(fd);
             // exit(3);
-            return 0;
+            return;
         } 
         printf("below if statement");
         mime_type = mime_type_get(filepath);
@@ -234,17 +235,17 @@ void handle_http_request(int fd, struct cache *cache)
     // If GET, handle the get endpoints
     if(0 == strcmp(type, "GET"))
     {
+    //    Check if it's /d20 and handle that special case
         if(0 == strcmp(fileName, "/d20"))
         {
             get_d20(fd);
         } else {
+    //    Otherwise serve the requested file by calling get_file()
             printf("\nfile is not /d20\n");
             get_file(fd, cache, fileName);
         }
     } 
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
 
     // (Stretch) If POST, handle the post request
 }

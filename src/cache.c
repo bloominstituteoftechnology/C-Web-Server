@@ -17,12 +17,11 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     struct cache_entry *new = malloc(sizeof(struct cache_entry));
 
     char *new_path = malloc(sizeof path);
-    char *new_content_length = malloc(sizeof content_length);
-    char *new_content_type = malloc(sizeof content_type);
+    int *new_content_length = content_length;
+    char *new_content_type = malloc(strlen(content_type) +1);
     void *new_content = malloc(sizeof content);
 
     strcpy(new_path, path);//look at string copy and dupe
-    strcpy(new_content_length, content_length);//look at string copy and dupe
     strcpy(new_content_type, content_type);//look at string copy and dupe
     
     new_content = content;//look at string copy and dupe
@@ -31,6 +30,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     new->content_length = new_content_length;
     new->path = new_path;
     new->content_type = new_content_type;
+    // cEntry->content_type = strdup(content_type);//-----------could also do something like this because strdup mallocs than copies 
     new->prev = NULL;
     new->next = NULL;
     
