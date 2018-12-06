@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 262144;
+    const int max_response_size = 262144; //original size 65536
     char response[max_response_size];
 
     ///////////////////
@@ -75,7 +75,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                             "\n",
                             header, asctime(info), content_length, content_type);
 
-    memcpy(response+response_length, body, content_length);
+    memcpy(response + response_length, body, content_length);
 
     printf("%s\n", response);
 
@@ -142,22 +142,31 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     ///////////////////
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata;
     char *mime_type;
+    struct cache_entry *check_cache;
 
     sprintf(filepath, "%s%s", SERVER_ROOT, request_path);
 
-    filedata = file_load(filepath);
+    //check if path is in cache
+    check_cache = cache_get(cache, filepath);
 
-    if (filedata == NULL){
-        resp_404(fd);
+    //if check cache is not NULL, return the cached item, else, send a response with the new path and store that path in cache
+    if (check_cache != NULL){
+        send_response(fd, "HTTP/1.1 200 OK", check_cache->content_type, check_cache->content, check_cache->content_length);
+    } else {
+        filedata = file_load(filepath);
+        if (filedata == NULL){
+            resp_404(fd);
+        }
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
     }
-
-    mime_type = mime_type_get(filepath);
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
 }
 
 /**
@@ -171,7 +180,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
-    strrchr(header, "\r\n");
+    //char *body[65536] = strrchr(header, "\r\n");
 }
 
 /**
