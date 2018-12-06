@@ -6,17 +6,23 @@
 
 /**
  * Allocate a cache entry
- */
+*/
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    //copy and make a new pointer so that it cant be messed with 
     struct cache_entry *new = malloc(sizeof(struct cache_entry));
-    new->content = content;
+    // char *copy = strcpy(//something, content);//look at string copy and dupe
+
+    new->content = content;//malloc
     new->content_length = content_length;
     new->path = path;
-    new->content_length = content_type;
+    new->content_type = content_type;
+
+    //return 
 }
 
 /**
@@ -27,6 +33,9 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
+    //--------------------NULL check? 
+    
     free(entry);
 }
 
@@ -101,10 +110,10 @@ struct cache *cache_create(int max_size, int hashsize)
     // IMPLEMENT ME! //
     ///////////////////
     struct cache *foobar = malloc(sizeof(foobar));
-
-    foobar->index = //thing
-    foobar->head = //thing
-    foobar->tail = //thing
+    
+    foobar->index = hashtable_create(hashsize, NULL);//------------------max_size?
+    foobar->head = NULL;
+    foobar->tail = NULL;
     foobar->max_size = max_size;
     foobar->cur_size = hashsize;
     return foobar;
@@ -147,17 +156,17 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 //    * Store the entry in the hashtable as well, indexed by the entry's `path`.
     hashtable_put(cache->index, path, content);
 //    * Increment the current size of the cache.
-    add_entry_count(cache->index, 1);
+    cache->cur_size++;
 //    * If the cache size is greater than the max size:
     if(cache->cur_size > cache->max_size)
     {
 //      * Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
-        hashtable_delete(cache->index, path);
+        hashtable_delete(cache->index, path);//path is wrong? cache->index->path?
 //      * Remove the cache entry at the tail of the linked list.
-        dllist_remove_tail(cache);
-    }
+        struct cache_entry *old_entry = dllist_remove_tail(cache);//------------ this deletes the cache entry and returns the pointer which is what should be deleted in the next step. 
 //      * Free the cache entry.
-    free_entry(new_entry);
+        free_entry(old_entry); //-------------------delete the returnd value from 161
+    }
 
 //      * Ensure the size counter for the number of entries in the cache is correct.
     if(cache->cur_size > cache->max_size){
@@ -177,7 +186,7 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     printf("inside cache_get\n");
 //    * Attempt to find the cache entry pointer by `path` in the hash table.
-    struct cache_entry *found_entry = hashtable_get(cache, path);
+    struct cache_entry *found_entry = hashtable_get(cache->index, path);//-----this should be index because it the refrence
     printf("after hashtable_get\n");
 //    * If not found, return `NULL`.
     if(found_entry == NULL){
@@ -186,7 +195,9 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     }
 //    * Move the cache entry to the head of the doubly-linked list.
     printf("before cache_put\n");
-    cache_put(cache, found_entry->path, found_entry->content_type, found_entry->content, found_entry->content_length);
+
+    dllist_move_to_head(cache, found_entry);//------------use this instead of the below function cause it is already written ----------
+    // cache_put(cache, found_entry->path, found_entry->content_type, found_entry->content, found_entry->content_length);
     printf("after cache_put\n");
 //    * Return the cache entry pointer.
     return cache->head;
