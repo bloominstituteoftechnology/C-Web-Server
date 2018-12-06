@@ -167,14 +167,14 @@ void get_file(int fd, struct cache *cache, char *request_path)
         cur_filedata = file_load(filepath);
         printf("\nbeforeif statement\n");
         if (cur_filedata == NULL) {
-        printf("if statement");
+            printf("404\n");
             // TODO: make this non-fatal
             fprintf(stderr, "cannot find path requested\n");
             resp_404(fd);
             // exit(3);
             return;
         } 
-        printf("below if statement");
+        printf("below if statement\n");
         mime_type = mime_type_get(filepath);
     // * Store it in the cache
         cache_put(cache, filepath, mime_type, cur_filedata->data, cur_filedata->size);

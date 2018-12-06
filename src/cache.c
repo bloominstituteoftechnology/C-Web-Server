@@ -17,7 +17,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     struct cache_entry *new = malloc(sizeof(struct cache_entry));
 
     char *new_path = malloc(sizeof path);
-    int *new_content_length = content_length;
+    // int *new_content_length = content_length;
     char *new_content_type = malloc(strlen(content_type) +1);
     void *new_content = malloc(sizeof content);
 
@@ -27,7 +27,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     new_content = content;//look at string copy and dupe
 
     new->content = new_content;//malloc
-    new->content_length = new_content_length;
+    new->content_length = content_length;
     new->path = new_path;
     new->content_type = new_content_type;
     // cEntry->content_type = strdup(content_type);//-----------could also do something like this because strdup mallocs than copies 
@@ -162,7 +162,6 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
 //    * Allocate a new cache entry with the passed parameters.
     struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length);
-
 //    * Insert the entry at the head of the doubly-linked list.
     dllist_insert_head(cache, new_entry);
 //    * Store the entry in the hashtable as well, indexed by the entry's `path`.
@@ -173,16 +172,15 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     if(cache->cur_size > cache->max_size)
     {
 //      * Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
-        hashtable_delete(cache->index, path);//path is wrong? cache->index->path?
+        struct cache_entry *old_entry = dllist_remove_tail(cache); //------------ this deletes the cache entry and returns the pointer which is what should be deleted in the next step. 
 //      * Remove the cache entry at the tail of the linked list.
-        struct cache_entry *old_entry = dllist_remove_tail(cache);//------------ this deletes the cache entry and returns the pointer which is what should be deleted in the next step. 
+        hashtable_delete(cache->index, old_entry->path); //path is wrong? cache->index->path?
 //      * Free the cache entry.
         free_entry(old_entry); //-------------------delete the returnd value from 161
     }
-
 //      * Ensure the size counter for the number of entries in the cache is correct.
     if(cache->cur_size > cache->max_size){
-        printf("Something went wrong. I don't know what but it has to do with the current size of the cache being greater than the max size of the cache.");
+        printf("Something went wrong. It has to do with the current size of the cache being greater than the max size of the cache.");
     } else {
         printf("sucessfully saved to cache.");
     }
