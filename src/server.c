@@ -220,6 +220,19 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // initialize pointer to mime_type
     char *mime_type;
     
+    // look for the file in the cache using get cache and the request_path as the identifier?
+
+
+
+    // if there is a corresponding file, get it using send_response() function
+
+
+
+    // else, the file is not in the cache, use send_response to get file the regular way
+
+
+
+
     // Fetch the file
     snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
     
@@ -250,6 +263,8 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // )
 
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    // then add the file to the cache for later access
 
     // use file_free() to clear
     file_free(filedata);

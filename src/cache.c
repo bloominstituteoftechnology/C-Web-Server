@@ -61,15 +61,6 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     //define cache entry with pointer to hold the variable
     struct cache_entry *cache_entry = malloc(sizeof(*cache_entry)); //returns a pointer
 
-    //set content_length
-    cache_entry->content_length = content_length;
-
-    //space for content (malloc(content_length))
-    cache_entry->content = malloc(content_length);
-    //copy content into newly created space using memcpy()
-    //copies "content_length" characters from "content" into newly created space "cache_entry->content_length"
-    memcpy(cache_entry->content, content, content_length); 
-    
     // use strlen to get the size of path and content type
     int path_size = strlen(path) + 1; //+1 because of the null terminator \0
     int content_type_size  = strlen(content_type) +1; //+1 because of the null terminator \0
@@ -84,6 +75,15 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     //copy "content_type" into newly created space using strcpy()
     strcpy(cache_entry->content_type, content_type);
 
+    //set content_length
+    cache_entry->content_length = content_length;
+
+    //space for content (malloc(content_length))
+    cache_entry->content = malloc(content_length);
+    //copy content into newly created space using memcpy()
+    //copies "content_length" characters from "content" into newly created space "cache_entry->content_length"
+    memcpy(cache_entry->content, content, content_length); 
+    
     return cache_entry;
 }
 
@@ -246,7 +246,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     
     // Store the entry in the hashtable as well, indexed by the entry's `path`.
     // hashtable_put uses a string as a key
-    hashtable_put(cache->index, path, content);  // key is the path, value is the content  
+    hashtable_put(cache->index, path, cache_entry);  // key is the path, value is the content  
 
     // Increment the current size of the cache.
     cache->cur_size++;
@@ -265,7 +265,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     free_entry(dllist_remove_tail(cache));
     /*dlist_remove_tail returns a cache entry corresponding to the removed tail,
     which we can then enter into the free entry function which will deallocate
-    memory and decrement the number of entries.
+    memory and decrement the number of entries - Jun K. helped me with this. 
     Ensure the size counter for the number of entries in the cache is correct.
     */
     };
@@ -289,7 +289,7 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     if(cache_entry == NULL){
         return NULL;
     };
-    
+
     // Move the cache entry to the head of the doubly-linked list.
     dllist_move_to_head(cache, cache_entry);
 
