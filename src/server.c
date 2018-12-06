@@ -144,6 +144,23 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -179,7 +196,8 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    else
+    {
     // Read the three components of the first request line
 
     char response[8], path[1024], protocol[128];
@@ -192,23 +210,23 @@ void handle_http_request(int fd, struct cache *cache)
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
-    if (strcmp(response, "GET") == 0)
-    {
-        if (strcmp(path, "/d20") == 0)
+        if (strcmp(response, "GET") == 0)
         {
-            get_d20(fd);
+            if (strcmp(path, "/d20") == 0)
+            {
+                get_d20(fd);
+            }
+            else
+            {
+                get_file(fd, cache, path);
+            }
         }
         else
         {
-            get_file(fd, cache, path);
+            fprintf(stderr, "unrecognized response type\n");
+            return;
         }
     }
-    else
-    {
-        fprintf(stderr, "unrecognized response type\n");
-        return;
-    }
-    
 
     // (Stretch) If POST, handle the post request
 }
@@ -256,7 +274,6 @@ int main(void)
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        resp_404(newfd);
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
