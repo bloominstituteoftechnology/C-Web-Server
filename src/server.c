@@ -33,6 +33,7 @@
 #include "file.h"
 #include "mime.h"
 #include "cache.h"
+#include "<stdbool.h>"
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -136,6 +137,19 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
+void cacheable (int fd, struct cache *cache, char *file_path)
+{
+    struct file_data *data; 
+    struct cache_entry   *entry;
+    char *type; 
+
+    entry = cache_get(cache, file_path); 
+
+    if (entry != NULL){
+        //returns NULL IF IT DOESN'T exist. 
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length); 
+    } 
+}
 void get_file(int fd, struct cache *cache, char *request_path)
 {
     ///////////////////
@@ -168,6 +182,8 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     //free the struct 
     file_free(file_data_actual); 
+
+    
 
 }
 
