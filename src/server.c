@@ -130,21 +130,31 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
+    struct cache_entry *an_entry = cache_get(cache, request_path);
 
-    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
+    // Check cache first, then...
+    // ...move onto the existing code below. vv
+    // - Use req_path as key in 
 
-    if (filedata == NULL) {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+    if(an_entry == NULL){
+      snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+      filedata = file_load(filepath);
+
+      if (filedata == NULL) {
+          // TODO: make this non-fatal
+          fprintf(stderr, "cannot find system 404 file\n");
+          exit(3);
+      }
+      filedata = file_load(filepath);
+
+      mime_type = mime_type_get(filepath);
+
+      send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+      
+      file_free(filedata);
     }
 
-    mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
 }
 
 /**
