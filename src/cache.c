@@ -137,7 +137,18 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     // Insert the entry at the head of the doubly-linked list.
     dllist_insert_head(cache, new_cache_entry);
     // Store the entry in the hashtable as well, indexed by the entry's `path`.
-
+    hashtable_put(cache->index, new_cache_entry->path, new_cache_entry);
+    // Increment the current size of the cache.
+    cache->cur_size++;
+    // If the cache size is greater than the max size:
+    if(cache->cur_size > cache->max_size){
+        // Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
+        hashtable_delete(cache->index, cache->tail->path);
+        // Remove the cache entry at the tail of the linked list.
+        ce_tail_r = dllist_remove_tail(cache); 
+        // Free the cache entry.
+        free(ce_tail_r);
+    }
 }
 
 /**
