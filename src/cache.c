@@ -9,13 +9,18 @@
  *///                                                           filedata->data  file_data->size
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
+    // printf("made it to alloc entry\n");
+    // int content_length_static = malloc(sizeof(content_length);
     struct cache_entry *ce = malloc(sizeof(struct cache_entry));
     ce->path = strdup(path);
     ce->content_type = strdup(content_type);
-    ce->content_length = strdup(content_length);
-
+    printf("made it to alloc entry <----------------------------o o\n");
+    ce->content_length = content_length;
     ce->content = malloc(content_length + 1); //refactor later to only increment on text
-    memcpy(ce->content, content, sizeof(ce->content)); 
+    printf("content <======= %p\n", ce->content);
+    memcpy(ce->content, content, content_length + 1); //sizeof(ce->content)
+    printf("content <======= %p\n", ce->content);
+    printf("right before return\n"); 
     // I think memory for ce->content needs to be allocated first, but not sure
     return ce;
 }
@@ -193,13 +198,26 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
 //    * Attempt to find the cache entry pointer by `path` in the hash table.
-
 //    * If not found, return `NULL`.
-
+        struct cache_entry *in_hash = NULL;
+        in_hash = hashtable_get(cache->index, path);
+        if (in_hash = NULL) {
+            return NULL;
+        }
 //    * Move the cache entry to the head of the doubly-linked list.
-
+        dllist_move_to_head(cache, in_hash);
+//    in_hash has the node you're looking for. you can use that
+//    to make it the head of the list. look at some of the functions
+//     above that can help you do that.
+// I thought it just returns the data is the data the cache->entry pointer?
+        // currently i'm looking at hashtable_gets return which doesn't look like a cache entry to me 
+        //so that's why it's taking me a bit to move on from here
 //    * Return the cache entry pointer.
 
+// return n->data; it's going to be a ht- entry ok that makes enoguh sense to me
+
+// It will here
+        return in_hash;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////

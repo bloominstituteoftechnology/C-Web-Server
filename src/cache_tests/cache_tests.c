@@ -30,9 +30,9 @@ char *test_cache_alloc_entry()
   char *path = "/bazz/lurman.html";
   char *content_type = "text/html";
   char *content = "<head>Bazz Lurman</head>";
-
+  printf("Before %p\n",content);
   struct cache_entry *ce = alloc_entry(path, content_type, content, strlen(content));
-
+printf("after %p\n",ce->content);
   // Check that the allocated entry was initialized with expected values
   mu_assert(check_strings(ce->path, path) == 0, "Your alloc_entry function did not allocate the path field to the expected string");
   mu_assert(check_strings(ce->content_type, content_type) == 0, "Your alloc_entry function did not allocate the content_type field to the expected string");
