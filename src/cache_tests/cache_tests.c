@@ -36,9 +36,6 @@ char *test_cache_alloc_entry()
   // Check that the allocated entry was initialized with expected values
   mu_assert(check_strings(ce->path, path) == 0, "Your alloc_entry function did not allocate the path field to the expected string");
   mu_assert(check_strings(ce->content_type, content_type) == 0, "Your alloc_entry function did not allocate the content_type field to the expected string");
-  printf("\"%s\"\n", content);
-  printf("\"%s\"\n", ce->content);
-  printf("%d\n", check_strings(ce->content, content));
   mu_assert(check_strings(ce->content, content) == 0, "Your alloc_entry function did not allocate the content field to the expected string");
   mu_assert(ce->content_length == strlen(content), "Your alloc_entry function did not allocate the content_length field to the expected length");
 
@@ -155,7 +152,6 @@ char *all_tests()
   mu_run_test(test_cache_create);
   mu_run_test(test_cache_alloc_entry);
   mu_run_test(test_cache_put);
-  printf("%s\n", "On to the next!");
   mu_run_test(test_cache_get);
 
   return NULL;

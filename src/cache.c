@@ -13,12 +13,13 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     // IMPLEMENT ME! //
     ///////////////////
     struct cache_entry *newentry = malloc(sizeof(struct cache_entry));
+    newentry->next = NULL;
+    newentry->prev = NULL;
     newentry->path = strdup(path);
     newentry->content_type = strdup(content_type);
     newentry->content_length = content_length;
     newentry->content = malloc(content_length+1);
     newentry->content = memcpy(newentry->content, content, content_length+1);
-    printf("COOONNNNTTTEEEENNNNNTTTT: %s\n", newentry->content);
     return newentry;
 }
 
@@ -149,16 +150,13 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     // IMPLEMENT ME! //
     ///////////////////
     struct cache_entry *newentry = alloc_entry(path, content_type, content, content_length);
-    int current = cache->cur_size;
-    int max = cache->max_size;
-    if (current >= max) {
+    dllist_insert_head(cache, newentry);
+    hashtable_put(cache->index, newentry->path, newentry);
+    cache->cur_size+=1;
+    if (cache->cur_size > cache->max_size) {
       hashtable_delete(cache->index, cache->tail->path);
       free_entry(dllist_remove_tail(cache));
     }
-    dllist_insert_head(cache, newentry);
-    hashtable_put(cache->index, newentry->path, newentry->content);
-    printf("PATH! %s\n", newentry->path);
-    cache->cur_size+=1;
 }
 
 /**
