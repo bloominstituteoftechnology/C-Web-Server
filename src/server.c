@@ -66,10 +66,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "%s\nConnection: Close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n%s",
         header, content_length, content_type, asctime(date), body
     );
-    // dest -> pointer to the memory location to copy to
+    // dest -> ???? -> pointer to the memory location to copy to
     // src -> body -> pointer to the memory location to copy from
     // count -> cocntent_length -> number of bytes to copy
-    
+
     //memcpy(response, body, content_length);
 
     // Send it all!
@@ -103,10 +103,6 @@ void get_d20(int fd)
     c_len = sprintf(body_number, "%d\n", r);
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", body_number, c_len);
 
 }
