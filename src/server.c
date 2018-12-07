@@ -159,7 +159,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    sprintf(filepath, "%s%s", SERVER_ROOT, request_path);
 
     struct cache_entry *entry = cache_get(cache, filepath);
 
@@ -230,6 +230,8 @@ void handle_http_request(int fd, struct cache *cache)
             printf("Should return d20 number.\n");
             get_d20(fd);
         } else if (strcmp(endpoint, "/") == 0) {
+            get_file(fd, cache, "/index.html");
+        } else if (strcmp(endpoint, "/index.html") == 0) {
             get_file(fd, cache, "/index.html");
         } else {
             get_file(fd, cache, endpoint);
