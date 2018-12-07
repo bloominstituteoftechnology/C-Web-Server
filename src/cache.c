@@ -16,24 +16,25 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     //copy and make a new pointer so that it cant be messed with 
     struct cache_entry *new = malloc(sizeof(struct cache_entry));
 
-    char *new_path = malloc(sizeof path);
-    // int *new_content_length = content_length;
-    char *new_content_type = malloc(strlen(content_type) +1);
-    void *new_content = malloc(sizeof content);
+    // char *new_path = malloc(strlen(path)+1);
+    // // int *new_content_length = content_length;
+    // char *new_content_type = malloc(strlen(content_type) +1);
+    // void *new_content = malloc(content_length);
 
-    strcpy(new_path, path);//look at string copy and dupe
-    strcpy(new_content_type, content_type);//look at string copy and dupe
+    // strcpy(new_path, path);//look at string copy and dupe
+    // strcpy(new_content_type, content_type);//look at string copy and dupe
     
-    new_content = content;//look at string copy and dupe
+    // new_content = content;//look at string copy and dupe
 
-    new->content = new_content;//malloc
-    new->content_length = content_length;
-    new->path = new_path;
-    new->content_type = new_content_type;
+    // new->content = new_content;//malloc
+    // new->content_length = content_length;
+    // new->path = new_path;
+    // new->content_type = new_content_type;
     // cEntry->content_type = strdup(content_type);//-----------could also do something like this because strdup mallocs than copies 
-    new->prev = NULL;
-    new->next = NULL;
-    
+    new->path = strdup(path);
+    new->content= strdup(content);
+    new->content_type = strdup(content_type);
+    new->content_length = content_length;    
     return new;
 }
 
@@ -121,14 +122,15 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache *foobar = malloc(sizeof(foobar));
+
+    struct cache *new_cache = malloc(sizeof(struct cache));
     
-    foobar->index = hashtable_create(max_size, NULL);//------------------max_size?
-    foobar->head = NULL;
-    foobar->tail = NULL;
-    foobar->max_size = max_size;
-    foobar->cur_size = hashsize;
-    return foobar;
+    new_cache->index = hashtable_create(max_size, NULL);//------------------max_size?
+    new_cache->head = NULL;
+    new_cache->tail = NULL;
+    new_cache->max_size = max_size;
+    new_cache->cur_size = hashsize;
+    return new_cache;
 }
 
 void cache_free(struct cache *cache)
@@ -165,7 +167,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 //    * Insert the entry at the head of the doubly-linked list.
     dllist_insert_head(cache, new_entry);
 //    * Store the entry in the hashtable as well, indexed by the entry's `path`.
-    hashtable_put(cache->index, new_entry->path, new_entry->content);
+    hashtable_put(cache->index, new_entry->path, new_entry);
 //    * Increment the current size of the cache.
     cache->cur_size++;
 //    * If the cache size is greater than the max size:
