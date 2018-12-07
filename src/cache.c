@@ -115,7 +115,7 @@ struct cache *cache_create(int max_size, int hashsize)
     // IMPLEMENT ME! //
     ///////////////////
     // new_hash  = hashtable_create(,NULL);
-    struct cache *new_cache = malloc(sizeof(struct cache *));
+    struct cache *new_cache = malloc(sizeof(struct cache));
     new_cache->head = NULL; 
     new_cache->tail = NULL; 
     new_cache->max_size = max_size; 
@@ -175,7 +175,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     //    Free the cache entry.
        free_entry(old_tail);
     //    Ensure the size counter for the number of entries in the cache is correct.
-       cache->cur_size--; 
+    //    cache->cur_size--;  commented out. 
    }
 
 }
