@@ -118,25 +118,15 @@ void resp_404(int fd)
 {
         char filepath[4096];
         struct file_data *filedata;
-        // cache entry, check to see if pointer is in the hash table path:
-        struct cache_entry *cache_check = cache_get(cache, path);
+
         char *mime_type;
 
         // Fetch the 404.html file
         snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
-        //filedata = file_load(filepath);
+        filedata = file_load(filepath);
 
-        //check result of cache_get:
-        if(cache_check == NULL){
-          // if it's not there lod the file from the disk
-          filedata = file_load(filepath);
-        } else{
-          // if it's there serve it back:
-          send_response(fd, "HTTP/1.1 200 OK", cache_check->content_type, cache_check->content, cache_check->content_length);
-        }
 
         if (filedata == NULL) {
-                // TODO: make this non-fatal what do I do where
                 resp_404(fd);
                 fprintf(stderr, "cannot find system 404 file\n");
                 //exit(3);
@@ -144,12 +134,8 @@ void resp_404(int fd)
         }
 
         // need mime type of path in cache
-        mime_type = mime_type_get(path);
+        mime_type = mime_type_get(filepath);
 
-        //store entry into cache with cache_put:
-        cache_put(cache, path, mime_type, filedata->data, filedata->size);
-
-        //serve it:
         send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
         file_free(filedata);
@@ -163,32 +149,48 @@ void get_file(int fd, struct cache *cache, char *request_path)
         ///////////////////
         // IMPLEMENT ME! //
         ///////////////////
-        char file[4096];
+        char path[4096];
         // from file.c:
         struct file_data *filedata;
+        // cache entry, check to see if pointer is in the hash table path:
+        struct cache_entry *cache_check = cache_get(cache, path);
         //for content-type header
         char *mime_type;
         // print out filepath conditional on the endpint, using snprintf to limit size of buffer:
-        if (strcmp(file, "/index.html") == 0) {
-                snprintf(file, sizeof(file), "%s%s", SERVER_ROOT, "/index.html");
-        } else {
-                snprintf(file, sizeof(file), "%s%s", SERVER_ROOT, request_path);
-        }
+        sprintf(path, "%s%s", SERVER_ROOT, request_path);
+        // if (strcmp(path, "/index.html") == 0) {
+        //         snprintf(path, sizeof(path), "%s%s", SERVER_ROOT, "/index.html");
+        // } else {
+        //         snprintf(path, sizeof(path), "%s%s", SERVER_ROOT, request_path);
+        // }
         //load the file
-        filedata = file_load(file);
-        //also from file.c
-        // if there is no file data: 404
-        if(filedata == NULL) {
-                resp_404(fd);
-                //printf("\n%what's going on\n");
-                return;
+        //filedata = file_load(file);
+
+        //check result of cache_get:
+        if(cache_check == NULL){
+          // if it's not there lod the file from the disk
+          filedata = file_load(path);
+
+          //also from file.c
+          // if there is no file data: 404
+          if(filedata == NULL) {
+                  resp_404(fd);
+                  //printf("\n%what's going on\n");
+                  return;
+          }
+
+          mime_type = mime_type_get(path);
+          //store entry into cache with cache_put:
+          cache_put(cache, path, mime_type, filedata->data, filedata->size);
+          // serve it back, resposne filedata->data is the body, and filedata->size is size of the file in bytes.
+          send_response(fd,"HTTP/1.1 200 OK",  mime_type, filedata->data, filedata->size);
+          // which frees the struct and the filedata member
+          file_free(filedata);
+        } else{
+          // if it's there serve it back:
+          send_response(fd, "HTTP/1.1 200 OK", cache_check->content_type, cache_check->content, cache_check->content_length);
         }
 
-        mime_type = mime_type_get(file);
-        // send back resposne filedata->data is the body, and filedata->size is size of the file in bytes.
-        send_response(fd,"HTTP/1.1 200 OK",  mime_type, filedata->data, filedata->size);
-        // which frees the struct and the filedata member
-        file_free(filedata);
 }
 
 /**
