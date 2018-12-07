@@ -26,26 +26,25 @@ char *test_cache_create()
 }
 
 char *test_cache_alloc_entry()
+
 {
   char *path = "/bazz/lurman.html";
   char *content_type = "text/html";
   char *content = "<head>Bazz Lurman</head>";
+  int content_len = strlen(content) + 1; // +1 to include the \0
 
-  struct cache_entry *ce = alloc_entry(path, content_type, content, strlen(content));
+  struct cache_entry *ce = alloc_entry(path, content_type, content, content_len);
 
   // Check that the allocated entry was initialized with expected values
   mu_assert(check_strings(ce->path, path) == 0, "Your alloc_entry function did not allocate the path field to the expected string");
-  printf("path passed\n");
   mu_assert(check_strings(ce->content_type, content_type) == 0, "Your alloc_entry function did not allocate the content_type field to the expected string");
-  printf("\n content type passed \n");
   mu_assert(check_strings(ce->content, content) == 0, "Your alloc_entry function did not allocate the content field to the expected string");
-  printf("\n content passed \n");
-  mu_assert(ce->content_length == strlen(content), "Your alloc_entry function did not allocate the content_length field to the expected length");
-  printf("\n length passed \n");
+  mu_assert(ce->content_length == content_len, "Your alloc_entry function did not allocate the content_length field to the expected length");
 
   free_entry(ce);
 
   return NULL;
+
 }
 
 char *test_cache_put()
