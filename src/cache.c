@@ -142,7 +142,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
       hashtable_delete(cache->index, oldtail->path);
       free_entry(oldtail);
     }
-    hashtable_put(cache->index, path, content);
+    hashtable_put(cache->index, path, new_entry);
 }
 
 /**
@@ -150,15 +150,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    struct cache_entry *curr = cache->head;
-    while(curr != NULL){
-      if(strcmp(curr->path, path) == 0){
-        if(cache->head != curr){
-          dllist_move_to_head(cache, curr);
-        }
-        return curr;
-      }
-      curr = curr->next;
-    }
-    return NULL;
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+    dllist_move_to_head(cache, entry);
+    return entry;
 }

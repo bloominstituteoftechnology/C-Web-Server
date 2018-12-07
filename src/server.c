@@ -141,9 +141,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
       char *mime_type = mime_type_get(request_path);
       struct file_data * f = file_load(request_path);
       if(f == NULL) resp_404(fd);
+      printf("Serving from file\n");
       cache_put(cache, request_path, mime_type, f->data, f->size);
       send_response(fd, "HTTP/1.1 200 ok", mime_type, f->data, f->size);
     } else {
+      printf("Serving from cache\n");
       send_response(fd, "HTTP/1.1 200 ok", entry->content_type, entry->content, entry->content_length);
     }
 }
