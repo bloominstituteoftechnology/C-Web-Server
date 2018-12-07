@@ -38,7 +38,7 @@ char *test_cache_alloc_entry()
   mu_assert(check_strings(ce->path, path) == 0, "Your alloc_entry function did not allocate the path field to the expected string");
   mu_assert(check_strings(ce->content_type, content_type) == 0, "Your alloc_entry function did not allocate the content_type field to the expected string");
   mu_assert(check_strings(ce->content, content) == 0, "Your alloc_entry function did not allocate the content field to the expected string");
-  mu_assert(ce->content_length == content_len, "Your alloc_entry function did not allocate the content_length field to the expected length")
+  mu_assert(ce->content_length == content_len, "Your alloc_entry function did not allocate the content_length field to the expected length");
 
   free_entry(ce);
 
@@ -61,7 +61,7 @@ char *test_cache_put()
   mu_assert(cache->cur_size == 1, "Your cache_put function did not correctly increment the cur_size field when adding a new cache entry");
   mu_assert(cache->head->prev == NULL && cache->tail->next == NULL, "The head and tail of your cache should have NULL prev and next pointers when a new entry is put in an empty cache");
   mu_assert(check_cache_entries(cache->head, test_entry_1) == 0, "Your cache_put function did not put an entry into the head of the empty cache with the expected form");
-  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not put an entry into the tail of the empty cache with the expected form")
+  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not put an entry into the tail of the empty cache with the expected form");
   mu_assert(check_cache_entries(hashtable_get(cache->index, "/1"), test_entry_1) == 0, "Your cache_put function did not put the expected entry into the hashtable");
 
   // Add in a second entry to the cache
