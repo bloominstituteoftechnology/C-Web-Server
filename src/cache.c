@@ -10,12 +10,12 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
     struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
     new_entry->path = malloc(strlen(path) + 1); 
-
     new_entry->content_length = content_length; 
-
     new_entry->content_type = malloc(strlen(content_type) + 1);
-
     new_entry->content = malloc(content_length); 
+    
+    strcpy(new_entry->path, path); 
+    strcpy(new_entry->content_type, content_type);
     memcpy(new_entry->content, content, content_length);
 
     return new_entry; 
