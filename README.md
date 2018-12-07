@@ -1,5 +1,7 @@
 # A Simple Web Server in C
 
+<!-- setting up the PR -->
+
 In this project, we'll finish the implementation of a web server in C.
 
 What you need to write:
@@ -73,14 +75,11 @@ _Read through all the main and stretch goals before writing any code to get an o
 
    This function is responsible for formatting all the pieces that make up an HTTP response into the proper format that clients expect. In other words, it needs to build a complete HTTP response with the given parameters. It should write the response to the string in the `response` variable.
    
-   The total length of the header **and** body should be stored in the `response_length` variable so that the `send()` call knows how many bytes to
-   send out over the wire.
+   The total length of the header **and** body should be stored in the `response_length` variable so that the `send()` call knows how many bytes to send out over the wire.
 
    See the [HTTP](#http) section above for an example of an HTTP response and use that to build your own.
 
-   Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
-   content length. `sprintf()` also returns the total number of bytes in the
-   result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file.
+   Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing content length. `sprintf()` also returns the total number of bytes in the result string, which might be helpful. For getting the current time for the Date field of the response, you'll want to look at the `time()` and `localtime()` functions, both of which are already included in the `time.h` header file.
 
    > The HTTP `Content-Length` header only includes the length of the body, not
    > the header. But the `response_length` variable used by `send()` is the
