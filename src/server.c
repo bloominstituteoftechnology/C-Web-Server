@@ -158,6 +158,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
         char *mime_type;
         // print out filepath conditional on the endpint, using snprintf to limit size of buffer:
         sprintf(path, "%s%s", SERVER_ROOT, request_path);
+
         // if (strcmp(path, "/index.html") == 0) {
         //         snprintf(path, sizeof(path), "%s%s", SERVER_ROOT, "/index.html");
         // } else {
@@ -168,9 +169,8 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
         //check result of cache_get:
         if(cache_check == NULL){
-          // if it's not there lod the file from the disk
+          // if it's not there load the file from the disk
           filedata = file_load(path);
-
           //also from file.c
           // if there is no file data: 404
           if(filedata == NULL) {
@@ -189,6 +189,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
         } else{
           // if it's there serve it back:
           send_response(fd, "HTTP/1.1 200 OK", cache_check->content_type, cache_check->content, cache_check->content_length);
+          printf("this came from da cache\n" );
         }
 
 }

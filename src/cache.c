@@ -13,12 +13,23 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache_entry* entry = malloc(sizeof(struct cache_entry));
+    struct cache_entry *entry = malloc(sizeof *entry);
 
-    entry->path = path;
-    entry->content_type = content_type;
+    entry->path = malloc(strlen(path) + 1);
+    strcpy(entry->path, path);
+
+    entry->content_type = malloc(strlen(content_type) + 1);
+    strcpy(entry->content_type, content_type);
+
     entry->content_length = content_length;
-    entry->content = content;
+
+    entry->content = malloc(content_length);
+    memcpy(entry->content, content, sizeof content_length);
+
+    //copy over contents from the actual varibales to the pointers of the struct.
+
+
+
 
     return entry;
 }
