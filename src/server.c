@@ -65,7 +65,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int body_len = strlen(body);
 
     printf("content_length: %d\n", content_length);
-    if (content_type == "image/jpg" || content_type == "image/gif" || content_type == "image/png") {
+    if (strcmp(content_type, "image/jpg") == 0 || strcmp(content_type, "image/gif") == 0 || strcmp(content_type, "image/png") == 0) {
         sprintf(response, 
         "%s\n" 
         "Date: %s" 
@@ -173,7 +173,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
         mime_type = mime_type_get(filepath);
 
-        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
 
         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
         
