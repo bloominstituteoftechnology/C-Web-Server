@@ -15,19 +15,26 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     //malloc memory for the struct and the parameters
     struct cache_entry *new_entry = malloc(sizeof (struct cache_entry)); 
     new_entry->path = malloc(strlen(path) + 1); // +1 for the null terminator. 
-    new_entry->content_type = malloc(strlen(content_type) + 1); 
-    new_entry->content = malloc(content_length);
+    //new_entry->content_type = malloc(strlen(content_type) + 1); //original 
+    new_entry->content_type = malloc(strlen(content_type)); 
+    new_entry->content = malloc(content_length); //orginal 
+
 
 
     //fill in the values. 
     strcpy(new_entry->path, path); 
     strcpy(new_entry->content_type, content_type); 
     new_entry->content_length = content_length; 
-    memcpy(new_entry->content, content, content_length); //memcpy  accepts a void paramater while strcpy accepts a char. Also albe to se the length to copy. 
-    // strcpy(new_entry->content, content); 
+    //memcpy(new_entry->content, content, content_length); //memcpy  accepts a void paramater while strcpy accepts a char. Also albe to se the length to copy. 
+    strcpy(new_entry->content, content); // not orginal. 
 
     return new_entry; 
-
+    // struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
+    // new_entry->path = strdup(path); 
+    // new_entry->content = strdup(content); 
+    // new_entry->content_length = content_length; 
+    // new_entry->content_type = strdup(content_type); 
+    // return new_entry;
 }
 
 /**
@@ -38,9 +45,9 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    free(entry->content);
-    free(entry->content_type);
-    free(entry->path);
+    // free(entry->content);
+    // free(entry->content_type);
+    // free(entry->path);
     free(entry); 
 }
 
@@ -115,7 +122,7 @@ struct cache *cache_create(int max_size, int hashsize)
     // IMPLEMENT ME! //
     ///////////////////
     // new_hash  = hashtable_create(,NULL);
-    struct cache *new_cache = malloc(sizeof(struct cache));
+    struct cache *new_cache = malloc(sizeof(struct cache ));
     new_cache->head = NULL; 
     new_cache->tail = NULL; 
     new_cache->max_size = max_size; 
@@ -175,7 +182,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     //    Free the cache entry.
        free_entry(old_tail);
     //    Ensure the size counter for the number of entries in the cache is correct.
-    //    cache->cur_size--;  commented out. dllist_remove_tail already handles this. 
+    //    cache->cur_size--;  commented out. 
    }
 
 }
