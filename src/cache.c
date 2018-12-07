@@ -151,7 +151,10 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if (strcmp(cache->index, path) == 0) {
+        return cache->index;
+    }
+    else {
+        return NULL;
+    }
 }
