@@ -15,7 +15,7 @@
  * 
  * (Posting data is harder to test from a browser.)
  */
-
+// comment
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -50,15 +50,51 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 256000;
     char response[max_response_size];
+    int response_length;
 
     // Build HTTP response and store it in response
+    time_t rawtime;
+    struct tm *info;
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    time(&rawtime);
+    info = localtime(&rawtime);
 
+    char *formatted_time = asctime(info);
+    int body_len = strlen(body);
+
+    printf("content_length: %d\n", content_length);
+    if (strcmp(content_type, "image/jpg") == 0 || strcmp(content_type, "image/gif") == 0 || strcmp(content_type, "image/png") == 0) {
+        sprintf(response, 
+        "%s\n" 
+        "Date: %s" 
+        "Connection: close\n"
+        "Content_Length: %d\n"
+        "Content_Type: %s\n\n", 
+        header, 
+        formatted_time, 
+        body_len, 
+        content_type);
+        response_length = strlen(response);
+        memcpy(response + response_length, body, content_length);
+        response_length += content_length;
+    } else {
+        sprintf(response, 
+        "%s\n" 
+        "Date: %s" 
+        "Connection: close\n"
+        "Content_Length: %d\n"
+        "Content_Type: %s\n\n"
+        "%s\n", 
+        header, 
+        formatted_time, 
+        body_len, 
+        content_type, 
+        body);
+        response_length = strlen(response);
+    }
+    
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -76,16 +112,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(NULL));
+    int r = (rand() % 20) + 1;
+
+    char body[3];
+    sprintf(body, "%d", r);
+    int body_len = strlen(body);
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, body_len);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -119,9 +155,31 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    sprintf(filepath, "%s%s", SERVER_ROOT, request_path);
+
+    struct cache_entry *entry = cache_get(cache, filepath);
+
+    if (entry != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    } else {
+        filedata = file_load(filepath);
+        if (filedata == NULL) {
+            resp_404(fd);
+        }
+
+        mime_type = mime_type_get(filepath);
+
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        
+        file_free(filedata);
+    }
+
 }
 
 /**
@@ -153,17 +211,34 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    char method[32];
+    char endpoint[64];
+    char http_vers[16];
+    printf("Request: %s\n", request);
+    sscanf(request, "%s %s %s", method, endpoint, http_vers);
+    printf("Method: %s\n", method);
+    printf("Endpoint: %s\n", endpoint);
+    printf("HTTP_vers: %s\n", http_vers);
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
-
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
+
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(endpoint, "/d20") == 0) {
+            printf("Should return d20 number.\n");
+            get_d20(fd);
+        } else if (strcmp(endpoint, "/") == 0) {
+            get_file(fd, cache, "/index.html");
+        } else if (strcmp(endpoint, "/index.html") == 0) {
+            get_file(fd, cache, "/index.html");
+        } else {
+            get_file(fd, cache, endpoint);
+        }
+    } else if (strcmp(method, "POST") == 0){
+        // TODO: POST
+    }
 
 
     // (Stretch) If POST, handle the post request
@@ -183,6 +258,7 @@ int main(void)
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
 
+
     if (listenfd < 0) {
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
@@ -200,6 +276,7 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
+        // resp_404(newfd);
         if (newfd == -1) {
             perror("accept");
             continue;
