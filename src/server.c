@@ -118,20 +118,38 @@ void resp_404(int fd)
 {
         char filepath[4096];
         struct file_data *filedata;
+        // cache entry, check to see if pointer is in the hash table path:
+        struct cache_entry *cache_check = cache_get(cache, path);
         char *mime_type;
 
         // Fetch the 404.html file
         snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
-        filedata = file_load(filepath);
+        //filedata = file_load(filepath);
 
-        if (filedata == NULL) {
-                // TODO: make this non-fatal
-                fprintf(stderr, "cannot find system 404 file\n");
-                exit(3);
+        //check result of cache_get:
+        if(cache_check == NULL){
+          // if it's not there lod the file from the disk
+          filedata = file_load(filepath);
+        } else{
+          // if it's there serve it back:
+          send_response(fd, "HTTP/1.1 200 OK", cache_check->content_type, cache_check->content, cache_check->content_length);
         }
 
-        mime_type = mime_type_get(filepath);
+        if (filedata == NULL) {
+                // TODO: make this non-fatal what do I do where
+                resp_404(fd);
+                fprintf(stderr, "cannot find system 404 file\n");
+                //exit(3);
+                return;
+        }
 
+        // need mime type of path in cache
+        mime_type = mime_type_get(path);
+
+        //store entry into cache with cache_put:
+        cache_put(cache, path, mime_type, filedata->data, filedata->size);
+
+        //serve it:
         send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
         file_free(filedata);
@@ -211,6 +229,9 @@ void handle_http_request(int fd, struct cache *cache)
         // Read the three components of the first request line
         printf("request %s\n", request);
         char method[10], file[30], protocol[30];
+        //On success, the function returns the number of variables filled.
+        //In the case of an input failure before any data could be
+        //successfully read,EOF is returned.
         sscanf(request, "%s %s %s", method, file, protocol);
         printf("method:%s\n file:%s", method, file );
 
