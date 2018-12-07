@@ -154,7 +154,8 @@ void cache_free(struct cache *cache)
 ///////////////////
 // IMPLEMENT ME! //
 ///////////////////
-void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
+void cache_put(struct cache *cache, char *path, char *content_type, void 
+*content, int content_length)
 {
     // struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 
