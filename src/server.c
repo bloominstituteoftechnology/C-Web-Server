@@ -111,7 +111,8 @@ void resp_404(int fd)
     if (filedata == NULL) {
         // TODO: make this non-fatal
         fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        // exit(3);
+        return;
     }
 
     mime_type = mime_type_get(filepath);
@@ -155,12 +156,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
+// char *find_start_of_body(char *header)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! // (Stretch)
+//     ///////////////////
+// }
 
 /**
  * Handle HTTP request and send response
