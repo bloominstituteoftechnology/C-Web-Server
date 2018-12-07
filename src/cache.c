@@ -26,6 +26,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ce->content = malloc(content_length);
     memcpy(ce->content, content, content_length);
 
+
     return ce;
 }
 /**
@@ -161,9 +162,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
     dllist_insert_head(cache, new_cache_entry);
     hashtable_put(cache->index, path, new_cache_entry);
+    cache->cur_size++;
 
     // 3. Add a pointer to the cache entry to the hash table, indexed by the key.
-    cache->cur_size++;
     while (cache->cur_size > cache->max_size)
     {
         hashtable_delete(cache->index, path);

@@ -63,8 +63,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // TODO: Use memcpy to append the body to response so you can see jpg files
     int response_length = sprintf(response, "%s\nDate:Mon Dec 3 13:05:11 PST 2018\nContent-Length: %d\nConnection: close\nContent-Type:%s\n\n%s\n", header, content_length, content_type, body);
 
-    
-
     // Send it all!
     int rv = send(fd, response, response_length, 0);
     if (rv < 0)
@@ -90,7 +88,7 @@ void get_d20(int fd)
     // mime_type_get() use to find the file extension
     n = 1;
 
-    srand((unsigned) time(&t));
+    srand((unsigned)time(&t));
 
     // Generate a random number between 1 and 20 inclusive
     int randomNum = rand() % 20;
@@ -154,35 +152,39 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     ///////////////////
     snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
-    
+
     struct cache_entry *get_Cache = cache_get(cache, request_path);
-    if(get_Cache == NULL) {
-        if(filedata == NULL)
+    if (get_Cache == NULL)
+    {
+        filedata = file_load(filepath);
+        if (filedata == NULL)
         {
             resp_404(fd);
             return;
         }
+        else
+        {
 
-        mime_type = mime_type_get(request_path);
-        
-        send_response(fd, header, mime_type, filedata->data, filedata->size);
+            mime_type = mime_type_get(request_path);
 
-        file_free(filedata);
+            send_response(fd, header, mime_type, filedata->data, filedata->size);
+            cache_put(cache, filepath, mime_type_get(filepath), filedata, sizeof(filedata));
+            file_free(filedata);
+        }
+    }
+    else
+    {
+        // mime_type = mime_type_get(request_path);
+        send_response(fd, header, get_Cache->content_type, get_Cache->content, get_Cache->content_length);
 
-    }else{
-        cache_put(cache, filepath, mime_type, filedata, cache->cur_size);
     }
 
-
-    #if DEBUG
+#if DEBUG
     printf("---requestpath:\t%s\n", request_path);
     printf("---filepath:\t%s\n", filepath);
     printf("---fullpath:\t%s%s\n", SERVER_ROOT, request_path);
     printf("---filedata NULL?\t%d\n", filedata == NULL);
-    #endif
-
-
+#endif
 }
 
 /**
@@ -230,20 +232,27 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(operation, "GET") == 0)
     {
         // printf("I am a GET request\n");
-        if(strcmp(endpoint, "/d20") == 0){
+        if (strcmp(endpoint, "/d20") == 0)
+        {
             // puts("testing d20");
             get_d20(fd);
             return;
-        } else if(strcmp(endpoint, "/") == 0){
+        }
+        else if (strcmp(endpoint, "/") == 0)
+        {
             puts("server get request");
             resp_404(fd);
-        }else{
+        }
+        else
+        {
             get_file(fd, cache, endpoint);
         }
         // else if(strcmp(endpoint, "/index.html") == 0){
 
         // }
-    }else if(strcmp(operation, "POST") == 0){
+    }
+    else if (strcmp(operation, "POST") == 0)
+    {
         printf("I am a POST request\n");
     }
     else
@@ -258,8 +267,7 @@ void handle_http_request(int fd, struct cache *cache)
  */
 int main(void)
 {
-// put random number generator in the main so that the whole program can call it
-
+    // put random number generator in the main so that the whole program can call it
 
     int newfd;                          // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
