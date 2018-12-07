@@ -188,8 +188,8 @@ void get_file(int fd, struct cache *cache, char *request_path)
           file_free(filedata);
         } else{
           // if it's there serve it back:
-          send_response(fd, "HTTP/1.1 200 OK", cache_check->content_type, cache_check->content, cache_check->content_length);
-          printf("this came from da cache\n" );
+          send_response(fd, "HTTP/1.1 200 OK ", cache_check->content_type, cache_check->content, cache_check->content_length);
+          printf("this came from da cache\n" );index
         }
 
 }
