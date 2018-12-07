@@ -9,11 +9,18 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
-    new_entry->path = path;
-    new_entry->content_type = content_type;
+    struct cache_entry *new_entry = malloc(sizeof *new_entry);
+
+    new_entry->path = malloc(strlen(path) +1);
+    strcpy(new_entry->path, path);
+
+    new_entry->content_type = malloc(strlen(content_type) +1);
+    strcpy(new_entry->content_type, content_type);
+
     new_entry->content_length = content_length;
-    new_entry->content = content;
+    
+    new_entry->content = malloc(content_length +1);
+    memcpy(new_entry->content, content, content_length +1);
 
     return new_entry;
 }
@@ -193,7 +200,7 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
 // Move the cache entry to the head of the doubly-linked list.
 //void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 // Return the cache entry pointer.
-    if (get_entry == 0) {
+    if (get_entry == NULL) {
         return NULL;
     } 
         dllist_move_to_head(cache, get_entry);
