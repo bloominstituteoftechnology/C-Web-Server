@@ -153,26 +153,27 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    // if()
-
-
-//    When a file is requested, first check to see if the path to the file is in
-//    the cache (use the file path as the key).
-
-//    If it's there, serve it back.
-
-//    If it's not there:
-
-//    * Load the file from disk (see `file.c`)
-//    * Store it in the cache
-//    * Serve it
-
-// There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation.
-    
-
-
     snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
+    
+    struct cache_entry *get_Cache = cache_get(cache, request_path);
+    if(get_Cache == NULL) {
+        if(filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
+
+        mime_type = mime_type_get(request_path);
+        
+        send_response(fd, header, mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+
+    }else{
+        cache_put(cache, filepath, mime_type, filedata, cache->cur_size);
+    }
+
 
     #if DEBUG
     printf("---requestpath:\t%s\n", request_path);
@@ -181,17 +182,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     printf("---filedata NULL?\t%d\n", filedata == NULL);
     #endif
 
-    if(filedata == NULL)
-    {
-        resp_404(fd);
-        return;
-    }
-
-    mime_type = mime_type_get(request_path);
-    
-    send_response(fd, header, mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
 
 }
 
