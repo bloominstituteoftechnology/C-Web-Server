@@ -66,7 +66,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     
     ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
     int response_length = sprintf(response,
         "%s\n"
         "Date: %s"
@@ -103,7 +102,6 @@ void get_d20(int fd)
     
     ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
     srand(getpid() + time(NULL));
 
     char response_body[8];
@@ -113,9 +111,6 @@ void get_d20(int fd)
 
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -156,19 +151,35 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
+    // When a file is requested, first check to see if the path to the file is in the cache (use the file path as the key)
+    struct cache_entry *cache_check;
+    cache_check = cache_get(cache, request_path);
+    // If it's there, serve it back
+    if (cache_check != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", cache_check->content_type, cache_check->content, cache_check->content_length);
+    } else 
+    {
+        // If it's not there:        
+        // Load the file from disk (see file.c) 
+        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+        filedata = file_load(filepath);
 
-    if (filedata ==  NULL) {
-        resp_404(fd);
-        return;
+        if (filedata ==  NULL) {
+            resp_404(fd);
+            return;
+        }
+
+        mime_type = mime_type_get(filepath);
+
+        // Store it in the cache
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+        // Serve it
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
     }
 
-    mime_type = mime_type_get(filepath);
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
+    
 }
 
 /**
