@@ -175,7 +175,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     //    Free the cache entry.
        free_entry(old_tail);
     //    Ensure the size counter for the number of entries in the cache is correct.
-    //    cache->cur_size--;  commented out. 
+    //    cache->cur_size--;  commented out. dllist_remove_tail already handles this. 
    }
 
 }
