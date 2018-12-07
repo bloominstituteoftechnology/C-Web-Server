@@ -7,29 +7,27 @@
 /**
  * Allocate a cache entry
  */
-struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
-{
-    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
-    struct cache_entry *newCache_Entry = malloc(sizeof(struct cache));
-    newCache_Entry->path = path;
-    newCache_Entry->content_type = content_type;
-    newCache_Entry->content = content;
+struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
+{
+    // need to allocate memory for all strings
+    struct cache_entry *newCache_Entry = malloc(sizeof *newCache_Entry);
+    newCache_Entry->path = malloc(strlen(path) + 1);
+    newCache_Entry->content_type = malloc(strlen(content_type));
+    newCache_Entry->content = malloc(content);
     newCache_Entry->content_length = content_length;
-    // we have minor memory issues up here, but we can fix that later
 
-    if(newCache_Entry == NULL){
-        return NULL;
-    }
+
+    strcpy(newCache_Entry->path, content_type);
+    strcpy(newCache_Entry->content_type, content_type);
+    newCache_Entry->content_length = content_length;
+    memcpy(newCache_Entry->content, content, content_length);
+    // we have minor memory issues up here, but we can fix that later
 
     return newCache_Entry;
     
-
-    // Return the pointer to the new cache_entry
-
 }
 
 /**
@@ -113,11 +111,14 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    struct cache *newCache = malloc(sizeof(struct cache));
+
+    struct cache *newCache = malloc(sizeof *newCache);
     newCache->max_size = max_size;
-    newCache->cur_size = hashsize;
-    newCache->index  = hashtable_create(malloc(sizeof(struct hashtable)), NULL);
-    // newCache->head = dllist_insert_head(cache, cache_entry);
+    newCache->cur_size = NULL;
+    newCache->index  = hashtable_create(hashsize, NULL);
+    newCache->head = NULL;
+    newCache->tail = NULL;
+
     return newCache;
 }
 
@@ -145,15 +146,22 @@ void cache_free(struct cache *cache)
  * 
  * NOTE: doesn't check for duplicate cache entries
  */
-void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
-{
-    // not sure what to do with the other members of the cache_entry struct
-
-    int size = cache->cur_size;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    while(size > cache->max_size) {
+void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
+{
+// struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
+
+
+    struct cache_entry *new_cache_entry = alloc_entry(path, content_type, content, content_length); 
+
+    dllist_insert_head(cache, new_cache_entry); 
+    hashtable_put(cache->index, path, new_cache_entry);
+
+// 3. Add a pointer to the cache entry to the hash table, indexed by the key.
+    cache->cur_size++;
+    while(cache->cur_size > cache->max_size) {
         dllist_remove_tail(cache);
         free_entry(cache);
     }
@@ -165,28 +173,15 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 /**
  * Retrieve an entry from the cache
  */
-struct cache_entry *cache_get(struct cache *cache, char *path)
-{
     ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
-
-
-    
-// 1. Look up the cache entry pointer in the hash table with the key.
-
-    struct cache *getcache = hashtable_get(); // here, save the result of your access in a variable
-// 2. If it's not in the hash table, it's not in the cache. We're done.
-    if(hashtable_get() == NULL) { // check if the result is NULL
+    ///////////////////    
+struct cache_entry *cache_get(struct cache *cache, char *path)
+{
+    struct cache *getcache = hashtable_get(cache->index, path); 
+    if(getcache == NULL) { 
         return NULL;
     }
-// 3. If it is found, the cache entry is cut out of the doubly linked list.
-    else{
-
-    }
-// 4. The cache entry is inserted at the head of the list. (Because it's now the
-//    most-recently used.)
-    dllist_move_to_head(cache, cache_entry);
-    // dllist_move_to_head both removes it from its current position in DLL
-    // and makes it the new head. A lot of these prebuilt functions do a lot!
+    dllist_move_to_head(cache, getcache); 
+    return getcache;
 }

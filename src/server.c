@@ -153,6 +153,22 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // if()
+
+
+//    When a file is requested, first check to see if the path to the file is in
+//    the cache (use the file path as the key).
+
+//    If it's there, serve it back.
+
+//    If it's not there:
+
+//    * Load the file from disk (see `file.c`)
+//    * Store it in the cache
+//    * Serve it
+
+// There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation.
+    
 
 
     snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
