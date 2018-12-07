@@ -8,7 +8,7 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    struct cache_entry *new_entry = malloc(sizeof *new_entry);
+    struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
     new_entry->path = malloc(strlen(path) + 1); 
 
     new_entry->content_length = content_length; 
@@ -26,7 +26,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 void free_entry(struct cache_entry *entry)
 {
     free(entry->path); 
-    free(entry->content);
+    // free(entry->content);
     free(entry->content_type);
     free(entry); 
 }
