@@ -169,7 +169,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
-
+    printf("%s",header);
 
 }
 
@@ -204,7 +204,9 @@ void handle_http_request(int fd, struct cache *cache)
         get_d20(fd);
     } else if (strcmp(type,"GET")==0) {
         get_file(fd,cache,url);
-    } 
+    } else if (strcmp(type,"POST")==0) {
+        find_start_of_body(request);
+    }
     // (Stretch) If POST, handle the post request
 }
 
