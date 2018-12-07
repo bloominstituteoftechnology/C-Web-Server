@@ -28,7 +28,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     //memcpy(new_entry->content, content, content_length); //memcpy  accepts a void paramater while strcpy accepts a char. Also albe to se the length to copy. 
     strcpy(new_entry->content, content); // not orginal. 
 
-    return new_entry; 
+    return new_entry;
+
+    //will pass the tests completely.  but  the above has to be commented out.  
     // struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
     // new_entry->path = strdup(path); 
     // new_entry->content = strdup(content); 
