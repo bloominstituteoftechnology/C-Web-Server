@@ -9,9 +9,10 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    cache_entry newCache = malloc(sizeof(content_length));  // Endpoint path--key to the cache
+    path->content_type = content_type;
+    *cache_entry->content_length = content_length;
+    cache_entry->content = content;
 }
 
 /**
@@ -91,9 +92,7 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    cache newCache = 
 }
 
 void cache_free(struct cache *cache)
