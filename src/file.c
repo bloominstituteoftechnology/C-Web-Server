@@ -62,6 +62,7 @@ struct file_data *file_load(char *filename)
     filedata->data = buffer;
     filedata->size = total_bytes;
 
+    printf("right before return filedata in file.c\n");
     return filedata;
 }
 

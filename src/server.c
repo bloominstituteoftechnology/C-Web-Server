@@ -48,12 +48,17 @@
  * 
  * Return the value from the send() function.
  */
+
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+    // const int response_length = content_length + strlen(fd) + strlen(header);
+    // Build HTTP response 
+    
+    //and store it in response
+    const int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -76,16 +81,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
+    srand(time(NULL));
+    int random  = rand() % 21;
+    printf("get_d20_1 %d\n", random);
+    // printf("get_d20_2 %ld\n", sizeof(random));
+    char randomstr[3];
+
+    sprintf(randomstr, "%d\n", random);
     // Use send_response() to send it back as text/plain data
+    
+    // printf("get_d20_3 %d\n", size);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", randomstr, strlen(randomstr));
 }
 
 /**
@@ -93,6 +108,7 @@ void get_d20(int fd)
  */
 void resp_404(int fd)
 {
+    printf("resp_404\n");
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
@@ -103,7 +119,7 @@ void resp_404(int fd)
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
+        fprintf(stderr, "\ncannot find system 404 file\n");
         exit(3);
     }
 
@@ -122,6 +138,51 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    printf("get file%s\n", request_path);
+    char *filepath[4096];
+    struct file_data *cur_filedata;
+    char *mime_type;
+
+    // When a file is requested, first check to see if the path to the file is in
+    // the cache (use the file path as the key).
+
+    //-------------this is porbably going to be a variable with cache_get
+        printf("before cache_get\n");
+    struct cache_entry *got_cache = cache_get(cache, request_path);
+        printf("after cache_get\n");
+        // printf("got_cache->path %s\n", got_cache->path);
+
+    if(got_cache != NULL){
+        printf("file is in cache\n");
+        // If it's there, serve it back.
+        mime_type = mime_type_get(got_cache->path);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, got_cache->content, got_cache->content_length);
+    //  If it's not there:
+    } else {
+        printf("file is NOT in cache\n");
+        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+        printf("filepath %s\n", filepath);
+    // * Load the file from disk (see `file.c`)
+        printf("\"%s\"\n", filepath);
+        cur_filedata = file_load(filepath);
+        printf("\nbeforeif statement\n");
+        if (cur_filedata == NULL) {
+            printf("404\n");
+            // TODO: make this non-fatal
+            fprintf(stderr, "cannot find path requested\n");
+            resp_404(fd);
+            // exit(3);
+            return;
+        } 
+        printf("below if statement\n");
+        mime_type = mime_type_get(filepath);
+    // * Store it in the cache
+        cache_put(cache, filepath, mime_type, cur_filedata->data, cur_filedata->size);
+    // * Serve it
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, cur_filedata->data, cur_filedata->size);
+    }
+
+    file_free(cur_filedata);
 }
 
 /**
@@ -142,6 +203,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+    printf("handle_http_request\n");
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -153,17 +215,36 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
+    printf("\nhandle_http_request2 %s\n", request);
     // Read the three components of the first request line
+    // char type[8];
+    // char file[4];
+    // char protocal[8];
+
+    char type[8];
+    char fileName[128];
+    char protocal[128];
+
+    sscanf(request, "%s %s %s", type, fileName, protocal);
+    printf("handle_http_request3. type: %s\nfile: %s\nprotocal: %s\n\n", type, fileName, protocal);
 
     // If GET, handle the get endpoints
-
+    if(0 == strcmp(type, "GET"))
+    {
     //    Check if it's /d20 and handle that special case
+        if(0 == strcmp(fileName, "/d20"))
+        {
+            get_d20(fd);
+        } else {
     //    Otherwise serve the requested file by calling get_file()
+            printf("\nfile is not /d20\n");
+            get_file(fd, cache, fileName);
+        }
+    } 
 
 
     // (Stretch) If POST, handle the post request
@@ -200,6 +281,7 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
+        // resp_404(newfd);
         if (newfd == -1) {
             perror("accept");
             continue;
@@ -215,7 +297,6 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-
         close(newfd);
     }
 
