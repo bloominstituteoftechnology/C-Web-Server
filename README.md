@@ -3,7 +3,7 @@
 In this project, we'll finish the implementation of a web server in C.
 
 What you need to write:
-
+ 
 * HTTP request parser
 * HTTP response builder
 * LRU cache
