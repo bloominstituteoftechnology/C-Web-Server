@@ -1,26 +1,28 @@
 # A Simple Web Server in C
 
+PR
 In this project, we'll finish the implementation of a web server in C.
 
 What you need to write:
 
-* HTTP request parser
-* HTTP response builder
-* LRU cache
-  * Doubly linked list (some functionality provided)
-  * Use existing hashtable functionality (below)
+- HTTP request parser
+- HTTP response builder
+- LRU cache
 
-* Your code will interface with the existing code. Understanding the existing
+  - Doubly linked list (some functionality provided)
+  - Use existing hashtable functionality (below)
+
+- Your code will interface with the existing code. Understanding the existing
   code is an expected part of this challenge.
 
 What's already here:
 
-* `net.h` and `net.c` contain low-level networking code
-* `mime.h` and `mime.c` contains functionality for determining the MIME type of a file
-* `file.h` and `file.c` contains handy file-reading code that you may want to utilize, namely the `file_load()` and `file_free()` functions for reading file data and deallocating file data, respectively (or you could just perform these operations manually as well)
-* `hashtable.h` and `hashtable.c` contain an implementation of a hashtable (this one is a bit more complicated than what you built in the Hashtables sprint)
-* `llist.h` and `llist.c` contain an implementation of a doubly-linked list (used solely by the hashable--you don't need it)
-* `cache.h` and `cache.c` are where you will implement the LRU cache functionality for days 3 and 4
+- `net.h` and `net.c` contain low-level networking code
+- `mime.h` and `mime.c` contains functionality for determining the MIME type of a file
+- `file.h` and `file.c` contains handy file-reading code that you may want to utilize, namely the `file_load()` and `file_free()` functions for reading file data and deallocating file data, respectively (or you could just perform these operations manually as well)
+- `hashtable.h` and `hashtable.c` contain an implementation of a hashtable (this one is a bit more complicated than what you built in the Hashtables sprint)
+- `llist.h` and `llist.c` contain an implementation of a doubly-linked list (used solely by the hashable--you don't need it)
+- `cache.h` and `cache.c` are where you will implement the LRU cache functionality for days 3 and 4
 
 ## What is a Web Server?
 
@@ -29,17 +31,17 @@ requests for HTML pages), and returns responses (e.g. HTML pages). Other common 
 
 ## Reading
 
-* [Networking Background](guides/net.md)
-* [Doubly-Linked Lists](guides/dllist.md)
-* [LRU Caches](guides/lrucache.md)
-* [MIME types](guides/mime.md)
+- [Networking Background](guides/net.md)
+- [Doubly-Linked Lists](guides/dllist.md)
+- [LRU Caches](guides/lrucache.md)
+- [MIME types](guides/mime.md)
 
 ## Assignment
 
 We will write a simple web server that returns files and some specialized data on a certain endpoint.
 
-* `http://localhost:3490/d20` should return a random number between 1 and 20 inclusive as `text/plain` data.
-* Any other URL should map to the `serverroot` directory and files that lie within. For example:
+- `http://localhost:3490/d20` should return a random number between 1 and 20 inclusive as `text/plain` data.
+- Any other URL should map to the `serverroot` directory and files that lie within. For example:
 
   ```
   http://localhost:3490/index.html
@@ -72,7 +74,7 @@ _Read through all the main and stretch goals before writing any code to get an o
 1. Implement `send_response()`.
 
    This function is responsible for formatting all the pieces that make up an HTTP response into the proper format that clients expect. In other words, it needs to build a complete HTTP response with the given parameters. It should write the response to the string in the `response` variable.
-   
+
    The total length of the header **and** body should be stored in the `response_length` variable so that the `send()` call knows how many bytes to
    send out over the wire.
 
@@ -86,7 +88,7 @@ _Read through all the main and stretch goals before writing any code to get an o
    > the header. But the `response_length` variable used by `send()` is the
    > total length of both header and body.
 
-   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function, and seeing if the client receives the 404 response. 
+   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function, and seeing if the client receives the 404 response.
 
 2. Examine `handle_http_request()` in the file `server.c`.
 
@@ -153,25 +155,14 @@ The hashtable code is already written and can be found in `hashtable.c`.
 
    Algorithm:
 
-   * Allocate a new cache entry with the passed parameters.
-   * Insert the entry at the head of the doubly-linked list.
-   * Store the entry in the hashtable as well, indexed by the entry's `path`.
-   * Increment the current size of the cache.
-   * If the cache size is greater than the max size:
-     * Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
-     * Remove the cache entry at the tail of the linked list (this is the
-       least-recently used one)
-     * Free the cache entry.
-     * Ensure the size counter for the number of entries in the cache is correct.
-
 2. Implement `cache_get()` in `cache.c`.
 
    Algorithm:
 
-   * Attempt to find the cache entry pointer by `path` in the hash table.
-   * If not found, return `NULL`.
-   * Move the cache entry to the head of the doubly-linked list.
-   * Return the cache entry pointer.
+   - Attempt to find the cache entry pointer by `path` in the hash table.
+   - If not found, return `NULL`.
+   - Move the cache entry to the head of the doubly-linked list.
+   - Return the cache entry pointer.
 
 3. Add caching functionality to `server.c`.
 
@@ -182,11 +173,11 @@ The hashtable code is already written and can be found in `hashtable.c`.
 
    If it's not there:
 
-   * Load the file from disk (see `file.c`)
-   * Store it in the cache
-   * Serve it
+   - Load the file from disk (see `file.c`)
+   - Store it in the cache
+   - Serve it
 
-There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation. 
+There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation.
 
 ### Stretch Goals
 
@@ -229,9 +220,9 @@ and succeed.
 
 #### 3. Implement functionality that will allow your server to serve any type of data, not just text data
 
-All the files that the server has been responding with have been text files of some sort. Augment the server such that if a client requests `http://localhost:3490/cat.jpg`, the server is able to fetch and respond with the requested file (of course, the file needs to exist in the server's directory structure). 
+All the files that the server has been responding with have been text files of some sort. Augment the server such that if a client requests `http://localhost:3490/cat.jpg`, the server is able to fetch and respond with the requested file (of course, the file needs to exist in the server's directory structure).
 
-Add an image to the `./serverroot` directory and update the `send_response` function such that it can handle _any_ type of data. _Hint: you'll want to look into the `memcpy` function from the C standard library_. 
+Add an image to the `./serverroot` directory and update the `send_response` function such that it can handle _any_ type of data. _Hint: you'll want to look into the `memcpy` function from the C standard library_.
 
 Note that `file_load` doesn't actually need any modification. It's already been written in such a way that it can handle arbitrary types of file data.
 
@@ -256,4 +247,3 @@ When a new connection comes in, launch a thread to handle it.
 Be sure to lock the cache when a thread accesses it so the threads don't step on each other's toes and corrupt the cache.
 
 Also have thread cleanup handlers to handle threads that have died.
-
