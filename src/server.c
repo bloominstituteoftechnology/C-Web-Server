@@ -144,6 +144,10 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    
+    char request_path[2000];
+    char request_type[10];
+    char request_version[200];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -153,6 +157,24 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    sscanf(request, "%s %s %s", request_type, request_path, request_version);  //Reading the three different component of the request line
+
+    printf("Type: %s Path: %s Version: %s\n", request_type, request_path, request_version);
+
+    if(strcmp(request_type, "GET") == 0){  //comparing to see if the request contains GET
+    	
+	if(strcmp(request_path, "/d20") == 0){  //comparing to see if the request contains /d20
+    		get_d20(fd);		
+    	}
+    
+    	else{                                 
+    		get_file(fd, cache, request_path);
+   	 }
+    }	
+	
+    else {
+    	resp_404(fd);
+    }
 
     ///////////////////
     // IMPLEMENT ME! //
