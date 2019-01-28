@@ -34,7 +34,7 @@ requests for HTML pages), and returns responses (e.g. HTML pages). Other common 
 * [LRU Caches](guides/lrucache.md)
 * [MIME types](guides/mime.md)
 
-## Assignment
+## Assignment.
 
 We will write a simple web server that returns files and some specialized data on a certain endpoint.
 
