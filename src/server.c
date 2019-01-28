@@ -53,6 +53,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
+    time_t tm = time(NULL);   
+    struct  *local_time = localtime(&tm);
+
+    int response_length = sprintf(response, 
+		    		  "%s\n" 
+				  "Date: %s\n"
+				  "Connection: close\n"
+				  "Content-Length: %d\n"
+				  "Content-Type: %s\n", 
+				  "\n"  //blank linke between header and body
+				  "%s\n", header, asctime(local_time), content_length, content_type, body);
+
     // Build HTTP response and store it in response
 
     ///////////////////
