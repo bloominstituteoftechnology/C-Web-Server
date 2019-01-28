@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -54,10 +55,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    time_t date_time = time(NULL);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int response_length = sprintf(
+        response,
+        "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+        header,
+        asctime(gmtime(&date_time)),
+        content_length,
+        content_type,
+        body
+    );
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
