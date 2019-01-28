@@ -54,6 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
     time_t date_time = time(NULL);
+    char *body_str = body;
 
     // Build HTTP response and store it in response
     int response_length = sprintf(
@@ -63,7 +64,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         asctime(gmtime(&date_time)),
         content_length,
         content_type,
-        body
+        body_str
     );
 
     // Send it all!
