@@ -187,7 +187,25 @@ void handle_http_request(int fd, struct cache *cache)
     // IMPLEMENT ME! //
     ///////////////////
 
+    // HINT: strcmp() will match request methods and path. Returns 0 if the same.
+    // Use an if-else block with strcmp().
+    // HINT: Use sscanf() to read the contents.
+
     // Read the three components of the first request line
+    // printf("Request: %s\n", request);
+
+    char method[8], path[32], protocol[16];
+    sscanf(request, "%s %s %s", method, path, protocol);
+    // printf("%s, %s, %s\n", method, path, protocol);
+
+    if(strcmp(method, "GET") == 0 && strcmp(path, "/d20") == 0){
+        get_d20(fd);
+        printf("get_d20() was called.\n");
+    } else if(strcmp(method, "GET") == 0){
+        get_file(fd, cache, path);
+    } else {
+        resp_404(fd);
+    }
 
     // If GET, handle the get endpoints
 
@@ -245,7 +263,7 @@ int main(void)
         // listenfd is still listening for new connections.
 
         // test 404 page
-        resp_404(newfd);
+        // resp_404(newfd);
 
         handle_http_request(newfd, cache);
 
