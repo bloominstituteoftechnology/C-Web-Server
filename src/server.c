@@ -52,12 +52,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    int response_length;
 
     // Build HTTP response and store it in response
+    time_t t = time(NULL);
+    struct tm *date = localtime(&t);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    response_length = sprintf(response,"%s\nDate: %sConnection: close\nContent-length: %d\nContent-Type: %s\n\n%s" \
+        ,header,asctime(date),content_length,content_type,body);
+    // printf("length; %d, of: \n%s\n", response_length, response );
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -193,7 +197,9 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
+
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -204,12 +210,17 @@ int main(void)
             perror("accept");
             continue;
         }
+        
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
+        
+
+
+        resp_404(newfd);
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
