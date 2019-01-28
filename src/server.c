@@ -82,6 +82,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    srand(time(0));
     int lower = 1;
     int upper = 20;
     char result[10];
