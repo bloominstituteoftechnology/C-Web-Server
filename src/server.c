@@ -61,7 +61,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     timeinfo = localtime(&rawtime);
 
     // Build HTTP response and store it in response
-    respons_length=sprintf(response, "%\nConnection: close\nContent-Length: %d\nContent-Type: %s\n",
+    response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n",
                             header, content_length, content_type, asctime(timeinfo));
 
     memcpy(response+response_length, body, content_length);
@@ -136,14 +136,15 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-void get_file(int fd, struct cache *cache, char *request_fpath)
+void get_file(int fd, struct cache *cache, char *request_path)
 {
     char path[4096];
     struct file_data *filedata;
     struct cache_entry *check_cache;
     char *mime_type;
 
-    snprintf(path, "%s%s", SERVER_ROOT, request_fpath);
+    sprintf(path, "%s%s", SERVER_ROOT, request_path);
+    check_cache = cache_get(cache, path);
 
     if (check_cache !=NULL) {
         send_response(fd, "HTTP/1.1 200 OK", check_cache->content_type, 
@@ -152,19 +153,19 @@ void get_file(int fd, struct cache *cache, char *request_fpath)
     filedata = file_load(path);
 
     if(filedata==NULL){
-        resp_404(fd)
+        resp_404(fd);
         return;
 
     }
 
     mime_type=mime_type_get(path);
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-    cach_put(cache, path, mime_type, filedata->data, filedata->size);
+    cache_put(cache, path, mime_type, filedata->data, filedata->size);
     file_free(filedata);
     
     
     }
-return 0;
+return;
 }
 
 /**
