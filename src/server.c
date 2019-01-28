@@ -53,7 +53,36 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
+    // SAMPLE: 
+    // HTTP/1.1 200 OK
+    // Date: Wed Dec 20 13:05:11 PST 2017
+    // Connection: close
+    // Content-Length: 41749
+    // Content-Type: text/html
+
     // Build HTTP response and store it in response
+    // HINT: use sprintf() for creating response.
+    // HINT: use strlen() for computing content length.
+    // HINT: sprintf() returns number of bytes in result string.
+    // HINT: time() and localtime().
+
+
+    // Reference: http://www.cplusplus.com/reference/ctime/localtime/
+    time_t rawtime;
+    struct tm *timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %i\nContent-Type: %s\n\n", header, asctime(timeinfo), content_length, content_type);
+    // printf("%s\n", response);
+    // printf("%i\n", response_length);
+    // printf("%i\n", content_length);
+    
+    memcpy(response + response_length, body, content_length);
+    response_length += content_length;
+
+    // printf("%i\n", response_length);
+    // printf("%i\n", content_length);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -190,6 +219,7 @@ int main(void)
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
+
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
@@ -213,6 +243,9 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
+
+        // test 404 page
+        resp_404(newfd);
 
         handle_http_request(newfd, cache);
 
