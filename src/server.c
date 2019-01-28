@@ -51,13 +51,33 @@
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 65536;
-    char response[max_response_size];
+    char response[max_response_size]; // char buffer
+    int response_length = 0; // length of header, the total number of bytes returned from sprintf()
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
 
     // Build HTTP response and store it in response
+    // sprintf stands for “String print”. Instead of printing on console, it store output on char buffer which is specified in sprintf
+    response_length= sprintf(response, 
+      "%s\n"
+      "Date: %s"
+      "Connection: close\n"
+      "Content-Length: %d\n"
+      "Content-Type: %s\n"
+      "\n", // The end of the header on both the request and response is marked by a blank line
+      
+      header,
+      asctime(timeinfo),
+      content_length,
+      content_type
+    );
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // The total length of the header and body should be stored in the response_length variable
+    // so that the send() call knows how many bytes to send out over the wire.
+    response_length += content_length; // Header + length of body
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
