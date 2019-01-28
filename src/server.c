@@ -61,7 +61,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     timeinfo = localtime(&rawtime);
 
     // Build HTTP response and store it in response
-    respons_length=sprintf(response, "%\nConnection: close\nContent-length: %d\nContent-Type: %s\n",
+    respons_length=sprintf(response, "%\nConnection: close\nContent-Length: %d\nContent-Type: %s\n",
                             header, content_length, content_type, asctime(timeinfo));
 
     memcpy(response+response_length, body, content_length);
@@ -87,6 +87,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    char numb[10];
+    int rand_num = rand() % 20 + 1;
+    int len =sprintf(numb, "%d", rand_num);
+
     // Generate a random number between 1 and 20 inclusive
     
     ///////////////////
@@ -94,7 +98,7 @@ void get_d20(int fd)
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", numb, len);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
