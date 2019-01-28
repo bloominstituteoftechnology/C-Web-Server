@@ -61,7 +61,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time( &rawtime );
 
     info = localtime( &rawtime );
-    printf("Current local time and date: %s", asctime(info));
 
     // Build HTTP response and store it in response
     // set response and response_length
@@ -152,6 +151,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+    printf("handle http request\n");
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -163,6 +163,8 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    char request_type[5], path[50], header[10];
+    sscanf(request, "%s %s %s", request_type, path, header);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -171,12 +173,27 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
-
+    if (strcmp(request_type, "GET") == 0){
     //    Check if it's /d20 and handle that special case
+        if (strcmp(path, "/d20") == 0){
+            printf("handling /d20");
+            return;
+        } 
     //    Otherwise serve the requested file by calling get_file()
+        else {
+        get_file(fd, cache, path)
+        return;
+        }
+
+    }
 
 
+    
     // (Stretch) If POST, handle the post request
+    if (strcmp(request_type, "POST") == 0){
+        printf("POST request. Exiting\n");
+        exit(1);
+    }
 }
 
 /**
