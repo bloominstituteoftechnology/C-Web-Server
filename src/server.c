@@ -61,9 +61,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     info = localtime(&rawtime);
 
     // Build HTTP response and store it in response
-    int response_length sprintf(response, "%s\n Date: % s\n Connection: close\n Content_length: % d\n Content_type: % s\n Body: % s\n ",
-                                header, asctime(info), content_length, content_type, body);
 
+    int response_length = sprintf(response, "%s\n Date: %s\n Connection: close\n Content_length: %d\n Content_type: %s\n Body: %s\n",
+                                  header, asctime(info), content_length, content_type, body);
+    printf("Response: %s\n", response);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -160,7 +161,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     if (bytes_recvd < 0)
     {
-        perror("recv", );
+        perror("recv");
         return;
     }
     ///////////////////
@@ -169,13 +170,13 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     // Need values from response
-    char request_method, request_endpoint, request_protocol;
+    char request_method[20], request_endpoint[20], request_protocol[20];
     sscanf(request, "%s %s %s", request_method, request_endpoint, request_protocol);
 
     // If header info cotains 200 then it is get request
 
     // If GET, handle the get endpoints
-    if (strcmp(header_method, "GET") == 0)
+    if (strcmp(request_method, "GET") == 0)
     {
         //    Check if it's /d20 and handle that special case
         if (strcmp(request_endpoint, "/d20"))
