@@ -60,6 +60,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
+    int response_length = sprintf(response,"%s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s", header, content_length, content_type, body);
+    printf("response: %s\n", response); 
+    
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -189,6 +192,8 @@ int main(void)
     }
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
+
+    resp_404(newfd); 
 
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
