@@ -152,8 +152,8 @@ void get_file(int fd, struct cache *cache, char *request_fpath)
     filedata = file_load(path);
 
     if(filedata==NULL){
-        
-        return -1;
+        resp_404(fd)
+        return;
 
     }
 
