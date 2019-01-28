@@ -203,6 +203,8 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    printf("Request %s\n", request);
+    char method[5] file[20], protocol[20];
 
     // If GET, handle the get endpoints
 
