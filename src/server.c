@@ -147,6 +147,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[6];  // Delete is 6 characters long, longest HTTP request type
+    char request_url[50]; 
+    char request_protocol[20];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -162,9 +165,15 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+    sscanf(request, "%s %s %s", request_type, request_url, request_protocol); 
     // If GET, handle the get endpoints
-
+    if (strcmp(request_type, "GET") == 0) {
+        if (strcmp(request_url, "/d20") == 0) {
+            get_d20(fd); 
+        } else {
+            resp_404(fd); 
+        }
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
