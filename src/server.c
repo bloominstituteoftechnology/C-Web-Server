@@ -55,9 +55,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int response_length;
+    char t_buff[80];
+    time_t c_time = time(NULL);
+
+    strftime(t_buff, (sizeof t_buff) - 1, "%c", &c_time);
+
+    response_length = sprintf(
+        response,
+        "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+        header,
+        t_buff,
+        content_length,
+        content_type,
+        body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -216,7 +227,7 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
+        resp_404(newfd);
         handle_http_request(newfd, cache);
 
         close(newfd);
