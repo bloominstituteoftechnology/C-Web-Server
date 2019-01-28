@@ -54,7 +54,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
+    int response_length = sprintf(response, "%s\nContent_length: %d\nContent_type: %s\n%s\n", header, content_length, content_type, body);
+    printf("response: \n%s", response);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -187,6 +188,7 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
+    resp_404(listenfd);
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
@@ -194,7 +196,7 @@ int main(void)
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
     
-    while(1) {
+    while(1) {        
         socklen_t sin_size = sizeof their_addr;
 
         // Parent process will block on the accept() call until someone
