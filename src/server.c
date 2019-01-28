@@ -53,11 +53,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+    //get the timestamp
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    time( &rawtime );
+
+    info = localtime( &rawtime );
+    printf("Current local time and date: %s", asctime(info));
+
+    // Build HTTP response and store it in response
+    // set response and response_length
+    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %ld\nContent-Type: %s\n\n %s", header, asctime(info), strlen(body), content_type, body);
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -110,7 +119,8 @@ void resp_404(int fd)
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
-
+    // printf("\n~~~\n");
+    // printf("sending...\n");
     file_free(filedata);
 }
 
@@ -193,7 +203,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -210,9 +220,12 @@ int main(void)
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        
+
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
+        
+        //testing send_response
+        resp_404(newfd);
 
         handle_http_request(newfd, cache);
 
