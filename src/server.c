@@ -54,8 +54,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "%s\nContent_length: %d\nContent_type: %s\n%s\n", header, content_length, content_type, body);
-    printf("response: \n%s", response);
+    int response_length = sprintf(response, "%s\nDate: \nConnection: close\nContent-length: %d\nContent-type: %s\n%s\n", header, content_length, content_type, body);
+    printf("response: \n%s", response); // --> We can use a sprintf() to create the response, also returns total number of bytes in result string
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -144,9 +144,13 @@ char *find_start_of_body(char *header)
 void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
-    char request[request_buffer_size];
+    char request[request_buffer_size]; // --> Holds entire HTTP request once recv() call returns
 
-    // Read request
+    // Read request Args:
+    // 1. Socket --> Specifies socket file descriptor
+    // 2. Buffer --> points to a buffer where the message should be stored
+    // 3. Length --> Length in bytes of the buffer pointed to in 2nd arg
+    // 4. Flags -->  Specifies the type of message reception
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
@@ -154,17 +158,42 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Read the three components of the first request line
+    // Read the three components of the first request line || we can do this with sscanf()
+
+    /*
+    - Arg List:
+    - 1. Pointer to the string from where we want to read data
+    - How to use: We first need to supply three vars of appropriate type
+
+    * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
+    * content_type: "text/plain", etc.
+    * body:         the data to send.
+    */    
+    char request_type[20], request_endpoint[20], request_http[100];
+    sscanf(request, "%s %s %s", request_type, request_endpoint, request_http);
+    printf("%s\n%s\n%s\n", request_type, request_endpoint), request_http;
 
     // If GET, handle the get endpoints
+    if( strcmp(request_type, "GET") == 0 ) {
+        // Check if it's /d20 and handle that special case
+        if ( strcmp(request_endpoint, "/d20") == 0 ) {
+            printf("Request-endpoint: /d20\n");
+            get_d20(fd);
+        } else {
+            // Otherwise serve the requested file by calling get_file()
+            /*
+                - int fd, struct cache *cache, char *request_path
+            */
+            printf("Serve requested file (get_file)\n");
+            get_file(fd, cache, request_endpoint);
+        }
+    }
+    
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
 
 
     // (Stretch) If POST, handle the post request
