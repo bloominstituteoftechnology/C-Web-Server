@@ -53,9 +53,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
+    time_t rawtime;
+    struct tm *info;
+    time(&rawtime);
+    info = localtime(&rawtime);
+
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "%s\nDate: \nConnection: close\nContent-length: %d\nContent-type: %s\n%s\n", header, content_length, content_type, body);
-    printf("response: \n%s", response); // --> We can use a sprintf() to create the response, also returns total number of bytes in result string
+    int response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-length: %d\nContent-type: %s\n%s\n", header, asctime(info), content_length, content_type, body);
+    printf("response: %s\n", response); // --> We can use a sprintf() to create the response, also returns total number of bytes in result string
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -175,7 +180,7 @@ void handle_http_request(int fd, struct cache *cache)
     */    
     char request_type[20], request_endpoint[20], request_http[100];
     sscanf(request, "%s %s %s", request_type, request_endpoint, request_http);
-    printf("%s\n%s\n%s\n", request_type, request_endpoint), request_http;
+    printf("Inside my handle_http: \n%s\n%s\n%s\n", request_type, request_endpoint), request_http;
 
     // If GET, handle the get endpoints
     if( strcmp(request_type, "GET") == 0 ) {
