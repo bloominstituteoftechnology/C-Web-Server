@@ -51,7 +51,7 @@
 
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 65536*10;
     char response[max_response_size];
 
     int response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, content_length, content_type, body);
@@ -128,6 +128,26 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    printf("%s", request_path);
+
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        resp_404(fd);
+        return;
+    }            
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK",mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
