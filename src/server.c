@@ -60,7 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
     int response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-length: %d\nContent-type: %s\n%s\n", header, asctime(info), content_length, content_type, body);
-    printf("response: %s\n", response); // --> We can use a sprintf() to create the response, also returns total number of bytes in result string
+    printf("response: %s\n============================", response); // --> We can use a sprintf() to create the response, also returns total number of bytes in result string
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -87,7 +87,7 @@ void get_d20(int fd)
 
     // 2. Make the random number
     int random_number = ( rand() % 20 ) + 1;
-    printf("random number is: %d", random_number);
+    printf("random number is: %d\n", random_number);
 
     // 3. Assign the number to the data given into send_response 3rd arg
     char data[50];
@@ -193,7 +193,7 @@ void handle_http_request(int fd, struct cache *cache)
     */    
     char request_type[20], request_endpoint[20], request_http[100];
     sscanf(request, "%s %s %s", request_type, request_endpoint, request_http);
-    printf("Inside my handle_http: \n%s\n%s\n%s\n", request_type, request_endpoint, request_http);
+    printf("Inside my handle_http: \n%s\n%s\n%s\n\n\n\n", request_type, request_endpoint, request_http);
 
     // If GET, handle the get endpoints
     if(!strcmp(request_type, "GET")) {
