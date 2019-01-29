@@ -119,9 +119,14 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+
+    snprintf(filepath, sizeof filepath, "./serverroot%s",request_path);
+    struct file_data *filedata = file_load(filepath);
+    char *mime_type = mime_type_get(request_path);
+
+    send_response(fd,"HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size );
+    file_free(filedata);
 }
 
 /**
@@ -160,8 +165,7 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(endpoint, "/d20")==0){
             get_d20(fd);
         } else {
-            // get_file(fd,cache,endpoint);
-            resp_404(fd);
+            get_file(fd,cache,endpoint);
         }
         
     } else {
