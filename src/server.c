@@ -99,7 +99,7 @@ void get_d20(int fd)
     int number = (rand()%20)+1;
     printf("Random number is: %d\t", number);
     char snum[256];
-    sprintf(snum, "<!DOCTYPE html><html><head><title>random number</title></head><body><h1>%d</h1></body></html>", number);
+    sprintf(snum, "<!DOCTYPE html><html><head><title>d20</title></head><body><h1>%d</h1></body></html>", number);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -197,7 +197,13 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
         }
     //    Otherwise serve the requested file by calling get_file()
-        else{
+        else if(!strcmp("/", request_path)){
+            char filepath[4096];
+            struct file_data *filedata;
+            snprintf(filepath, sizeof filepath, "%s/index.html", "./serverroot");
+            filedata = file_load(filepath);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type_get(filepath), filedata->data, filedata->size);
+        }else{
             resp_404(fd);
         }
     }
