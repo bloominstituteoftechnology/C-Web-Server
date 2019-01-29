@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 5000000;  //increased the response buffer size to accomadate images
     char response[max_response_size];
     
     time_t t = time(NULL);
@@ -62,8 +62,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                   "Connection: close\n"
                                   "Content-Length: %d\n"
                                   "Content-Type: %s\n"
-                                  "\n" // End of HTTP header
-                                  "%s\n", header, asctime(local_time), content_length, content_type, body);
+                                  "\n"// End of header
+				  ,header, asctime(local_time), content_length, content_type);
 
 
     //printf("Header: %s\n", header);
@@ -74,9 +74,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
+    memcpy(response + response_length, body, content_length);   //using memcpy to add body after the header
+    response_length += content_length;  //calculating new response_length after adding body to the header
+
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -140,11 +142,27 @@ void resp_404(int fd)
  * Read and return a file from disk or cache
  */
 void get_file(int fd, struct cache *cache, char *request_path)
-{
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    
+{	
+	//printf("get file called\n");
+   	
+	char filepath[4096];
+	struct file_data *filedata;
+	char *mime_type; 
+
+	sprintf(filepath, "%s%s", SERVER_ROOT, request_path);  //passing the path to locate the files if they are present
+    	
+	filedata = file_load(filepath);
+	mime_type = mime_type_get(filepath);
+	
+	if (filedata == NULL) {    //if file does not exists then return 404 error.
+    		resp_404(fd);
+            	return;
+	}
+
+    	else{                      //else serve the file that matches the request
+    		send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    		file_free(filedata);
+	}
 
   	
 }
@@ -170,9 +188,9 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
     
-    char request_path[2000];
-    char request_type[10];
-    char request_version[200];
+    char request_path[1024];
+    char request_type[8];
+    char request_version[128];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -192,8 +210,14 @@ void handle_http_request(int fd, struct cache *cache)
     		get_d20(fd);		
     	}
     
-    	else{                                 
-    		get_file(fd, cache, request_path);
+    	else{
+		if(strcmp(request_path, "/") == 0){
+			
+			get_file(fd, cache, "/index.html");
+		}
+		else{		
+    			get_file(fd, cache, request_path);
+		}	
    	 }
     }	
 	
