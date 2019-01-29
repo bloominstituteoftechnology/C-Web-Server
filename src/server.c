@@ -105,16 +105,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(NULL)); // initialize the random seed using the current time as seed
+
+    char response[4]; // initialize the string that will store our int d20 value
+
+    int d20 = (rand() % 20) + 1; // generate an int between 1-20 inclusive by using +1
+
+    sprintf(response, "%i\n", d20); // translate the d20 value into a string
+
+    printf("%i\n", d20); // console log the number for testing
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response)); // send the number string and its length in plaintext to send_response
 }
 
 /**
@@ -194,15 +196,15 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     // printf("Request: %s\n", request);
 
-    char method[8], path[32], protocol[16];
-    sscanf(request, "%s %s %s", method, path, protocol);
+    char method[8], path[32], protocol[16]; // initialize strings for our method, path, and protocol values
+    sscanf(request, "%s %s %s", method, path, protocol); // store the strings from the request header
     // printf("%s, %s, %s\n", method, path, protocol);
 
     if(strcmp(method, "GET") == 0 && strcmp(path, "/d20") == 0){
-        get_d20(fd);
+        get_d20(fd); // call d20 if /d20 path is found with GET method
         printf("get_d20() was called.\n");
     } else if(strcmp(method, "GET") == 0){
-        get_file(fd, cache, path);
+        get_file(fd, cache, path); // search for the path passed in the request
     } else {
         resp_404(fd);
     }
