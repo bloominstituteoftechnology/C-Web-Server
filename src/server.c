@@ -72,7 +72,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         body
     );
 
-
+    printf("response: %s\n", response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -160,6 +160,11 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
+    // Declare and degine buffers for the request:
+    char request_type[8]; // e.g. GET or POST
+    char request_path[1024]; // URL path info, e.g., /d20
+    char request_protocol[128]; // e.g. HTTP/1.1
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -168,18 +173,23 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
-    // If GET, handle the get endpoints
+    // If request_type is GET, handle the get endpoints:
+    if(strcmp(request_type, "GET") == 0) {
+        //  Check if request_path is /d20 and handle that special case:
+        if(strcmp(request_path, "/d20") == 0) {
+            get_d20(fd); 
+        } else {
+            get_file(fd, cache, request_path);  // if path is not /d20, then get file at the specified path
+        }
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
+    } else {
+        resp_404(fd); // if request_type is not GET, give 404 response
+    }
 
     // (Stretch) If POST, handle the post request
 }
