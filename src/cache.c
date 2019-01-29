@@ -9,19 +9,20 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *new_entry = malloc(sizeof(cache_entry));
+    new_entry->path = path;
+    new_entry->content_type = content_type;
+    new_entry->content = content;
+    new_entry->content_length = content_length;
+    return new_entry;
 }
 
 /**
  * Deallocate a cache entry
  */
 void free_entry(struct cache_entry *entry)
-{
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+{  
+    free(entry);
 }
 
 /**
@@ -122,9 +123,19 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *new_entry= alloc_entry(path, content_type, content, content_length);
+    dllist_insert_head(cache,new_entry);
+
+    hashtable_put(cache->hashtable,path,cache_entry);
+    cache->cur_size++;
+
+    if (cache->cur_size > cache->max_size){
+        struct cache_entry *tail = cache->tail;
+        hashtable_delete(cache->hashtable,tail);
+        dllist_remove_tail(tail);
+        free_entry(tail);
+        cache->cur_size = cache->max_size;
+    }
 }
 
 /**
