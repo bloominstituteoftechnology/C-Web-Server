@@ -52,18 +52,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+    
+    time_t t = time(NULL);
+    struct tm *local_time = localtime(&t);
 
-    time_t tm = time(NULL);   
-    struct  *local_time = localtime(&tm);
+    int response_length = sprintf(response,
+                                  "%s\n"
+                                  "Date: %s" // asctime adds a newline
+                                  "Connection: close\n"
+                                  "Content-Length: %d\n"
+                                  "Content-Type: %s\n"
+                                  "\n" // End of HTTP header
+                                  "%s\n", header, asctime(local_time), content_length, content_type, body);
 
-    int response_length = sprintf(response, 
-		    		  "%s\n" 
-				  "Date: %s\n"
-				  "Connection: close\n"
-				  "Content-Length: %d\n"
-				  "Content-Type: %s\n", 
-				  "\n"  //blank linke between header and body
-				  "%s\n", header, asctime(local_time), content_length, content_type, body);
+
+    //printf("Header: %s\n", header);
+    //printf("Date: %s", asctime(local_time));
+    //printf("Content-Length: %d\n", content_length);
+    //printf("Content-Type: %s\n", content_type);
+    //printf("Body: %s\n", body);
 
     // Build HTTP response and store it in response
 
@@ -89,15 +96,18 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(NULL)); 				//Intializes random number generator
+    int random_number = rand() % 20 + 1;          //generates random numbers between 1 and 20 inclusive
+    char header_content[] = "HTTP/1.1 200 OK";
+    
+
+    char response_body[8];
+    sprintf(response_body, "%d\n", random_number);   
+
 
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, header_content, "text/plain", response_body, strlen(response_body));
 }
 
 /**
@@ -134,6 +144,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
+
+  	
 }
 
 /**
