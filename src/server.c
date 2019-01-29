@@ -66,7 +66,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         response,
         "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",    
         header, 
-        asctime(gmtime(&time_response_sent)), 
+        asctime(localtime(&time_response_sent)), 
         content_length, 
         content_type, 
         body
