@@ -53,6 +53,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
 
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+
+    time( &rawtime );
+
+    info = localtime( &rawtime );
+
+    int response_length = sprintf(response, "header: %s\nDate: %s\ncontent_type: %s\nbody: %s\nConnection: close\nContent-Length: %i\n", header, asctime(info), content_type, body, content_length);
+    printf("%s\n", response);
+    // int response_length = strlen(response);
     // Build HTTP response and store it in response
 
     ///////////////////
@@ -153,6 +164,26 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    // char http[20], num[20];
+    // //"HTTP/1.1 200 OK";
+    // //HTTP/1.1 404 NOT FOUND;
+    // int ret = sscanf(request, "%s %s", http, num );
+    // printf("%s %s", http, num);
+
+    // if (num == '200'){
+    //     // handle correct response
+    // }
+
+    // if (num == '404'){
+    //     // handle correct response
+    // }
+
+    // if (num == '201'){
+    //     // handle correct response
+    // }
+
+    
+
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -187,6 +218,8 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
+
+    resp_404(listenfd);
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
