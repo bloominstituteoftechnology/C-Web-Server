@@ -76,9 +76,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     );
 
 
+    memcpy(response + response_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -94,6 +95,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    srand(time(0));
     int rand_num = (rand() % 20) + 1;
     char body[8];
     sprintf(body, "%d", rand_num);
@@ -143,6 +145,20 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if(filedata == NULL) {
+      resp_404(fd);
+    }else{
+      mime_type = mime_type_get(filepath);
+      send_response(fd, "HTTP/1.1 200 ok", mime_type, filedata->data, filedata->size);
+      file_free(filedata);
+    }
 }
 
 /**
