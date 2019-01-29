@@ -120,10 +120,16 @@ void resp_404(int fd)
 void get_file(int fd, struct cache *cache, char *request_path)
 {
     char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
 
     snprintf(filepath, sizeof filepath, "./serverroot%s",request_path);
-    struct file_data *filedata = file_load(filepath);
-    char *mime_type = mime_type_get(request_path);
+    filedata = file_load(filepath);
+    if (filedata == NULL) {
+        resp_404(fd);
+    }
+    
+    mime_type = mime_type_get(request_path);
 
     send_response(fd,"HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size );
     file_free(filedata);
@@ -158,13 +164,15 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    char http_method[20], endpoint[20];
+    char http_method[64], endpoint[64];
     sscanf(request, "%s %s",http_method, endpoint);
     
     if (strcmp(http_method,"GET") == 0){
+        // printf("REQUEST: %s\n", request);
         if (strcmp(endpoint, "/d20")==0){
             get_d20(fd);
         } else {
+            // printf("ENDPOINT:%s\n", endpoint);
             get_file(fd,cache,endpoint);
         }
         
