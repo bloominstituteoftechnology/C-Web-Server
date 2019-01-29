@@ -9,9 +9,11 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+    entry->path = string_dup(path);
+    entry->content_type = string_dup(content_type);
+    entry->content_length = content_length;
+    entry->content = content;
 }
 
 /**
