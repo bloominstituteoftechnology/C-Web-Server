@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -58,22 +59,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    time_t time_1 = time(NULL);  // create a marker for time
-
+    time_t time_response_sent = time(NULL);  // create a marker for time
+    
     // Define response_length:
     int response_length = sprintf(
         response,
-        "%s\n"   
-		"Date: %s\n"
-		"Connection: close\n"
-		"Content-Length: %d\n"
-		"Content-Type: %s\n", 
-		"\n" 
-		"%s\n", 
+        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",    
         header, 
-        asctime(gmtime(&time_1)), 
-        content_length, content_type, body
+        asctime(gmtime(&time_response_sent)), 
+        content_length, 
+        content_type, 
+        body
     );
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -125,6 +123,7 @@ void resp_404(int fd)
 
     mime_type = mime_type_get(filepath);
 
+    // int send_response(int fd, char *header, char *content_type, void *body, int content_length)
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
@@ -191,7 +190,6 @@ void handle_http_request(int fd, struct cache *cache)
 int main(void)
 {
     int newfd;  // listen on sock_fd, new connection on newfd
-    resp_404(newfd);
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
 
@@ -217,10 +215,14 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
+
         if (newfd == -1) {
             perror("accept");
+            
             continue;
         }
+        resp_404(newfd);  // test send_response without any other new code
+
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
@@ -229,9 +231,9 @@ int main(void)
         printf("server: got connection from %s\n", s);
         
         // newfd is a new socket descriptor for the new connection.
-        // listenfd is still listening for new connections.
+        // listenfd is still listening for new connections.        
 
-        handle_http_request(newfd, cache);
+        // handle_http_request(newfd, cache);
 
         close(newfd);
     }
