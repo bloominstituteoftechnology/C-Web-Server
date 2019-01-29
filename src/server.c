@@ -1,18 +1,18 @@
 /**
  * webserver.c -- A webserver written in C
- * 
+ *
  * Test with curl (if you don't have it, install it):
- * 
+ *
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
- * 
+ *
  * You can also test the above URLs in your browser! They should work!
- * 
+ *
  * Posting Data:
- * 
+ *
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
- * 
+ *
  * (Posting data is harder to test from a browser.)
  */
 
@@ -45,38 +45,43 @@
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
- * 
+ *
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 65536;
-    char response[max_response_size]; // char buffer
-    int response_length = 0;          // length of header, the total number of bytes returned from sprintf()
-    time_t rawtime;
-    struct tm *timeinfo;
+    char response[max_response_size];
+    int response_length;
 
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
+    time_t raw_time;
+    struct tm *info;
+    char t_buff[80];
+    time(&raw_time);
+    info = localtime(&raw_time);
+    strftime(t_buff, sizeof t_buff, "%c", info);
 
     // Build HTTP response and store it in response
-    // sprintf stands for “String print”. Instead of printing on console, it store output on char buffer which is specified in sprintf
-    response_length = sprintf(response,
-                              "%s\n"
-                              "Date: %s"
-                              "Connection: close\n"
-                              "Content-Length: %d\n"
-                              "Content-Type: %s\n"
-                              "\n", // The end of the header on both the request and response is marked by a blank line
 
-                              header,
-                              asctime(timeinfo),
-                              content_length,
-                              content_type);
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
+    // HTTP/1.1 200 OK
+    // Date: Wed Dec 20 13:05:11 PST 2017
+    // Connection: close
+    // Content-Length: 41749
+    // Content-Type: text/html
+    //
+    //body
 
-    // The total length of the header and body should be stored in the response_length variable
-    // so that the send() call knows how many bytes to send out over the wire.
-    response_length += content_length; // Header + length of body
+    response_length = sprintf(
+        response,
+        "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+        header,
+        t_buff,
+        content_length,
+        content_type,
+        body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -95,13 +100,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-
+    int rand_num = (rand() % 20) + 1;
+    char body[8];
+    sprintf(body, "%d", rand_num);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 ok", "text/plain", body, strlen(body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -146,7 +153,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
 /**
  * Search for the end of the HTTP header
- * 
+ *
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
@@ -164,7 +171,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char method[10], path[20], protocol[20];
+    char method[3];
+    char path[256];
+    char protocol[128];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -175,32 +184,26 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    // Read the three components of the first request line
-    // The variable request in handle_http_request() holds the entire HTTP request once the recv() call returns.
-    printf("request: %s\n", request);
-    sscanf(request, "%s %s %s", method, path, protocol);
-    printf("method: %s, path: %s, protocol: %s", method, path, protocol);
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
 
+    // Read the three components of the first request line
+    sscanf(request, "%s %s %s", method, path, protocol);
     // If GET, handle the get endpoints
-    // Check if it's /d20 and handle that special case
-    // Otherwise serve the requested file by calling get_file()
-    // Hint: strcmp() for matching the request method and path. Another hint: strcmp() returns 0 if the strings are the same!
-    if (strcmp(method, "GET") == 0)
+    if (!strcmp(method, "GET"))
     {
-        if (strcmp(path, "/d20") == 0)
+        //    Check if it's /d20 and handle that special case
+        if (!strcmp(path, "/d20"))
         {
             get_d20(fd);
         }
         else
         {
-            get_file(fd, cache, request_path);
+            //    Otherwise serve the requested file by calling get_file()
+            get_file(fd, cache, path);
         }
     }
-    else
-    {
-        resp_404(fd);
-    }
-
     // (Stretch) If POST, handle the post request
 }
 
