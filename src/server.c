@@ -164,6 +164,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[10], path[20], protocol[20];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -173,18 +174,27 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
+    // The variable request in handle_http_request() holds the entire HTTP request once the recv() call returns.
+    printf("request: %s\n", request);
+    sscanf(request, "%s %s %s", method, path, protocol);
+    printf("method: %s, path: %s, protocol: %s", method, path, protocol);
 
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
+    // Check if it's /d20 and handle that special case
+    // Otherwise serve the requested file by calling get_file()
+    // Hint: strcmp() for matching the request method and path. Another hint: strcmp() returns 0 if the strings are the same!
+    if (strcmp(method, "GET") == 0) {
+      if (strcmp(path, "/d20") == 0) {
+        get_d20(fd);
+      }
+      else {
+        get_file(fd, cache, request_path);
+      }
+    }
+    else {
+      resp_404(fd);
+    }
 
     // (Stretch) If POST, handle the post request
 }
