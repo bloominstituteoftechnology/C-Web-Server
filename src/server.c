@@ -60,6 +60,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     int response_length = sizeof(header) + sizeof(body);
+    char response =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/html; charset=UTF-8 %d\r\n\r\n", sizeof(body)
+            "<!DOCTYPE html>\r\n";
 
 
     // Send it all!
