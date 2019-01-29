@@ -15,7 +15,7 @@ struct cache_entry {
 struct cache {
     struct hashtable *index;
     struct cache_entry *head, *tail; // Doubly-linked list
-    int max_size; // Maxiumum number of entries
+    int max_size; // Maximum number of entries
     int cur_size; // Current number of entries
 };
 

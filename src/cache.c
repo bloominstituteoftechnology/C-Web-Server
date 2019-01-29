@@ -98,11 +98,11 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
 struct cache *cache_create(int max_size, int hashsize)
 {
     struct cache *cache = malloc(sizeof *cache);
-    cache->tail = NULL;
-    cache->head = NULL;
-    cache->index =hashtable_create(hashsize, NULL);
-    cache->max_size=max_size;
-    cache->cur_size = 0;
+    cache->tail = NULL;// Doubly-linked list cache.h
+    cache->head = NULL;// Doubly-linked list cache.h
+    cache->index =hashtable_create(hashsize, NULL);//Maximum number of entries
+    cache->max_size=max_size;// Maximum number of entries, cache.h
+    cache->cur_size = 0; //current number of entries, cache.h
 
     return cache;
 }
@@ -143,7 +143,12 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if(!hashtable_get(cache->index, path)){
+        return NULL;
+
+    }else{
+        struct cache_entry *ce = hashtable_get(cache->index, path);
+        dllist_move_to_head(cache, ce);
+        return ce; 
+        }
 }
