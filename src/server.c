@@ -80,16 +80,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(NULL));
 
-    // Use send_response() to send it back as text/plain data
+    char random[5];
+    sprintf(random,"%d\n", 1 + rand() % 20);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random, strlen(random) );
 }
 
 /**
@@ -156,8 +152,6 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
-    printf("request: %s\n", request);
 
     char http_method[20], endpoint[20];
     sscanf(request, "%s %s",http_method, endpoint);
