@@ -16,6 +16,43 @@
  * (Posting data is harder to test from a browser.)
  */
 
+/* 
+https://www.geeksforgeeks.org/snprintf-c-library/
+ 
+snprintf()
+
+the snprintf() function formats and stores a series
+of characters and values in the array buffer.  The 
+snprintf() function with the addition of the n argument,
+which indicates the maximum number of characters 
+(including at the end of null character) to be written to buffer.
+
+int snprintf(char *str, size_t size, const char *format, ...);
+
+*str : is a buffer.
+size : is the maximum number of bytes
+(characters) that will be written to the buffer.
+format : C string that contains a format
+string that follows the same specifications as format in printf
+... : the optional ( …) arguments 
+are just the string formats like (“%d”, myint) as seen in printf.
+
+strstr()
+
+https://www.geeksforgeeks.org/strstr-in-ccpp/
+
+This function takes two strings s1 and s2 as an argument and finds 
+the first occurrence of the sub-string s2 in the string s1. The 
+process of matching does not include the terminating 
+null-characters(‘\0’), but function stops there.
+
+char *strstr (const char *s1, const char *s2);
+
+Parameters:
+s1: This is the main string to be examined.
+s2: This is the sub-string to be searched in s1 string.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -50,18 +87,60 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 131072;
     char response[max_response_size];
+    int response_length = 0; //total length of both header and body
+
+    //get time for HTTP header
+    time_t t1 = time(NULL);
+    struct tm *ltime = localtime(&t1);
 
     // Build HTTP response and store it in response
+
+    /*
+    use sprintf() for creating the HTTP response
+    https://www.tutorialspoint.com/c_standard_library/c_function_sprintf.htm
+    Composes a string with the same text that would be printed if format was 
+    used on printf, but instead of being printed, the content is stored as a 
+    C string in the buffer pointed to by str.  Return value is number of bytes
+
+    use strlen() for computing the content length
+
+    use sprintf() to return the total number of bytes in the resulting string
+
+    use time() and localtime() functions are included in time.h
+     */
+
+    response_length = sprintf(response,  
+        // construct the response
+        // formatting for subsequent arguments
+        "%s\n" //header
+        "Date: %s"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n",
+
+        header,
+        asctime(ltime), 
+        content_length, 
+        content_type
+        );
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    /* memcpy() allows us to copy ambiguous data types (unlike strcopy) returns void pointer
+     https://www.tutorialspoint.com/c_standard_library/c_function_memcpy.htm
+     response + response_length is the number of bytes to copy response is a char array, also a pointer.
+     Adding response to response length shifts the pointer by an amount equal to response length -- essentially 
+     allows us to move past the header stuff. */
+
+    memcpy(response + response_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
-
+    int rv = send(fd, response, response_length + content_length, 0);
+    
     if (rv < 0) {
         perror("send");
     }
@@ -81,11 +160,21 @@ void get_d20(int fd)
     // IMPLEMENT ME! //
     ///////////////////
 
+    // use srand(getpid()), s "seeding"
+    srand(getpid() + time(NULL));
+
+    // initialize the response body 
+    char response_body[8];
+    // inject an integer into the response body
+    sprintf(response_body, "%d\n", (rand() % 20) + 1); // %20 gives 0-19, + 1 shifts upwards by 1
+
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 }
 
 /**
@@ -99,6 +188,7 @@ void resp_404(int fd)
 
     // Fetch the 404.html file
     snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
+    
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
@@ -122,6 +212,75 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // initialize the file path (I was confusing request_path and file path)
+    char filepath[4096];
+    // initialize file_data struct
+    struct file_data *filedata; 
+    // initialize the cache_entry struct
+    struct cache_entry *cache_entry;
+    // initialize pointer to mime_type
+    char *mime_type;
+    
+    // look for the file in the cache using cache_get() and the request_path as the identifier?
+    cache_entry = cache_get(cache, request_path);
+
+    // if there is a corresponding file, get it using send_response() function
+    if (cache_entry != NULL)
+    {
+        // send_response(int fd, char *header, char *content_type, void *body, int content_length)
+        send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length); 
+    }
+
+    // else, the file is not in the cache, use send_response to get file the regular way
+    else
+    {
+        // Fetch the file
+        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+        
+        // use file_load to assign file_data
+        filedata = file_load(filepath);
+        // if file_content is null, indicate failure
+
+        if (filedata == NULL) {
+            // this deals with the / path
+            snprintf(filepath, sizeof(filepath), "%s%s/index.html", SERVER_ROOT, request_path);
+            filedata = file_load(filepath);
+
+            if (filedata == NULL) {
+                resp_404(fd);
+                return;
+            }
+        }
+
+        // use mime_get_type to assign mime_type
+        mime_type = mime_type_get(filepath);
+
+        // send the response 
+        // (int fd = fd
+        // char *header = "HTTP/1.1 200 OK" 
+        // char *content_type = mime_type
+        // void *body = file_content->data
+        // int content_length = file_content->size
+        // )
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        // then add the file to the cache for later access
+        /* cache_put(
+            struct cache *cache, this is the inputted cache
+            char *path, this is the filepath
+            char *content_type, this is the mime_type of the file
+            void *content, this is the content of the file
+            int content_length, this is the size of the file
+            )
+        */
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);   
+
+        // use file_free() to clear
+        file_free(filedata); 
+    }
+    return 0;
 }
 
 /**
@@ -135,6 +294,11 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+
+    //set a char pointer *p;
+
+    //use strstr to find the first occurance of "header" in the string "\n\n"
+
 }
 
 /**
@@ -145,6 +309,13 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
+    //--initialize request type length ~8
+    char request_type[8];
+    //--initialize request path length ~1024
+    char request_path[1024];
+    //--initialize request protocol length ~16
+    char request_protocol[16];
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -153,19 +324,34 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
 
+    /*use sscanf() https://www.tutorialspoint.com/c_standard_library/c_function_sscanf.htm
+     to take from the request buffer and break the first line into its component pieces, 
+     specify format %s %s %s, type, path, protocol */
+
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+    printf("get request: %s %s %s", request_type, request_path, request_protocol);
+
     // If GET, handle the get endpoints
 
-    //    Check if it's /d20 and handle that special case
+    //    Check if it's /d20 and handle that special case (strcmp == 0 means strings are the same)
     //    Otherwise serve the requested file by calling get_file()
 
-
+    //check if the request is a GET type
+    if (strcmp(request_type, "GET") == 0){
+        // check if the file path is /d20
+        if (strcmp(request_path, "/d20") == 0){
+            get_d20(fd); //fd will be a randomly generated number between 0 and 20
+        } else {
+            get_file(fd, cache, request_path);
+        }
+    }
     // (Stretch) If POST, handle the post request
 }
 
