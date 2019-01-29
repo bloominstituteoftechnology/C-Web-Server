@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 2000000;
     char response[max_response_size];
 
     // SAMPLE: 
@@ -150,6 +150,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    struct file_data *filedata = NULL;
+    char *mime_type;
+
+    char full_path[256];
+    sprintf(full_path, "./serverroot%s", request_path);
+    printf("%s\n", full_path);
+
+    filedata = file_load(full_path);
+    mime_type = mime_type_get(full_path);
+
+    // verify filedata returns something
+    if(filedata != NULL){
+        // if data, call send_response
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+    } else {
+        resp_404(fd);
+    }
+
+    
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -204,6 +225,7 @@ void handle_http_request(int fd, struct cache *cache)
         get_d20(fd); // call d20 if /d20 path is found with GET method
         printf("get_d20() was called.\n");
     } else if(strcmp(method, "GET") == 0){
+        printf("get_file() was called.\n");
         get_file(fd, cache, path); // search for the path passed in the request
     } else {
         resp_404(fd);
