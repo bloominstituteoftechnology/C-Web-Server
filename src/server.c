@@ -141,10 +141,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 202 OK", mime_type, filedata->data, filedata->size);
-
-    // ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    return;
 }
 
 /**
@@ -185,21 +182,16 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(request_type, "GET") == 0){
     //    Check if it's /d20 and handle that special case
         if (strcmp(path, "/d20") == 0){
-            printf("20\n");
             get_d20(fd);
-            // get_file(fd, cache, path);
             return;
         }
     //    Otherwise serve the requested file by calling get_file()
         else {
-        printf("handle_http else clause running\n");
         get_file(fd, cache, path);
         return;
         }
 
     }
-
-
 
     // (Stretch) If POST, handle the post request
     if (strcmp(request_type, "POST") == 0){
