@@ -64,6 +64,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     if (rv < 0) {
         perror("send");
+        exit(1);
     }
 
     return rv;
