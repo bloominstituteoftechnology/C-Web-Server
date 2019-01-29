@@ -84,11 +84,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    int number = rand() % 21;
-    char num_char[2];
-    sprintf(num_char, "%d", number);
+    int number = 1 + rand() % 20;
+    char num_char[12];
+    sprintf(num_char, "<h1>%d</h1>", number);
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num_char, strlen(num_char));
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", num_char, strlen(num_char));
     return;
 }
 
@@ -122,7 +122,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
+    printf("get file running\n");
+    printf("request_path: %s\n", request_path);
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    // Fetch the [request_path] file
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find system 404 file\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 202 OK", mime_type, filedata->data, filedata->size);
+
+    // ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 }
@@ -165,12 +185,14 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(request_type, "GET") == 0){
     //    Check if it's /d20 and handle that special case
         if (strcmp(path, "/d20") == 0){
+            printf("20\n");
             get_d20(fd);
             // get_file(fd, cache, path);
             return;
         }
     //    Otherwise serve the requested file by calling get_file()
         else {
+        printf("handle_http else clause running\n");
         get_file(fd, cache, path);
         return;
         }
