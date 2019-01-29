@@ -51,24 +51,32 @@
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 65536;
-    char response[max_response_size];
+    char response[max_response_size]; // char buffer
+    int response_length = 0;          // length of header, the total number of bytes returned from sprintf()
+    time_t rawtime;
+    struct tm *timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
 
     // Build HTTP response and store it in response
+    // sprintf stands for “String print”. Instead of printing on console, it store output on char buffer which is specified in sprintf
+    response_length = sprintf(response,
+                              "%s\n"
+                              "Date: %s"
+                              "Connection: close\n"
+                              "Content-Length: %d\n"
+                              "Content-Type: %s\n"
+                              "\n", // The end of the header on both the request and response is marked by a blank line
 
-    int response_length;
-    char t_buff[80];
-    time_t c_time = time(NULL);
+                              header,
+                              asctime(timeinfo),
+                              content_length,
+                              content_type);
 
-    strftime(t_buff, (sizeof t_buff) - 1, "%c", &c_time);
-
-    response_length = sprintf(
-        response,
-        "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
-        header,
-        t_buff,
-        content_length,
-        content_type,
-        body);
+    // The total length of the header and body should be stored in the response_length variable
+    // so that the send() call knows how many bytes to send out over the wire.
+    response_length += content_length; // Header + length of body
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -156,6 +164,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[10], path[20], protocol[20];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -166,16 +175,31 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
+    // The variable request in handle_http_request() holds the entire HTTP request once the recv() call returns.
+    printf("request: %s\n", request);
+    sscanf(request, "%s %s %s", method, path, protocol);
+    printf("method: %s, path: %s, protocol: %s", method, path, protocol);
 
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+    // Check if it's /d20 and handle that special case
+    // Otherwise serve the requested file by calling get_file()
+    // Hint: strcmp() for matching the request method and path. Another hint: strcmp() returns 0 if the strings are the same!
+    if (strcmp(method, "GET") == 0)
+    {
+        if (strcmp(path, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else
+        {
+            get_file(fd, cache, request_path);
+        }
+    }
+    else
+    {
+        resp_404(fd);
+    }
 
     // (Stretch) If POST, handle the post request
 }
@@ -227,7 +251,7 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-        resp_404(newfd);
+
         handle_http_request(newfd, cache);
 
         close(newfd);
