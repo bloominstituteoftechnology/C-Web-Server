@@ -52,6 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
+
     int response_length = 0;
     time_t rawtime;
     struct tm *timeinfo;
@@ -61,16 +62,33 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     timeinfo = localtime(&rawtime);
 
     // Build HTTP response and store it in response
-    response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n",
-                            header, content_length, content_type, asctime(timeinfo));
+    response_length = sprintf(response, 
+    "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n", 
+    header, content_length, 
+    content_type, asctime(timeinfo));
 
     memcpy(response+response_length, body, content_length);
 
     response_length += content_length;
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
+
+    // int response_length = 0;
+    // time_t rawtime;
+    // struct tm *timeinfo;
+
+    // time(&rawtime);
+
+    // timeinfo = localtime(&rawtime);
+    
+
+    // Build HTTP response and store it in response
+    //int response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n %s\n",
+                           // header, content_length, content_type, body);//asctime(timeinfo)
+
+    //memcpy(response+response_length, body, content_length);
+
+    //response_length += content_length;
+   // printf("response\n%s", response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -147,8 +165,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     check_cache = cache_get(cache, path);
 
     if (check_cache !=NULL) {
-        send_response(fd, "HTTP/1.1 200 OK", check_cache->content_type, 
-        check_cache->content, check_cache->content_length);
+        send_response(fd, "HTTP/1.1 200 OK", 
+        check_cache->content_type, 
+        check_cache->content, 
+        check_cache->content_length);
     } else{
     filedata = file_load(path);
 
@@ -203,6 +223,7 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    printf("Request %s\n", request);
     char method[5], file[20], protocol[20];
 
     sscanf(request, "%s %s %s", method, file, protocol);
