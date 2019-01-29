@@ -62,9 +62,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    int response_length = sprintf(response, "%s\n Date: %s\n Connection: close\n Content_length: %d\n Content_type: %s\n Body: %s\n",
-                                  header, asctime(info), content_length, content_type, body);
-    printf("Response: %s\n", response);
+    int response_length = sprintf(response,
+                                  "%s\n"
+                                  "Date: %s"
+                                  "Content-Length: %d\n"
+                                  "Content-Type: %s\n"
+                                  "Connection: close\n"
+                                  "\n"
+                                  "%s\n",
+                                  header,
+                                  asctime(info),
+                                  content_length,
+                                  content_type,
+                                  body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -143,6 +153,32 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    // Fetch the correct .html file
+    if (strcmp(request_path, "/index.html"))
+    {
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+    }
+    else
+    {
+        snprintf(filepath, sizeof filepath, "%s", SERVER_ROOT, request_path);
+    }
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        resp_404(fd);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -185,13 +221,16 @@ void handle_http_request(int fd, struct cache *cache)
     char request_method[20], request_endpoint[20], request_protocol[20];
     sscanf(request, "%s %s %s", request_method, request_endpoint, request_protocol);
 
+    // check request
+    printf("Request: %s %s %s\n", request_method, request_endpoint, request_protocol);
+
     // If header info cotains 200 then it is get request
 
     // If GET, handle the get endpoints
     if (strcmp(request_method, "GET") == 0)
     {
         //    Check if it's /d20 and handle that special case
-        if (strcmp(request_endpoint, "/d20"))
+        if (strcmp(request_endpoint, "/d20") == 0)
         {
             get_d20(fd);
         }
@@ -224,7 +263,6 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
-    resp_404(listenfd);
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
