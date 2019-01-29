@@ -72,7 +72,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         body
     );
 
-    printf("response: %s\n", response);
+    // printf("response: %s\n", response);
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -89,13 +90,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    printf("\nget_d20() called");
     // Generate a random number between 1 and 20 inclusive
     // IMPLEMENT ME! //
 
     srand(time(NULL));                           // initialize random generator
-    int random_num = rand() % 20 + 1;            // generate a random number b/w 1 and 20 inc.
+    int random_num = (rand() % 20) + 1;          // generate a random number b/w 1 and 20 inc.
+    printf("\nrandom_num == %d", random_num);
     char body_content[8];                        // initialize an 8-bit char
     sprintf(body_content, "%d\n", random_num);   // sprintf the random number into body_content
+    printf("\nresponse body_content == %s", body_content);
 
     char header[] = "HTTP/1.1 200 OK";           // define the header for the response
 
@@ -103,7 +107,7 @@ void get_d20(int fd)
 
     // Use send_response() to send it back as text/plain data
     // IMPLEMENT ME! //
-    send_response(fd, header, content_type, body_content, strlen(body_content));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body_content, strlen(body_content));
 }
 
 /**
@@ -182,13 +186,16 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
+    printf("\nHTTP request made -- \nType: %s \nPath: %s \nProtocol: %s\n", request_type, request_path, request_protocol);
+
     // If request_type is GET, handle the get endpoints:
     if(strcmp(request_type, "GET") == 0) {
         //  Check if request_path is /d20 and handle that special case:
         if(strcmp(request_path, "/d20") == 0) {
             get_d20(fd); 
         } else {
-            get_file(fd, cache, request_path);  // if path is not /d20, then get file at the specified path
+            resp_404(fd);
+            // get_file(fd, cache, request_path);  // if path is not /d20, then get file at the specified path
         }
 
     } else {
@@ -247,7 +254,7 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.        
 
-        // handle_http_request(newfd, cache);
+        handle_http_request(newfd, cache);
 
         close(newfd);
     }
