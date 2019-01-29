@@ -50,6 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+    printf("send response called ~~~\n");
     const int max_response_size = 65536;
     char response[max_response_size];
 
@@ -64,8 +65,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
     // set response and response_length
+    printf("here\n");
+    // printf()
     int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %ld\nContent-Type: %s\n\n %s", header, asctime(info), strlen(body), content_type, body);
-
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -84,16 +86,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    int number = rand() % 21;
+    char num_char[2];
+    sprintf(num_char, "%d", number);
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num_char, strlen(num_char));
+    return;
 }
 
 /**
@@ -166,22 +165,19 @@ void handle_http_request(int fd, struct cache *cache)
     char request_type[5], path[50], header[10];
     sscanf(request, "%s %s %s", request_type, path, header);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
     if (strcmp(request_type, "GET") == 0){
     //    Check if it's /d20 and handle that special case
         if (strcmp(path, "/d20") == 0){
-            printf("handling /d20");
+            get_d20(fd);
+            // get_file(fd, cache, path);
             return;
         } 
     //    Otherwise serve the requested file by calling get_file()
         else {
-        get_file(fd, cache, path)
+        get_file(fd, cache, path);
         return;
         }
 
@@ -242,7 +238,7 @@ int main(void)
         // listenfd is still listening for new connections.
         
         //testing send_response
-        resp_404(newfd);
+        // resp_404(newfd);
 
         handle_http_request(newfd, cache);
 
