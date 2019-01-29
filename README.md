@@ -158,8 +158,8 @@ The hashtable code is already written and can be found in `hashtable.c`.
    * Store the entry in the hashtable as well, indexed by the entry's `path`.
    * Increment the current size of the cache.
    * If the cache size is greater than the max size:
-     * Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
      * Remove the cache entry at the tail of the linked list.
+     * Remove that same entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
      * Free the cache entry.
      * Ensure the size counter for the number of entries in the cache is correct.
 
