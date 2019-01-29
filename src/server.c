@@ -54,21 +54,21 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 65536;
     char response[max_response_size];
     time_t date_time = time(NULL);
-    char *body_str = body;
 
     // Build HTTP response and store it in response
     int response_length = sprintf(
         response,
-        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",
+        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n",
         header,
         asctime(gmtime(&date_time)),
         content_length,
-        content_type,
-        body_str
+        content_type
     );
 
+    memcpy(response + response_length, body, content_length);
+
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -128,9 +128,7 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    
 }
 
 /**
