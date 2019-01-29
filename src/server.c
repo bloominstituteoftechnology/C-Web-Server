@@ -15,7 +15,7 @@
  *
  * (Posting data is harder to test from a browser.)
  */
- 
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,10 +55,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    char *body_char = body;
+    int response_length = strlen(body);
+    // >>>> this likely has to have headers concatenated onto it
+    sprintf(response, "%s\nDate: \nConnection: close\nContent-Length: %d\nContent-Type: text/html\n\n%s", header, content_length, body_char);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    printf(response);
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -194,6 +197,8 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
+
+    resp_404(listenfd);
 
     while(1) {
         socklen_t sin_size = sizeof their_addr;
