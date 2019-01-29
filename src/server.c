@@ -39,18 +39,18 @@
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
 
+
 /**
  * Send an HTTP response
  *
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
- * 
+ *
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    printf("send response called ~~~\n");
     const int max_response_size = 65536;
     char response[max_response_size];
 
@@ -65,8 +65,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
     // set response and response_length
-    printf("here\n");
-    // printf()
     int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %ld\nContent-Type: %s\n\n %s", header, asctime(info), strlen(body), content_type, body);
 
     // Send it all!
@@ -89,7 +87,6 @@ void get_d20(int fd)
     int number = rand() % 21;
     char num_char[2];
     sprintf(num_char, "%d", number);
-    
     // Use send_response() to send it back as text/plain data
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", num_char, strlen(num_char));
     return;
@@ -101,7 +98,7 @@ void get_d20(int fd)
 void resp_404(int fd)
 {
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata;
     char *mime_type;
 
     // Fetch the 404.html file
@@ -117,8 +114,6 @@ void resp_404(int fd)
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
-    // printf("\n~~~\n");
-    // printf("sending...\n");
     file_free(filedata);
 }
 
@@ -150,7 +145,6 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    printf("handle http request\n");
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -174,7 +168,7 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
             // get_file(fd, cache, path);
             return;
-        } 
+        }
     //    Otherwise serve the requested file by calling get_file()
         else {
         get_file(fd, cache, path);
@@ -184,7 +178,7 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
 
-    
+
     // (Stretch) If POST, handle the post request
     if (strcmp(request_type, "POST") == 0){
         printf("POST request. Exiting\n");
@@ -197,6 +191,9 @@ void handle_http_request(int fd, struct cache *cache)
  */
 int main(void)
 {
+    //set a seed for better randomness
+    srand(time(NULL));
+
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
@@ -236,7 +233,7 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-        
+
         //testing send_response
         // resp_404(newfd);
 
