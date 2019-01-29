@@ -53,18 +53,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 65536;
     char response[max_response_size];
-
-    // Build HTTP response and store it in response
+    char *body_str = body;
     time_t date_time = time(NULL);
 
+    // Build HTTP response and store it in response
     int response_length = sprintf(
         response,
-        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",
         header,
         asctime(gmtime(&date_time)),
         content_length,
         content_type,
-        body
+        body_str
     );
 
     // Send it all!
@@ -84,10 +84,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    srand(time(0));
     int lower = 1;
     int upper = 20;
     char result[10];
-
     int d20 = (rand() % (upper - lower + 1)) + lower;
     sprintf(result,"%d\n",d20);
 
@@ -176,7 +176,6 @@ void handle_http_request(int fd, struct cache *cache)
         // Otherwise serve the requested file by calling get_file()
         return get_file(fd, cache, req_path);
     }
-
 
     // (Stretch) If POST, handle the post request
 
