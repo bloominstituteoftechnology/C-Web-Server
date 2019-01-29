@@ -59,7 +59,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     int response_length = sprintf(
         response,
-        "%s\nDate: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
+        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s",
         header,
         asctime(gmtime(&date_time)),
         content_length,
@@ -84,16 +84,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int lower = 1;
+    int upper = 20;
+    char result[10];
+
+    int d20 = (rand() % (upper - lower + 1)) + lower;
+    sprintf(result,"%d\n",d20);
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", result, strlen(result));
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -152,6 +152,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char req_method[8], req_path[16], req_protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -161,20 +162,25 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", req_method, req_path, req_protocol);
 
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+    if (strcmp(req_method, "GET") == 0)
+    {
+        // Check if it's /d20 and handle that special case
+        if (strcmp(req_path, "/d20") == 0)
+        {
+            return get_d20(fd);
+        }
+        // Otherwise serve the requested file by calling get_file()
+        return get_file(fd, cache, req_path);
+    }
 
 
     // (Stretch) If POST, handle the post request
+
+    return resp_404(fd);
 }
 
 /**
@@ -231,4 +237,3 @@ int main(void)
 
     return 0;
 }
-
