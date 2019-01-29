@@ -90,16 +90,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
+
+    srand(time(NULL));                           // initialize random generator
+    int random_num = rand() % 20 + 1;            // generate a random number b/w 1 and 20 inc.
+    char body_content[8];                        // initialize an 8-bit char
+    sprintf(body_content, "%d\n", random_num);   // sprintf the random number into body_content
+
+    char header[] = "HTTP/1.1 200 OK";           // define the header for the response
+
+    char content_type[] = "text/plain";          // define the content_type for the response body
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, header, content_type, body_content, strlen(body_content));
 }
 
 /**
@@ -231,7 +235,7 @@ int main(void)
             
             continue;
         }
-        resp_404(newfd);  // test send_response without any other new code
+        // resp_404(newfd);  // test send_response without any other new code
 
 
         // Print out a message that we got the connection
