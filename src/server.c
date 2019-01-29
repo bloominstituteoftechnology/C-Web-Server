@@ -82,13 +82,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // 1. Set seed for rand()
+    srand( time(0) );
 
-    // Use send_response() to send it back as text/plain data
+    // 2. Make the random number
+    int random_number = ( rand() % 20 ) + 1;
+    printf("random number is: %d", random_number);
 
+    // 3. Assign the number to the data given into send_response 3rd arg
+    char data[50];
+    sprintf(data, "%d", random_number);
+
+    // 4. Use send_response() to send it back as text/plain data || 
+    /*
+    Argument List for Send_response():
+        1. File Descriptor (this is passed in as an argument)
+        2. This is just a mime of the request_type, set it yourself
+        3. Block of "data" --> we assigned the rand number into it
+        4. Size of the data
+    */
+    send_response(fd, "HTTP/1.1 200 OK, MIME", "text/plain", data, strlen(data));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -180,12 +193,13 @@ void handle_http_request(int fd, struct cache *cache)
     */    
     char request_type[20], request_endpoint[20], request_http[100];
     sscanf(request, "%s %s %s", request_type, request_endpoint, request_http);
-    printf("Inside my handle_http: \n%s\n%s\n%s\n", request_type, request_endpoint), request_http;
+    printf("Inside my handle_http: \n%s\n%s\n%s\n", request_type, request_endpoint, request_http);
 
     // If GET, handle the get endpoints
-    if( strcmp(request_type, "GET") == 0 ) {
+    if(!strcmp(request_type, "GET")) {
         // Check if it's /d20 and handle that special case
-        if ( strcmp(request_endpoint, "/d20") == 0 ) {
+        printf("strcmp GET print check\n");
+        if (!strcmp(request_endpoint, "/d20")) {
             printf("Request-endpoint: /d20\n");
             get_d20(fd);
         } else {
@@ -222,7 +236,7 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
-    resp_404(listenfd);
+    // resp_404(listenfd);
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
