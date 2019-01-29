@@ -132,9 +132,11 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *ce = alloc_entry(path, content_type, content_length, content);
+    dllist_insert_head(cache, ce);
+    hashtable_put(cache->index, path, ce);
+    cache->cur_size +=1; //current number cache.h
+
 }
 
 /**
