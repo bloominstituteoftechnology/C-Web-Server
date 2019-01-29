@@ -21,9 +21,11 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    if (entry->path != NULL)             { free(entry->path); }
+    if (entry->content_type != NULL)     { free(entry->content_type); }
+    if (entry->content_length != NULL)   { free(entry->content_length); }
+    if (entry->content != NULL)          { free(entry->content); }
+    free(entry);
 }
 
 /**
