@@ -87,11 +87,21 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
 
+    // Create a body
+    char body[30];
+
+    // random number from 1-20
+    int random = rand() % 21 + 1;
+
+    // packaging body
+    int body_length = sprintf(body, "%d\n", random);
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, body_length);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -170,6 +180,8 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     // Need values from response
+
+    // GET /d20 200
     char request_method[20], request_endpoint[20], request_protocol[20];
     sscanf(request, "%s %s %s", request_method, request_endpoint, request_protocol);
 
