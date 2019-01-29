@@ -157,6 +157,22 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    printf("request: %s\n", request);
+
+    char http_method[20], endpoint[20];
+    sscanf(request, "%s %s",http_method, endpoint);
+    
+    if (strcmp(http_method,"GET") == 0){
+        if (strcmp(endpoint, "/d20")==0){
+            get_d20(fd);
+        } else {
+            // get_file(fd,cache,endpoint);
+            resp_404(fd);
+        }
+        
+    } else {
+        resp_404(fd);
+    }
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -217,10 +233,7 @@ int main(void)
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        
-
-
-        resp_404(newfd);
+ 
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
