@@ -178,7 +178,15 @@ void handle_http_request(int fd, struct cache *cache)
     // The variable request in handle_http_request() holds the entire HTTP request once the recv() call returns.
     printf("request: %s\n", request);
     sscanf(request, "%s %s %s", method, path, protocol);
-    printf("method: %s, path: %s, protocol: %s", method, path, protocol);
+    printf("Inside handle_http_request:\n"
+      "method: %s,\n"
+      "path: %s,\n"
+      "protocol: %s\n",
+      
+      method,
+      path,
+      protocol
+    );
 
     // If GET, handle the get endpoints
     // Check if it's /d20 and handle that special case
@@ -189,7 +197,7 @@ void handle_http_request(int fd, struct cache *cache)
         get_d20(fd);
       }
       else {
-        get_file(fd, cache, request_path);
+        get_file(fd, cache, path);
       }
     }
     else {
