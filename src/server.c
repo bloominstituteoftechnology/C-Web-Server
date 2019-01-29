@@ -58,6 +58,22 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    time_t time_1 = time(NULL);  // create a marker for time
+
+    // Define response_length:
+    int response_length = sprintf(
+        response,
+        "%s\n"   
+		"Date: %s\n"
+		"Connection: close\n"
+		"Content-Length: %d\n"
+		"Content-Type: %s\n", 
+		"\n" 
+		"%s\n", 
+        header, 
+        asctime(gmtime(&time_1)), 
+        content_length, content_type, body
+    );
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -175,6 +191,7 @@ void handle_http_request(int fd, struct cache *cache)
 int main(void)
 {
     int newfd;  // listen on sock_fd, new connection on newfd
+    resp_404(newfd);
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
 

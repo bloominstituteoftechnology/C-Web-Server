@@ -4,8 +4,10 @@ In this project, we'll finish the implementation of a web server in C.
 
 What you need to write:
 
-* HTTP request parser
-* HTTP response builder
+* Days 1-2:
+  * HTTP request parser
+  * HTTP response builder
+* Days
 * LRU cache
   * Doubly linked list (some functionality provided)
   * Use existing hashtable functionality (below)
