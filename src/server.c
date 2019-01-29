@@ -51,7 +51,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 130536;  // Originally 65536
     char response[max_response_size];
 
     // Build HTTP response and store it in response
@@ -101,9 +101,8 @@ void get_d20(int fd)
     sprintf(body_content, "%d\n", random_num);   // sprintf the random number into body_content
     printf("\nresponse body_content == %s", body_content);
 
-    char header[] = "HTTP/1.1 200 OK";           // define the header for the response
-
-    char content_type[] = "text/plain";          // define the content_type for the response body
+    // char header[] = "HTTP/1.1 200 OK";           // define the header for the response
+    // char content_type[] = "text/plain";          // define the content_type for the response body
 
     // Use send_response() to send it back as text/plain data
     // IMPLEMENT ME! //
@@ -142,9 +141,15 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
+    printf("\nget_file() called");
+
+    // request_path should map to file name in serverroot directory
+    // use methods in file.c read the corresponding file
+    // use methods in mime.c to set the content-type header based on the type of data in the file
+    
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body_content, strlen(body_content));
 }
 
 /**
@@ -155,9 +160,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
     // IMPLEMENT ME! // (Stretch)
-    ///////////////////
 }
 
 /**
@@ -182,7 +185,6 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
     // IMPLEMENT ME! //
-
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
@@ -194,8 +196,8 @@ void handle_http_request(int fd, struct cache *cache)
         if(strcmp(request_path, "/d20") == 0) {
             get_d20(fd); 
         } else {
-            resp_404(fd);
-            // get_file(fd, cache, request_path);  // if path is not /d20, then get file at the specified path
+            // resp_404(fd);
+            get_file(fd, cache, request_path);  // if path is not /d20, then get file at the specified path
         }
 
     } else {
