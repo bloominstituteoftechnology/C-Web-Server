@@ -224,6 +224,8 @@ void handle_http_request(int fd, struct cache *cache)
     if(strcmp(method, "GET") == 0 && strcmp(path, "/d20") == 0){
         get_d20(fd); // call d20 if /d20 path is found with GET method
         printf("get_d20() was called.\n");
+    } else if(strcmp(method, "GET") == 0 && strcmp(path, "/") == 0){
+        get_file(fd, cache, "/index.html");
     } else if(strcmp(method, "GET") == 0){
         printf("get_file() was called.\n");
         get_file(fd, cache, path); // search for the path passed in the request
