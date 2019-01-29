@@ -9,6 +9,12 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
+    struct cache_entry* new_centry = malloc(sizeof(struct cashe_entry));
+    new_centry->path = strdup(path);
+    new_centry->content_type = strdup(content_type);
+    new_centry-> content_length =content_length;
+
+    return new_centry;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
