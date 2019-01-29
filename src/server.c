@@ -54,9 +54,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     int response_length;
     char buffer[80];
-    time_t x_time = time(NULL);
-
-    strftime(buffer, (sizeof buffer) - 1, "%c", &x_time);
+    time_t raw_time;
+    struct tm *info;
+    time(&raw_time);
+    info = localtime(&raw_time);
+    strftime(buffer, sizeof buffer, "%c", info);
 
     // Build HTTP response and store it in response
 
@@ -92,13 +94,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    int rand_num = (rand() % 20) + 1;
+    char body[8];
+    sprintf(body, "%d", rand_num);
     
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 ok", "text/plain", body, strlen(body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
