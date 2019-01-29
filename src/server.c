@@ -146,6 +146,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char file_path[256];
+    struct file_data *file_body;
+    char *mime_type;
+
+    // Format the file
+    snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, request_path);
+
+    // Set the body to the file's contents
+    file_body = file_load(file_path);
+
+    // If there isn't anything loaded, send a 404 not found,
+    // otherwise, send the file's contents
+    if (file_body == NULL) {
+      resp_404(fd);
+    } else {
+
+      // Set the MIME
+      mime_type = mime_type_get(file_path);
+
+      // Send the file
+      send_response(fd, "HTTP/1.1 200 ok", mime_type, file_body->data, file_body->size);
+
+      // Free the file
+      file_free(file_body);
+    }
+
+
 }
 
 /**
