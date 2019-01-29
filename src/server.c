@@ -58,9 +58,29 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    time_t seconds;
+    struct tm *info;
+
+    time(&seconds);
+    info = localtime(&seconds);
+
+    int response_length = sprintf(response,
+        "%s\n"
+        "Date: %s"
+        "Connection: close\n"
+        "Content-Length %d"
+        "Content-Type: %s\n"
+        "\n",
+        header,
+        asctime(info),
+        content_length,
+        content_type
+    );
+
+    memcpy(response+response_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length+content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -76,13 +96,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    int number = (rand()%20)+1;
+    printf("Random number is: %d\t", number);
+    char snum[256];
+    sprintf(snum, "<!DOCTYPE html><html><head><title>random number</title></head><body><h1>%d</h1></body></html>", number);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", snum, strlen(snum));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -94,7 +117,7 @@ void get_d20(int fd)
 void resp_404(int fd)
 {
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata;
     char *mime_type;
 
     // Fetch the 404.html file
@@ -108,6 +131,10 @@ void resp_404(int fd)
     }
 
     mime_type = mime_type_get(filepath);
+
+    printf("mime_type:%s\n", mime_type);
+    printf("filedata->data:%s\n", filedata->data);
+    printf("filedata->size:%d\n", filedata->size);
 
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
@@ -153,17 +180,27 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
-
+    char request_type[5];
+    char request_path[256];
+    char request_version[10];
+    sscanf(request, "%s %s %s", request_type, request_path, request_version);
+    printf("type:%s, path:%s, version:%s\t", request_type, request_path, request_version);
     // If GET, handle the get endpoints
-
+    if(!strcmp("GET", request_type)){
     //    Check if it's /d20 and handle that special case
+        if(!strcmp("/d20", request_path)){
+            get_d20(fd);
+        }
     //    Otherwise serve the requested file by calling get_file()
+        else{
+            resp_404(fd);
+        }
+    }
 
 
     // (Stretch) If POST, handle the post request
@@ -187,6 +224,7 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
+
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
