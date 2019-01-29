@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 65536*5;
     char response[max_response_size];
     int response_length;
 
@@ -58,13 +58,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time_t t = time(NULL);
     struct tm *date = localtime(&t);
 
-    response_length = sprintf(response,"%s\nDate: %sConnection: close\nContent-length: %d\nContent-Type: %s\n\n%s" \
+    response_length = sprintf(response,"%s\nDate: %sConnection: close\nContent-length: %d\nContent-Type: %s\n\n" \
         ,header,asctime(date),content_length,content_type,body);
     // printf("length; %d, of: \n%s\n", response_length, response );
 
-
+    memcpy(response + response_length,body,content_length);
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -163,11 +163,15 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
+    // Read the components of the first request line
     char http_method[64], endpoint[64];
     sscanf(request, "%s %s",http_method, endpoint);
     
+    // If GET, handle the get endpoints
     if (strcmp(http_method,"GET") == 0){
+    //    Check if it's /d20 and handle that special case
+    //    Otherwise serve the requested file by calling get_file()
+
         // printf("REQUEST: %s\n", request);
         if (strcmp(endpoint, "/d20")==0){
             get_d20(fd);
@@ -179,20 +183,6 @@ void handle_http_request(int fd, struct cache *cache)
     } else {
         resp_404(fd);
     }
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the three components of the first request line
-
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
-    // (Stretch) If POST, handle the post request
 }
 
 /**
