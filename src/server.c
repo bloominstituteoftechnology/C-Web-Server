@@ -51,13 +51,12 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 265536;
     char response[max_response_size];
     time_t date_time = time(NULL);
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(
-        response,
+    int response_length = sprintf(response,
         "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n",
         header,
         asctime(gmtime(&date_time)),
@@ -128,7 +127,21 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    
+    char path_buffer[1024];
+    char *mime_type;
+    snprintf(path_buffer, sizeof(path_buffer), "%s%s", SERVER_ROOT, request_path);
+    struct file_data *filedata;
+    filedata = file_load(path_buffer);
+    if (filedata)
+    {
+        mime_type = mime_type_get(request_path);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+    }
+    else
+    {
+        resp_404(fd);
+    }
 }
 
 /**
@@ -151,7 +164,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char req_method[8], req_path[16], req_protocol[16];
+    char req_method[8], req_path[1024], req_protocol[128];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -170,17 +183,20 @@ void handle_http_request(int fd, struct cache *cache)
         // Check if it's /d20 and handle that special case
         if (strcmp(req_path, "/d20") == 0)
         {
-            return get_d20(fd);
+            get_d20(fd);
+            return;
         }
         // Otherwise serve the requested file by calling get_file()
-        return get_file(fd, cache, req_path);
+        get_file(fd, cache, req_path);
+        return;
     }
 
     // (Stretch) If POST, handle the post request
 
 
 
-    return resp_404(fd);
+    resp_404(fd);
+    return;
 }
 
 /**
