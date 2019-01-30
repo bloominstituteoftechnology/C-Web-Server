@@ -1,23 +1,23 @@
 day 3 & 4
 - [ ] Implement `cache_put()` in `cache.c`.
-      - [ ] Allocate a new cache entry with the passed parameters.
-      - [ ] Insert the entry at the head of the doubly-linked list.
-      - [ ] Store the entry in the hashtable as well, indexed by the entry's `path`.
-      - [ ] Increment the current size of the cache.
-      - [ ] If the cache size is greater than the max size:
-      - [ ] Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
-      - [ ] Remove the cache entry at the tail of the linked list (this is the least-recently used one)
-      - [ ] Free the cache entry.
-      - [ ] Ensure the size counter for the number of entries in the cache is correct.
+    - [ ] Allocate a new cache entry with the passed parameters.
+    - [ ] Insert the entry at the head of the doubly-linked list.
+    - [ ] Store the entry in the hashtable as well, indexed by the entry's `path`.
+    - [ ] Increment the current size of the cache.
+    - [ ] If the cache size is greater than the max size:
+    - [ ] Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
+    - [ ] Remove the cache entry at the tail of the linked list (this is the least-recently used one)
+    - [ ] Free the cache entry.
+    - [ ] Ensure the size counter for the number of entries in the cache is correct.
 - [ ] Implement `cache_get()` in `cache.c`.
-      - [ ] Attempt to find the cache entry pointer by `path` in the hash table.
-      - [ ] If not found, return `NULL`.
-      - [ ] Move the cache entry to the head of the doubly-linked list.
-      - [ ] Return the cache entry pointer.
+    - [ ] Attempt to find the cache entry pointer by `path` in the hash table.
+    - [ ] If not found, return `NULL`.
+    - [ ] Move the cache entry to the head of the doubly-linked list.
+    - [ ] Return the cache entry pointer.
 - [ ] Add caching functionality to `server.c`.
-      - [ ] Load the file from disk (see `file.c`)
-      - [ ] Store it in the cache
-      - [ ] Serve it
+    - [ ] Load the file from disk (see `file.c`)
+    - [ ] Store it in the cache
+    - [ ] Serve it
 
 
 # A Simple Web Server in C
