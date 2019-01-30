@@ -152,7 +152,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char req_method[8], req_path[16], req_protocol[16];
+    char req_method[16], req_path[1024], req_protocol[124];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
