@@ -157,6 +157,21 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
+    // cache functionality
+    struct cache_entry *c_entry = cache_get(cache, request_path);
+
+    // if not null send response
+    if (c_entry != NULL)
+    {
+        send_response(
+            fd,
+            "HTTP/1.1 200 OK",
+            c_entry->content_type,
+            c_entry->content,
+            c_entry->content_length);
+        return;
+    }
+
     // Fetch the correct .html file
     if (strcmp(request_path, "/index.html"))
     {
@@ -177,7 +192,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
+    cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
     file_free(filedata);
 }
 
