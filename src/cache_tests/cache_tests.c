@@ -74,7 +74,9 @@ char *test_cache_put()
   mu_assert(cache->head->prev == NULL && cache->tail->next == NULL, "The head and tail of your cache should have NULL prev and next pointers when a new entry is put in an empty cache");
   mu_assert(check_cache_entries(cache->head, test_entry_1) == 0, "Your cache_put function did not put an entry into the head of the empty cache with the expected form");
   mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not put an entry into the tail of the empty cache with the expected form");
-  // mu_assert(check_cache_entries(hashtable_get(cache->index, "/1"), test_entry_1) == 10, "Your cache_put function did not put the expected entry into the hashtable");
+  mu_assert(check_cache_entries(hashtable_get(cache->index, "/1"), test_entry_1) == 0, "Your cache_put function did not put the expected entry into the hashtable");
+
+  printf("PASSING\n\n\n");
 
   // Add in a second entry to the cache
   cache_put(cache, test_entry_2->path, test_entry_2->content_type, test_entry_2->content, test_entry_2->content_length);
@@ -83,7 +85,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->head, test_entry_2) == 0, "Your cache_put function did not put an entry into the head of the cache with the expected form");
   mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not move the oldest entry in the cache to the tail of the cache");
   mu_assert(check_cache_entries(cache->head->next, test_entry_1) == 0, "Your cache_put function did not correctly set the head->next pointer of the cache");
-  // mu_assert(check_cache_entries(hashtable_get(cache->index, "/2"), test_entry_2) == 0, "Your cache_put function did not put the expected entry into the hashtable");
+  mu_assert(check_cache_entries(hashtable_get(cache->index, "/2"), test_entry_2) == 0, "Your cache_put function did not put the expected entry into the hashtable");
 
   // Add in a third entry to the cache
   cache_put(cache, test_entry_3->path, test_entry_3->content_type, test_entry_3->content, test_entry_3->content_length);
@@ -122,16 +124,16 @@ char *test_cache_get()
   struct cache_entry *test_entry_2 = alloc_entry("/2", "text/html", "2", 2);
   struct cache_entry *test_entry_3 = alloc_entry("/3", "application/json", "3", 2);
 
-  printf("hohoho\n\n\n");
   struct cache_entry *entry;
 
   // Insert an entry into the cache, then retrieve it
   cache_put(cache, test_entry_1->path, test_entry_1->content_type, test_entry_1->content, test_entry_1->content_length);
+  printf("hohoho\n\n\n");
   entry = cache_get(cache, test_entry_1->path);
+  printf("THIS PASSES\n\n\n");
   // Check that the retrieved entry's values match the values of the inserted entry
   mu_assert(check_cache_entries(entry, test_entry_1) == 0, "Your cache_get function did not retrieve the newly-added cache entry when there was 1 entry in the cache");
 
-  printf("THIS PASSES\n\n\n");
   // Insert another entry into the cache, then retrieve it
   cache_put(cache, test_entry_2->path, test_entry_2->content_type, test_entry_2->content, test_entry_2->content_length);
   entry = cache_get(cache, test_entry_2->path);
