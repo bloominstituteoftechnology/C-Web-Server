@@ -1,0 +1,3 @@
+This is parent string!
+This is child string!
+Here is a string, there is a string, strings are everywhere!!
