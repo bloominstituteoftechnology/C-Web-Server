@@ -118,13 +118,14 @@ void resp_404(int fd)
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
+        fprintf(stderr, "cannot find 404 file\n");
         exit(3);
     }
 
     mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, 
+    filedata->data, filedata->size);
 
     file_free(filedata);
 }
@@ -132,11 +133,32 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-void get_file(int fd, struct cache *cache, char *request_path)
+void get_file(int fd, struct cache *cache, char *request_fpath)
 {
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char path[4096];
+    struct file_data *filedata;
+    struct cashe_entry *check_cashe;
+    char *mime_type;
+
+    snprintf(path, "%s%s", SERVER_ROOT, request_fpath);
+
+    if (check_cashe !=NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", check_cashe->content_type, 
+        check_cashe->content, check_cashe->content_length);
+    } else{
+    filedata = file_load(path);
+
+    if(filedata==NULL){
+
+        return -1;
+
+    }
+
+    mime_type=mime_type_get(path);
+    cash_put
 }
 
 /**
