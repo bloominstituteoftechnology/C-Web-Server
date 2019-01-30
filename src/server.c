@@ -61,14 +61,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Define response_length:
     int response_length = sprintf(
         response,
-        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",    
+        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n",    
         header, 
         asctime(localtime(&time_response_sent)), 
         content_length, 
-        content_type, 
-        body
+        content_type
     );
     // printf("response: %s\n", response);
+
+    memcpy(response + response_length, body, content_length);   // memcpy(void *str1, const void *str2, size_t n)
+                                                                // copies n characters from a memory area that STARTS at address str2 to a memory area that STARTS at address str1
+    response_length += content_length;                          // get new response_length
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
