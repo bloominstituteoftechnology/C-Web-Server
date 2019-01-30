@@ -207,12 +207,13 @@ void handle_http_request(int fd, struct cache *cache)
             if (filedata == NULL) {
                 // TODO: make this non-fatal
                 fprintf(stderr, "cannot find system 404 file\n");
-                exit(3);
+                resp_404(fd);
             }
             send_response(fd, "HTTP/1.1 200 OK", mime_type_get(filepath), filedata->data, filedata->size);
         }
     }else{
         fprintf(stderr, "unknown request type \"%s\"\n", request_type);
+        resp_404(fd);
     }
 
 
