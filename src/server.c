@@ -52,7 +52,7 @@
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 200000;  // Originally 65536; cat.jpg is ~170k
-    char response[max_response_size];
+    char response[max_response_size];      // *NOTE that the variable name `response` used later will resolve to the address of the first element (&response[0])
 
     // Build HTTP response and store it in response
     // IMPLEMENT ME! //
@@ -67,10 +67,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         content_length, 
         content_type
     );
-    // printf("response: %s\n", response);
+    printf("response pointer: %i\n", *response);
+    printf("response_length: %i\n", response_length);
+    printf("response + response_length: %i\n", *response + response_length);
 
-    memcpy(response + response_length, body, content_length);   // memcpy(void *str1, const void *str2, size_t n)
-                                                                // copies n characters from a memory area that STARTS at address str2 to a memory area that STARTS at address str1
+    printf("body pointer: %i\n", body);
+
+
+    memcpy(response + response_length, body, content_length);   // memcpy(void *a, const void *b, size_t n)
+                                                                // copies n characters from a memory area pointed to by b to a memory area pointed to by a
     response_length += content_length;                          // get new response_length
 
     // Send it all!
