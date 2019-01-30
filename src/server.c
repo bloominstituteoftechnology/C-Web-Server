@@ -156,12 +156,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     return;
 }
 
-/**
- * Search for the end of the HTTP header
- * 
- * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
- * (newline) or \r (carriage return).
- */
 char *find_start_of_body(char *header)
 {
     ///////////////////
@@ -169,15 +163,11 @@ char *find_start_of_body(char *header)
     ///////////////////
 }
 
-/**
- * Handle HTTP request and send response
- */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 65536;
     char request[request_buffer_size];
 
-    // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0)
@@ -187,18 +177,6 @@ void handle_http_request(int fd, struct cache *cache)
     }
     printf("Request %s\n", request);
     char method[5], file[20], protocol[20];
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the three components of the first request line
-
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-    // (Stretch) If POST, handle the post request
 }
 
 /**
@@ -231,8 +209,6 @@ int main(void)
     {
         socklen_t sin_size = sizeof their_addr;
 
-        // Parent process will block on the accept() call until someone
-        // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
         if (newfd == -1)
         {
@@ -240,14 +216,10 @@ int main(void)
             continue;
         }
 
-        // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
                   get_in_addr((struct sockaddr *)&their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
-
-        // newfd is a new socket descriptor for the new connection.
-        // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
 
