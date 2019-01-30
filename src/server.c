@@ -139,11 +139,25 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+   char path[1024];
+  struct file_data *filedata; // buffer, type from file.c
+  char *mime_type; // type from from mime.c
+
+  sprintf(path, "%s%s", SERVER_ROOT, request_path); // parse the file path
+
+  filedata = file_load(path); // load the file into struct buffer
+  if (filedata == NULL) { // check if file was loaded properly
+      resp_404(fd);
+      printf("get_file() -> Cannot find file.\n");
+      return;
 }
 
+ mime_type = mime_type_get(path);
+
+  printf("get_file() -> %d, %s, %s, %s,%d", fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+  send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size); // send the buffer
+  file_free(filedata); // file_load had built in malloc
+}
 /**
  * Search for the end of the HTTP header
  * 
@@ -152,9 +166,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
+    (void)header;
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return 0;
 }
 
 /**
@@ -179,12 +195,35 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+     printf("request: %s\n", request);
+    sscanf(request, "%s %s %s", method, path, protocol);
+    printf("handle_http_request() -> \n"
+      "method: %s,\n"
+      "path: %s,\n"
+      "protocol: %s\n",
+      
+      method,
+      path,
+      protocol
+    );
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
+    if (strcmp(method, "GET") == 0) {
+      if (strcmp(path, "/d20") == 0) {
+        get_d20(fd);
+      }
+      else if (strcmp(path, "/") == 0) {
+        get_file(fd, cache, "/index.html");
+      }
+      else {
+        get_file(fd, cache, path);
+      }
+    }
+    else {
+      resp_404(fd);
+    }
 
     // (Stretch) If POST, handle the post request
 }
