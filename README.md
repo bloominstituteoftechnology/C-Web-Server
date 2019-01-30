@@ -226,15 +226,7 @@ fail to find a file there, then try:
 
 and succeed.
 
-#### 3. Implement functionality that will allow your server to serve any type of data, not just text data
-
-All the files that the server has been responding with have been text files of some sort. Augment the server such that if a client requests `http://localhost:3490/cat.jpg`, the server is able to fetch and respond with the requested file (of course, the file needs to exist in the server's directory structure). 
-
-Add an image to the `./serverroot` directory and update the `send_response` function such that it can handle _any_ type of data. _Hint: you'll want to look into the `memcpy` function from the C standard library_. 
-
-Note that `file_load` doesn't actually need any modification. It's already been written in such a way that it can handle arbitrary types of file data.
-
-#### 4. Expire cache entries
+#### 3. Expire cache entries
 
 It doesn't make sense to cache things forever--what if the file changes on disk?
 
@@ -244,7 +236,7 @@ If an item is found in the cache, check to see if it is more than 1 minute old. 
 
 You'll have to add a `cache_delete` function to your cache code that does the work of actually removing entries that are too old from the cache.
 
-#### 5. Concurrency
+#### 4. Concurrency
 
 _Difficulty: Pretty Dang Tough_
 
