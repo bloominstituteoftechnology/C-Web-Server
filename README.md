@@ -9,7 +9,7 @@ What you need to write:
 * LRU cache
   * Doubly linked list (some functionality provided)
   * Use existing hashtable functionality (below)
-
+ 
 * Your code will interface with the existing code. Understanding the existing
   code is an expected part of this challenge.
 
@@ -72,7 +72,7 @@ _Read through all the main and stretch goals before writing any code to get an o
 1. Implement `send_response()`.
 
    This function is responsible for formatting all the pieces that make up an HTTP response into the proper format that clients expect. In other words, it needs to build a complete HTTP response with the given parameters. It should write the response to the string in the `response` variable.
-   
+
    The total length of the header **and** body should be stored in the `response_length` variable so that the `send()` call knows how many bytes to
    send out over the wire.
 
@@ -86,7 +86,7 @@ _Read through all the main and stretch goals before writing any code to get an o
    > the header. But the `response_length` variable used by `send()` is the
    > total length of both header and body.
 
-   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function, and seeing if the client receives the 404 response. 
+   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function, and seeing if the client receives the 404 response.
 
 2. Examine `handle_http_request()` in the file `server.c`.
 
@@ -185,7 +185,7 @@ The hashtable code is already written and can be found in `hashtable.c`.
    * Store it in the cache
    * Serve it
 
-There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation. 
+There's a set of unit tests included to ensure that your cache implementation is functioning correctly. From the `src` directory, run `make tests` in order to run the unit tests against your implementation.
 
 ### Stretch Goals
 
@@ -228,9 +228,9 @@ and succeed.
 
 #### 3. Implement functionality that will allow your server to serve any type of data, not just text data
 
-All the files that the server has been responding with have been text files of some sort. Augment the server such that if a client requests `http://localhost:3490/cat.jpg`, the server is able to fetch and respond with the requested file (of course, the file needs to exist in the server's directory structure). 
+All the files that the server has been responding with have been text files of some sort. Augment the server such that if a client requests `http://localhost:3490/cat.jpg`, the server is able to fetch and respond with the requested file (of course, the file needs to exist in the server's directory structure).
 
-Add an image to the `./serverroot` directory and update the `send_response` function such that it can handle _any_ type of data. _Hint: you'll want to look into the `memcpy` function from the C standard library_. 
+Add an image to the `./serverroot` directory and update the `send_response` function such that it can handle _any_ type of data. _Hint: you'll want to look into the `memcpy` function from the C standard library_.
 
 Note that `file_load` doesn't actually need any modification. It's already been written in such a way that it can handle arbitrary types of file data.
 
@@ -255,4 +255,3 @@ When a new connection comes in, launch a thread to handle it.
 Be sure to lock the cache when a thread accesses it so the threads don't step on each other's toes and corrupt the cache.
 
 Also have thread cleanup handlers to handle threads that have died.
-

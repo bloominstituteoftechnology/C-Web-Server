@@ -12,6 +12,15 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *newentry = malloc(sizeof(struct cache_entry));
+    newentry->next = NULL;
+    newentry->prev = NULL;
+    newentry->path = strdup(path);
+    newentry->content_type = strdup(content_type);
+    newentry->content_length = content_length;
+    newentry->content = malloc(content_length+1);
+    newentry->content = memcpy(newentry->content, content, content_length+1);
+    return newentry;
 }
 
 /**
@@ -22,6 +31,12 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry->content);
+    free(entry->path);
+    free(entry->content_type);
+    // free(entry->content_length);
+    free(entry);
+
 }
 
 /**
@@ -68,7 +83,7 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 
 /**
  * Removes the tail from the list and returns it
- * 
+ *
  * NOTE: does not deallocate the tail
  */
 struct cache_entry *dllist_remove_tail(struct cache *cache)
@@ -85,7 +100,7 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
 
 /**
  * Create a new cache
- * 
+ *
  * max_size: maximum number of entries in the cache
  * hashsize: hashtable size (0 for default)
  */
@@ -94,6 +109,15 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache *newcache = malloc(sizeof(struct cache));
+    newcache->index = hashtable_create(hashsize, NULL);
+    newcache->max_size = max_size;
+    newcache->cur_size = hashsize;
+    newcache->head = malloc(sizeof(struct cache_entry));
+    newcache->head = NULL;
+    newcache->tail = malloc(sizeof(struct cache_entry));
+    newcache->tail = NULL;
+    return newcache;
 }
 
 void cache_free(struct cache *cache)
@@ -117,7 +141,7 @@ void cache_free(struct cache *cache)
  * Store an entry in the cache
  *
  * This will also remove the least-recently-used items as necessary.
- * 
+ *
  * NOTE: doesn't check for duplicate cache entries
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
@@ -125,6 +149,14 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *newentry = alloc_entry(path, content_type, content, content_length);
+    dllist_insert_head(cache, newentry);
+    hashtable_put(cache->index, newentry->path, newentry);
+    cache->cur_size+=1;
+    if (cache->cur_size > cache->max_size) {
+      hashtable_delete(cache->index, cache->tail->path);
+      free_entry(dllist_remove_tail(cache));
+    }
 }
 
 /**
@@ -135,4 +167,10 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+    if (entry == NULL) {
+      return NULL;
+    }
+    dllist_move_to_head(cache, entry);
+    return entry;
 }

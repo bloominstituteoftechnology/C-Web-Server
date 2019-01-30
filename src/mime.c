@@ -26,7 +26,7 @@ char *mime_type_get(char *filename)
     if (ext == NULL) {
         return DEFAULT_MIME_TYPE;
     }
-    
+
     ext++;
 
     strlower(ext);
