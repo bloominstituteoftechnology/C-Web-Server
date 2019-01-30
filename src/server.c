@@ -1,18 +1,18 @@
 /**
  * webserver.c -- A webserver written in C
- * 
+ *
  * Test with curl (if you don't have it, install it):
- * 
+ *
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/d20
  *    curl -D - http://localhost:3490/date
- * 
+ *
  * You can also test the above URLs in your browser! They should work!
- * 
+ *
  * Posting Data:
- * 
+ *
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
- * 
+ *
  * (Posting data is harder to test from a browser.)
  */
 
@@ -45,13 +45,49 @@
  * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
  * content_type: "text/plain", etc.
  * body:         the data to send.
- * 
+ *
  * Return the value from the send() function.
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    // const int max_response_size = 65536;
+    const int max_response_size = 180000;
     char response[max_response_size];
+
+    // Get the current time in seconds
+    // time_t == time type to variable named seconds
+    time_t seconds;
+    // struct tm with a pointer to info variable, tm is the structure for time that contains sec, min, hour, day of month, mont hof year, years since, day of week, etc...
+    struct tm *info;
+
+    // time function called with seconds address
+    // time since 01/01/1970 UTC 00:00:00
+    time(&seconds);
+    // info is localtime function called with second address
+    // gives us local time
+    info = localtime(&seconds);
+
+    // string var called body_str set to the variable "body"'s value
+    char *body_str = body;
+
+    // Format HTTP response
+    int response_length = sprintf( response,
+      "%s\n"
+      "Date: %s"
+      "Connection: close\n"
+      "Content-Length: %d\n"
+      "Content-Type: %s\n"
+      "\n",
+      header, // passed in
+      asctime(info), // take info and turns it into asctime which is more readable (Sat Mar 25 06:10:10 1989)
+      content_length, // passed in
+      content_type); // passed in
+
+      printf("Response length: %d\n", response_length + content_length);
+
+     // passes body characters to the memory area of response+response_length, and content_length is the number of bytes to copy over
+      memcpy(response + response_length, body, content_length);
+      response_length += content_length;
 
     // Build HTTP response and store it in response
 
@@ -59,19 +95,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
-    int response_length = sizeof(header) + sizeof(body);
-    char response =
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/html; charset=UTF-8 %d\r\n\r\n", sizeof(body)
-            "<!DOCTYPE html>\r\n";
-
-
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
         perror("send");
-        exit(1);
     }
 
     return rv;
@@ -84,12 +112,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    // Set the random seed based on time
+    srand(time(NULL));
+
+    // Generate random number
+    int randomNumber = rand() % 21;
+
+    // Body of the response to send
+    char body[8];
+
+    // Format the body
+    sprintf(body, "%d\n", randomNumber);
+
+
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    // Send the response
+    send_response(fd, "HTTP/1.1 200 ok", "text/plain", body, strlen(body));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -102,7 +145,7 @@ void get_d20(int fd)
 void resp_404(int fd)
 {
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata;
     char *mime_type;
 
     // Fetch the 404.html file
@@ -130,11 +173,39 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char file_path[256];
+    struct file_data *file_body = NULL;
+    char *mime_type;
+
+    // Format the file
+    sprintf(file_path, "./serverroot%s", request_path);
+    // snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, request_path);
+
+    // Set the body to the file's contents
+    file_body = file_load(file_path);
+
+    // If there isn't anything loaded, send a 404 not found,
+    // otherwise, send the file's contents
+    if (file_body == NULL) {
+      resp_404(fd);
+    } else {
+
+      // Set the MIME
+      mime_type = mime_type_get(file_path);
+
+      // Send the file
+      send_response(fd, "HTTP/1.1 200 OK", mime_type, file_body->data, file_body->size);
+
+      // Free the file
+      file_free(file_body);
+    }
+
+
 }
 
 /**
  * Search for the end of the HTTP header
- * 
+ *
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
@@ -152,6 +223,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[8];
+    char path[32];
+    char protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -167,11 +241,18 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", method, path, protocol);
+
+    printf("PATH -> %s\n", path);
 
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+    if (strcmp(method, "GET") == 0 && strcmp(path, "d20") == 0) {
+      get_d20(fd);
+    } else if (strcmp(method, "GET") == 0) {
+      get_file(fd, cache, path);
+    } else {
+      resp_404(fd);
+    }
 
 
     // (Stretch) If POST, handle the post request
@@ -201,7 +282,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -218,7 +299,7 @@ int main(void)
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        
+
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
@@ -231,4 +312,3 @@ int main(void)
 
     return 0;
 }
-
