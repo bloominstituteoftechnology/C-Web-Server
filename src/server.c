@@ -51,7 +51,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 265536;
     char response[max_response_size];
     char *body_str = body;
     time_t date_time = time(NULL);
@@ -59,13 +59,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Build HTTP response and store it in response
     int response_length = sprintf(
         response,
-        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n",
+        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n",
         header,
         asctime(gmtime(&date_time)),
         content_length,
         content_type,
-        body_str
     );
+
+    memcpy(response + response_length, body, content_length);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -127,9 +128,49 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char *mime_type;
+    char path_buffer[1024];
+    struct cache_entry *ce;
+    struct file_data *filedata;
+
+    ce = cache_get(cache, request_path);
+
+    if (ce)
+    {
+        send_response(fd, "HTTP/1.1 200 OK", ce->content_type, ce->content, ce->content_length);
+        return;
+    }
+
+    snprintf(path_buffer, sizeof(path_buffer), "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(path_buffer);
+
+    if (filedata)
+    {
+        mime_type = mime_type_get(request_path);
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+        return;
+    }
+
+    if (!strcmp(request_path, "/")) // IF STRINGS MATCH
+    {
+        strcat(request_path, "index.html");
+        snprintf(path_buffer, sizeof(path_buffer), "%s%s", SERVER_ROOT, request_path);
+        filedata = file_load(path_buffer);
+
+        if (filedata)
+        {
+            mime_type = mime_type_get(request_path);
+            cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+            return;
+        }
+    }
+
+    resp_404(fd);
+    return;
 }
 
 /**
@@ -171,20 +212,20 @@ void handle_http_request(int fd, struct cache *cache)
         // Check if it's /d20 and handle that special case
         if (strcmp(req_path, "/d20") == 0)
         {
-            return get_d20(fd);
+            get_d20(fd);
+            return;
         }
         // Otherwise serve the requested file by calling get_file()
-        return get_file(fd, cache, req_path);
+        get_file(fd, cache, req_path);
+        return;
     }
 
     // (Stretch) If POST, handle the post request
-
-    return resp_404(fd);
+    resp_404(fd);
+    return;
 }
 
-/**
- * Main
- */
+//// *** MAIN *** ////
 int main(void)
 {
     int newfd;  // listen on sock_fd, new connection on newfd
