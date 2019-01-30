@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 178172;
     char response[max_response_size];
 
     time_t t = time(NULL);
@@ -94,7 +94,6 @@ void get_d20(int fd)
     srand(getpid() + time(NULL));
     char response_body[8];
     sprintf(response_body, "%d\n", (rand() % 20) + 1);
-
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 }
 
@@ -134,7 +133,20 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata; 
     char *mime_type;
 
-    if (strcmp(request_path, "/") == 0){   
+    struct cache_entry *find = cache_get(cache, request_path);
+
+    if (find != NULL){
+        send_response(
+            fd,
+            "HTTP/1.1 200 OK",
+            find->content_type,
+            find->content,
+            find->content_length
+        );
+        return;
+    }
+
+    if (strcmp(request_path, "/") == 0){            
         snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, "/index.html");
     } else {
         snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
@@ -149,6 +161,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     mime_type = mime_type_get(filepath);
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
     file_free(filedata);
 }
 
@@ -170,7 +183,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 17817; // 64K
     char request[request_buffer_size];
     char request_type[8];
     char request_path[1024];
@@ -183,7 +196,7 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
+    // "GET /test.html HTTP/1.1"
     sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
     printf("Got request: %s %s %s\n", request_type, request_path, request_protocol);
