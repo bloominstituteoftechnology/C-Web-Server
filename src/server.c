@@ -60,11 +60,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     timeinfo = localtime(&rawtime);
     // Build HTTP response and store it in response
 
+    response_length= sprintf(response,
+      "%s\n"
+      "Date: %s"
+      "Connection: %s\n"
+      "Content-Length: %d\n"
+      "Content-Type: %s\n\n",  // The end of the header on both the request and response is marked by a blank line i.e. two newlines in a row)
+
+      header,
+      asctime(timeinfo),
+      "close",
+      content_length,
+      content_type
+    );
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Send it all!
+    memcpy(response+response_length, body, content_length);
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -82,15 +96,16 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(NULL)); // Seeds the pseudo-random number generator used by rand() with the value seed.
+    char body[20]; // stores total number of bytes from sprintf
+    int random_number = rand()%20 + 1; // +1 for inclusive 20
+    int length = sprintf(body, "%d", random_number);
+    printf("Random Number: %d, Length: %d\n", random_number, length);
 
     // Use send_response() to send it back as text/plain data
+    // send_response(int fd, char *header, char *content_type, void *body, int content_length)
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, length);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
