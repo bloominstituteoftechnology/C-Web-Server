@@ -124,7 +124,7 @@ void get_d20(int fd)
 
     // Use send_response() to send it back as text/plain data
     // Send the response
-    send_response(fd, "HTTP/1.1 200 ok", "text/plain", body, strlen(body));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -238,12 +238,13 @@ void handle_http_request(int fd, struct cache *cache)
     printf("PATH -> %s\n", path);
 
     // If GET, handle the get endpoints
-    if (strcmp(method, "GET") == 0 && strcmp(path, "d20") == 0) {
-      get_d20(fd);
-    } else if (strcmp(method, "GET") == 0) {
-      get_file(fd, cache, path);
-    } else {
-      resp_404(fd);
+    if (strcmp(method, "GET") == 0) {
+
+      if (strcmp(path, "/d20") == 0) {
+        get_d20(fd);
+      } else {
+        get_file(fd, cache, path);
+      }
     }
 
 
