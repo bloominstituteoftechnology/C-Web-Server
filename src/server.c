@@ -76,8 +76,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
       content_length,
       content_type);
 
-      printf("Response length: %d\n", response_length + content_length);
-
       memcpy(response + response_length, body, content_length);
       response_length += content_length;
 
@@ -165,32 +163,45 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char file_path[256];
-    struct file_data *file_body = NULL;
-    char *mime_type;
 
-    // Format the file
-    sprintf(file_path, "./serverroot%s", request_path);
-    // snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, request_path);
+    struct cache_entry *entry = cache_get(cache, request_path);
 
-    // Set the body to the file's contents
-    file_body = file_load(file_path);
-
-    // If there isn't anything loaded, send a 404 not found,
-    // otherwise, send the file's contents
-    if (file_body == NULL) {
-      resp_404(fd);
+    if (entry != NULL) {
+      printf("IN CACHE\n");
+      send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
     } else {
+      printf("NOT IN CACHE\n");
 
-      // Set the MIME
-      mime_type = mime_type_get(file_path);
+      char file_path[256];
+      struct file_data *file_body = NULL;
+      char *mime_type;
 
-      // Send the file
-      send_response(fd, "HTTP/1.1 200 OK", mime_type, file_body->data, file_body->size);
+      // Format the file
+      snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, request_path);
 
-      // Free the file
-      file_free(file_body);
+      // Set the body to the file's contents
+      file_body = file_load(file_path);
+
+      // If there isn't anything loaded, send a 404 not found,
+      // otherwise, send the file's contents
+      if (file_body == NULL) {
+        resp_404(fd);
+      } else {
+
+        // Set the MIME
+        mime_type = mime_type_get(file_path);
+
+        cache_put(cache, file_body, mime_type, file_body->data, file_body->size);
+
+        // Send the file
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, file_body->data, file_body->size);
+
+        // Free the file
+        file_free(file_body);
+      }
+
     }
+
 
 
 }
@@ -234,8 +245,6 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", method, path, protocol);
-
-    printf("PATH -> %s\n", path);
 
     // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0) {

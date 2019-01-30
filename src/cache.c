@@ -12,10 +12,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    // Set a new cache entry
-    struct cache_entry *ce = malloc(sizeof(struct cache_entry));
 
-    // set it's parameters
+    struct cache_entry *ce = malloc(sizeof *ce);
+
     ce->path = path;
     ce->content_type = content_type;
     ce->content = content;
@@ -36,7 +35,6 @@ void free_entry(struct cache_entry *entry)
     // IMPLEMENT ME! //
     ///////////////////
 
-    // If there is something in the mem, free it
     if (entry != NULL) {
       free(entry);
     }
@@ -113,15 +111,11 @@ struct cache *cache_create(int max_size, int hashsize)
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Allocate a new cache
-    struct cache *c = malloc(sizeof(struct cache));
+    struct cache *c = malloc(sizeof *c);
 
-    // Set the index to a new hashtable entry
-    c->index = hashtable_create(max_size, NULL);
-
-    // Set the other parameters
+    c->index = hashtable_create(hashsize, NULL);
     c->max_size = max_size;
-    c->cur_size = hashsize;
+    c->cur_size = 0;
     c->head = NULL;
     c->tail = NULL;
 }
