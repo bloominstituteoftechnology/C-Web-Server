@@ -51,14 +51,11 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 130536;  // Originally 65536
+    const int max_response_size = 200000;  // Originally 65536; cat.jpg is ~170k
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
-    ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
     time_t time_response_sent = time(NULL);  // create a marker for time
     
     // Define response_length:
@@ -71,16 +68,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         content_type, 
         body
     );
-
     // printf("response: %s\n", response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
-
     if (rv < 0) {
         perror("send");
     }
-
     return rv;
 }
 
@@ -139,17 +133,31 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
+// request_path should map to file name in serverroot directory
+// use methods in file.c to load/read the corresponding file
+// use methods in mime.c to set the content-type header based on the type of data in the file
 void get_file(int fd, struct cache *cache, char *request_path)
 {
     // IMPLEMENT ME! //
     printf("\nget_file() called");
 
-    // request_path should map to file name in serverroot directory
-    // use methods in file.c read the corresponding file
-    // use methods in mime.c to set the content-type header based on the type of data in the file
-    
+    struct file_data *filedata = NULL;  // see file.h and file.c
+    char *mime_type;                    // see mime.h but mostly mime.c
 
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body_content, strlen(body_content));
+    char file_path[256];                                 // declare an array to store the file path
+    sprintf(file_path, "./serverroot%s", request_path);  // build a full file path into the ./serverroot directory
+   
+    filedata = file_load(file_path);       // returns filedata->data and filedata->size; *NOTE: file_load allocates memory that should be freed later
+
+    mime_type = mime_type_get(file_path);  // checks the type of the file and returns string--use this as the content-type header
+
+    if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
 }
 
 /**
