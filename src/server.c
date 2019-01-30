@@ -96,6 +96,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    srand(time(NULL) + getpid());
     int number = (rand()%20)+1;
     printf("Random number is: %d\t", number);
     char snum[256];
@@ -169,7 +170,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 65536*4; // 64K
     char request[request_buffer_size];
 
     // Read request
@@ -187,9 +188,8 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     char request_type[5];
     char request_path[256];
-    char request_version[10];
-    sscanf(request, "%s %s %s", request_type, request_path, request_version);
-    printf("type:%s, path:%s, version:%s\t", request_type, request_path, request_version);
+    char request_protocol[10];
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
     // If GET, handle the get endpoints
     if(!strcmp("GET", request_type)){
     //    Check if it's /d20 and handle that special case
@@ -197,15 +197,22 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
         }
     //    Otherwise serve the requested file by calling get_file()
-        else if(!strcmp("/", request_path)){
+        else{
+            get_file(fd, cache, request_path);
             char filepath[4096];
             struct file_data *filedata;
-            snprintf(filepath, sizeof filepath, "%s/index.html", "./serverroot");
+            printf("request_path:%s\n", request_path);
+            snprintf(filepath, sizeof filepath, "./serverroot/%s", request_path);
             filedata = file_load(filepath);
+            if (filedata == NULL) {
+                // TODO: make this non-fatal
+                fprintf(stderr, "cannot find system 404 file\n");
+                exit(3);
+            }
             send_response(fd, "HTTP/1.1 200 OK", mime_type_get(filepath), filedata->data, filedata->size);
-        }else{
-            resp_404(fd);
         }
+    }else{
+        fprintf(stderr, "unknown request type \"%s\"\n", request_type);
     }
 
 
