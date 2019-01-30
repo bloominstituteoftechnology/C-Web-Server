@@ -145,9 +145,9 @@ void get_file(int fd, struct cache *cache, char *request_fpath)
 
     snprintf(path, "%s%s", SERVER_ROOT, request_fpath);
 
-    if (check_cashe !=NULL) {
-        send_response(fd, "HTTP/1.1 200 OK", check_cashe->content_type, 
-        check_cashe->content, check_cashe->content_length);
+    if (check_cache !=NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", check_cache->content_type, 
+        check_cache->content, check_cache->content_length);
     } else{
     filedata = file_load(path);
 
@@ -155,10 +155,14 @@ void get_file(int fd, struct cache *cache, char *request_fpath)
 
         return -1;
 
-    }
+        }
 
     mime_type=mime_type_get(path);
-    cash_put
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    cach_put(cache, path, mime_type, filedata->data, filedata->size);
+    file_free(filedata);
+    }
+    return 0;
 }
 
 /**
