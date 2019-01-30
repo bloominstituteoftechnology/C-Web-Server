@@ -106,9 +106,10 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
 struct cache *cache_create(int max_size, int hashsize)
 {
 	struct cache *cache = malloc(sizeof(struct cache));
-	cache->head = NULL;
+	cache->head = NULL;     //head and tail values are added as and when created, initially it's NULL
 	cache->tail = NULL;
-	cache->index = hashtable_create(hashsize, NULL);
+	cache->index = hashtable_create(hashsize, NULL);    //hashf is NULL since the hashtable_create(int size, int (*hashf)(void *, int, int)) method assigns a default hashf value if NULL is passed.
+	
 	cache->max_size = max_size;
 	cache->cur_size = 0;
 	
