@@ -3,6 +3,7 @@
 #include <string.h>
 #include "hashtable.h"
 #include "cache.h"
+#include <assert.h>
 
 /**
  * Allocate a cache entry
@@ -10,10 +11,11 @@
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
     struct cache_entry *entry = malloc(sizeof(struct cache_entry));
-    entry->path = string_dup(path);
-    entry->content_type = string_dup(content_type);
+    entry->path = strdup(path);
+    entry->content_type = strdup(content_type);
     entry->content_length = content_length;
     entry->content = content;
+    return entry;
 }
 
 /**
@@ -21,11 +23,14 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
+    printf("1\n");
     if (entry->path != NULL)             { free(entry->path); }
+    printf("2\n");
     if (entry->content_type != NULL)     { free(entry->content_type); }
-    if (entry->content_length != NULL)   { free(entry->content_length); }
-    if (entry->content != NULL)          { free(entry->content); }
-    free(entry);
+    printf("5\n");
+    if (entry != NULL)                   { free(entry); }
+    printf("6\n");
+    return;
 }
 
 /**
@@ -97,7 +102,9 @@ struct cache *cache_create(int max_size, int hashsize)
 {
     struct cache *new_cache = malloc(sizeof(struct cache));
     new_cache->max_size = max_size;
-    new_cache->index->size = hashsize;
+    struct hashtable *ht = hashtable_create(hashsize, NULL);
+    new_cache->index = ht;
+    return new_cache;
 }
 
 void cache_free(struct cache *cache)
@@ -141,7 +148,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     // Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
         hashtable_delete(cache->index, oldtail->path);
     // Free the cache entry.
-        cache_free(oldtail);
+        free_entry(oldtail);
     // Ensure the size counter for the number of entries in the cache is correct.
         assert(--cache->cur_size == cache->max_size);
     }

@@ -11,7 +11,6 @@ char *test_cache_create()
   int hash_size = 0;
 
   struct cache *cache = cache_create(max_size, hash_size);
-
   // Check that each field of the cache struct was initialized to the proper value
   mu_assert(cache, "Your cache_create function did not return a valid pointer to the created cache");
   mu_assert(cache->head == NULL, "The head pointer of the cache should be initialized to NULL");
@@ -27,6 +26,7 @@ char *test_cache_create()
 
 char *test_cache_alloc_entry()
 {
+  printf("hohoho\n\n\n");
   char *path = "/bazz/lurman.html";
   char *content_type = "text/html";
   char *content = "<head>Bazz Lurman</head>";
@@ -41,6 +41,7 @@ char *test_cache_alloc_entry()
   mu_assert(ce->content_length == content_len, "Your alloc_entry function did not allocate the content_length field to the expected length");
 
   free_entry(ce);
+  printf("THIS PASSES\n\n\n");
 
   return NULL;
 }
