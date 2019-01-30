@@ -180,9 +180,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
+    return strstr(header, "\n\r");
 }
 
 /**
@@ -193,6 +191,7 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
     char req_method[8], req_path[1024], req_protocol[128];
+    char *body;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -220,8 +219,11 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
     // (Stretch) If POST, handle the post request
-
-
+    if (strcmp(req_method, "POST") == 0)
+    {
+        body = find_start_of_body(request);
+        printf("BODY:\n%s\n", body);
+    }
 
     resp_404(fd);
     return;
