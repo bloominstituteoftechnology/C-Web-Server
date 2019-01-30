@@ -19,6 +19,7 @@ char *test_cache_create()
   mu_assert(cache->cur_size == 0, "The cur_size field of the cache should be initialized to 0");
   mu_assert(cache->max_size == max_size, "The max_size field of the cache was not initialized to the expected value");
   mu_assert(cache->index != NULL, "The index field of the cache was not initialized");
+  printf("pass cache create)\n");
 
   cache_free(cache);
 
@@ -40,6 +41,7 @@ char *test_cache_alloc_entry()
   mu_assert(check_strings(ce->content, content) == 0, "Your alloc_entry function did not allocate the content field to the expected string");
   mu_assert(ce->content_length == content_len, "Your alloc_entry function did not allocate the content_length field to the expected length");
 
+  printf("pass cache allocate entry)\n");
   free_entry(ce);
 
   return NULL;
@@ -94,7 +96,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->head->next->next, test_entry_2) == 0, "Your cache_put function did not update the head->next->next pointer to point to the tail entry");
   mu_assert(check_cache_entries(cache->tail->prev, test_entry_3) == 0, "Your cache_put function did not update the tail->prev pointer to poin to the second-to-last entry");
   mu_assert(check_cache_entries(cache->tail, test_entry_2) == 0, "Your cache_put function did not correctly handle the tail of an already-full cache");
-
+  printf("pass cache put)\n");
   cache_free(cache);
 
   return NULL;
@@ -140,7 +142,7 @@ char *test_cache_get()
   // Check that the most-recently accessed entry has been moved to the head of the cache
   mu_assert(check_cache_entries(cache->head, test_entry_2) == 0, "Your cache_get function did not move the most-recently retrieved entry to the head of the cache");
   mu_assert(check_cache_entries(cache->tail, test_entry_3) == 0, "Your cache_get function did not move the oldest entry to the tail of the cache");
-
+  printf("pass cache get)\n");
   cache_free(cache);
 
   return NULL;
