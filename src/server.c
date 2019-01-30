@@ -152,6 +152,22 @@ void get_file(int fd, struct cache *cache, char *request_path)
         return;
     }
 
+    if (!strcmp(request_path, "/")) // if the strings match
+    {
+        strcat(request_path, "index.html");
+        snprintf(path_buffer, sizeof(path_buffer), "%s%s", SERVER_ROOT, request_path);
+        filedata = file_load(path_buffer);
+
+        if (filedata)
+        {
+            mime_type = mime_type_get(request_path);
+            cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+            return;
+        }
+    }
+
     resp_404(fd);
     return;
 }
