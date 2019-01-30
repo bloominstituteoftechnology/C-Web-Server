@@ -50,10 +50,39 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 2000000;
     char response[max_response_size];
 
+    // SAMPLE: 
+    // HTTP/1.1 200 OK
+    // Date: Wed Dec 20 13:05:11 PST 2017
+    // Connection: close
+    // Content-Length: 41749
+    // Content-Type: text/html
+
     // Build HTTP response and store it in response
+    // HINT: use sprintf() for creating response.
+    // HINT: use strlen() for computing content length.
+    // HINT: sprintf() returns number of bytes in result string.
+    // HINT: time() and localtime().
+
+
+    // Reference: http://www.cplusplus.com/reference/ctime/localtime/
+    time_t rawtime;
+    struct tm *timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %i\nContent-Type: %s\n\n", header, asctime(timeinfo), content_length, content_type);
+    // printf("%s\n", response);
+    // printf("%i\n", response_length);
+    // printf("%i\n", content_length);
+    
+    memcpy(response + response_length, body, content_length);
+    response_length += content_length;
+
+    // printf("%i\n", response_length);
+    // printf("%i\n", content_length);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -76,16 +105,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    srand(time(NULL)); // initialize the random seed using the current time as seed
+
+    char response[4]; // initialize the string that will store our int d20 value
+
+    int d20 = (rand() % 20) + 1; // generate an int between 1-20 inclusive by using +1
+
+    sprintf(response, "%i\n", d20); // translate the d20 value into a string
+
+    printf("%i\n", d20); // console log the number for testing
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response)); // send the number string and its length in plaintext to send_response
 }
 
 /**
@@ -119,6 +150,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    struct file_data *filedata = NULL;
+    char *mime_type;
+
+    char full_path[256];
+    sprintf(full_path, "./serverroot%s", request_path);
+    printf("%s\n", full_path);
+
+    filedata = file_load(full_path);
+    mime_type = mime_type_get(full_path);
+
+    // verify filedata returns something
+    if(filedata != NULL){
+        // if data, call send_response
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+    } else {
+        resp_404(fd);
+    }
+
+    
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -158,7 +210,28 @@ void handle_http_request(int fd, struct cache *cache)
     // IMPLEMENT ME! //
     ///////////////////
 
+    // HINT: strcmp() will match request methods and path. Returns 0 if the same.
+    // Use an if-else block with strcmp().
+    // HINT: Use sscanf() to read the contents.
+
     // Read the three components of the first request line
+    // printf("Request: %s\n", request);
+
+    char method[8], path[32], protocol[16]; // initialize strings for our method, path, and protocol values
+    sscanf(request, "%s %s %s", method, path, protocol); // store the strings from the request header
+    // printf("%s, %s, %s\n", method, path, protocol);
+
+    if(strcmp(method, "GET") == 0 && strcmp(path, "/d20") == 0){
+        get_d20(fd); // call d20 if /d20 path is found with GET method
+        printf("get_d20() was called.\n");
+    } else if(strcmp(method, "GET") == 0 && strcmp(path, "/") == 0){
+        get_file(fd, cache, "/index.html");
+    } else if(strcmp(method, "GET") == 0){
+        printf("get_file() was called.\n");
+        get_file(fd, cache, path); // search for the path passed in the request
+    } else {
+        resp_404(fd);
+    }
 
     // If GET, handle the get endpoints
 
@@ -190,6 +263,7 @@ int main(void)
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
+
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
@@ -213,6 +287,9 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
+
+        // test 404 page
+        // resp_404(newfd);
 
         handle_http_request(newfd, cache);
 
