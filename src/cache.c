@@ -16,7 +16,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     entry->path = path;
     entry->content_type = content_type;
     entry->content_length = content_length;
-    entry->content = malloc(content_length);
+    entry->content = content;
     return entry;
 }
 
@@ -28,7 +28,6 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    free(entry->content);
     free(entry);
 }
 
@@ -103,9 +102,12 @@ struct cache *cache_create(int max_size, int hashsize)
     // IMPLEMENT ME! //
     ///////////////////
     struct cache *cache = malloc(sizeof(struct cache));
-    cache->index = hashtable_create(max_size, hashsize);
+    cache->index = hashtable_create(max_size, NULL);
     cache->max_size = max_size;
-    cache-> cur_size = 0;
+    cache->cur_size = 0;
+    cache->head = NULL;
+    cache->tail = NULL;
+    return cache;
 }
 
 void cache_free(struct cache *cache)
