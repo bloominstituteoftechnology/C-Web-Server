@@ -122,14 +122,25 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
+    struct cache_entry *entry;
+    
 
     snprintf(filepath, sizeof filepath, "./serverroot%s",request_path);
+
+    entry = cache_get(cache,filepath);
+    if(entry != NULL){
+        send_response(fd,"HTTP/1.1 200 OK", entry->content_type,entry->content,entry->content_length);
+        return;
+    } 
+
     filedata = file_load(filepath);
     if (filedata == NULL) {
         resp_404(fd);
     }
     
     mime_type = mime_type_get(request_path);
+
+    cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
 
     send_response(fd,"HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size );
     file_free(filedata);
@@ -151,6 +162,12 @@ char *find_start_of_body(char *header)
 /**
  * Handle HTTP request and send response
  */
+
+    char *path;   // Endpoint path--key to the cache
+    char *content_type;
+    int content_length;
+    void *content;
+
 void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
