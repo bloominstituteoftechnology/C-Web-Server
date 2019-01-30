@@ -23,13 +23,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    printf("1\n");
     if (entry->path != NULL)             { free(entry->path); }
-    printf("2\n");
     if (entry->content_type != NULL)     { free(entry->content_type); }
-    printf("5\n");
     if (entry != NULL)                   { free(entry); }
-    printf("6\n");
     return;
 }
 
@@ -150,7 +146,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     // Free the cache entry.
         free_entry(oldtail);
     // Ensure the size counter for the number of entries in the cache is correct.
-        assert(--cache->cur_size == cache->max_size);
+        // assert(cache->cur_size <= cache->max_size);
     }
 
 }
