@@ -50,7 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 65536*4;
     char response[max_response_size];
 
     // Build HTTP response and store it in response
@@ -150,6 +150,28 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    printf("request_path:%s\n", request_path);
+    snprintf(filepath, sizeof filepath, "./serverroot/%s", request_path);
+    struct cache_entry *entry = cache_get(cache, filepath);
+    if(entry == NULL){
+        filedata = file_load(filepath);
+        if (filedata == NULL) {
+            // TODO: make this non-fatal
+            fprintf(stderr, "cannot find system 404 file\n");
+            resp_404(fd);
+            return;
+        }
+        char *content_type = "file";
+        cache_put(cache, filepath, content_type, filedata->data, filedata->size);
+    }else{
+        filedata = malloc(sizeof *filedata);
+        filedata->data = entry->content;
+        filedata->size = entry->content_length;
+    }
+    printf("Sending response.\n");
+    send_response(fd, "HTTP/1.1 200 OK", mime_type_get(filepath), filedata->data, filedata->size);
 }
 
 /**
@@ -163,6 +185,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return header;
 }
 
 /**
@@ -199,17 +222,6 @@ void handle_http_request(int fd, struct cache *cache)
     //    Otherwise serve the requested file by calling get_file()
         else{
             get_file(fd, cache, request_path);
-            char filepath[4096];
-            struct file_data *filedata;
-            printf("request_path:%s\n", request_path);
-            snprintf(filepath, sizeof filepath, "./serverroot/%s", request_path);
-            filedata = file_load(filepath);
-            if (filedata == NULL) {
-                // TODO: make this non-fatal
-                fprintf(stderr, "cannot find system 404 file\n");
-                resp_404(fd);
-            }
-            send_response(fd, "HTTP/1.1 200 OK", mime_type_get(filepath), filedata->data, filedata->size);
         }
     }else{
         fprintf(stderr, "unknown request type \"%s\"\n", request_type);
