@@ -139,9 +139,17 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+
+    dllist_insert_head(cache, entry);
+    hashtable_put(cache->index, path, entry);
+    cache->cur_size++;
+    while (cache->cur_size > cache->max_size)
+    {
+        struct cache_entry *old_tail = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, old_tail->path);
+        free_entry(old_tail);
+    }
 }
 
 /**
@@ -149,7 +157,13 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+    if (entry == NULL)
+    {
+        printf("Missed cache: %s\n", path);
+        return NULL;
+    }
+    printf("Hit cache: %s\n", path);
+    dllist_move_to_head(cache, entry);
+    return entry;
 }
