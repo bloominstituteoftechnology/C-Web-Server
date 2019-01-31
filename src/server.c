@@ -51,21 +51,21 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+    // printf("\nbody, &body: %d, %d\n", body, &body);
     const int max_response_size = 262144;
     char response[max_response_size];
 
     //get the timestamp
     time_t rawtime;
     struct tm *info;
-    char buffer[80];
 
     time( &rawtime );
 
     info = localtime( &rawtime );
 
-    // Build HTTP response and store it in response
-    // set response and response_length
-    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %ld\nContent-Type: %s\n\n %s", header, asctime(info), strlen(body), content_type, body);
+    int response_length = sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %ld\nContent-Type: %s\n\n", header, asctime(info), content_length, content_type);
+    memcpy(response + response_length, body, content_length);
+    response_length += content_length;
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -138,10 +138,18 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        if (strcmp(request_path, "/") == 0) {
+            printf("it's here!\n");
+            sscanf("/index.html", "%s", request_path);
+            snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+            filedata = file_load(filepath);
+            } else{
+
+        resp_404(fd);
+        return;
     }
 
+    }
     mime_type = mime_type_get(filepath);
     cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
     send_response(fd, "HTTP/1.1 202 OK", mime_type, filedata->data, filedata->size);
@@ -150,15 +158,26 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
 /**
  * Search for the end of the HTTP header
- * 
+ *
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
+    // char *start_of_body;
+    // printf("header~~~\n%s\n", header);
+    // printf("length: %ld\n", strlen(header));
+    // int truth = 0;
+    // for (int i=0; i<strlen(header); i++){
+    //     if (header[i]=='\r'){
+    //     printf(" 'r' header[%d]: %c\n", i, (header[i]));
+    //     }
+    //     if (header[i]=='\n'){
+    //     printf(" 'n' header[%d]: %c\n", i, (header[i]));
+    //     printf("header[%d]: %c\n", i+1, (header[i+1]));
+
+    //     }
+    // }
 }
 
 /**
@@ -166,7 +185,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 262144;
     char request[request_buffer_size];
 
     // Read request
@@ -179,9 +198,9 @@ void handle_http_request(int fd, struct cache *cache)
 
     char request_type[5], path[50], header[10];
     sscanf(request, "%s %s %s", request_type, path, header);
-
     // Read the three components of the first request line
-
+    // printf("request_type, path, header: %s, %s, %s\n", request_type, path, header);
+    find_start_of_body(request);
     // If GET, handle the get endpoints
     if (strcmp(request_type, "GET") == 0){
     //    Check if it's /d20 and handle that special case
@@ -191,6 +210,7 @@ void handle_http_request(int fd, struct cache *cache)
         }
     //    Otherwise serve the requested file by calling get_file()
         else {
+        // find_start_of_body();//header)    //XXX
         get_file(fd, cache, path);
         return;
         }
