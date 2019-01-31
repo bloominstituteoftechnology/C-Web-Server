@@ -9,9 +9,16 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  struct cache_entry* cache_entry_inst = malloc(sizeof(struct cache_entry));
+
+  //Define/init the attribtes or properties of the obj/DS
+  cache_entry_inst->path = path;
+  cache_entry_inst->content_type = content_type;
+  cache_entry_inst->content_length = content_length;
+  cache_entry_inst->content = content;
+
+  //return the DS
+return cache_entry_inst;
 }
 
 /**
@@ -19,9 +26,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  free(entry);
 }
 
 /**
@@ -127,9 +132,6 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     // Allocate a new cache entry with passed parameters
     struct cache_entry *allocated_entry = alloc_entry(path,
     content_type, content, content_length);
@@ -167,9 +169,6 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     struct cache_entry *entry = hashtable_get(cache->index,
     path);
 

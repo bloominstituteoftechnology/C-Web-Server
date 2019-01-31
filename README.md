@@ -6,14 +6,14 @@ day 3 & 4
     - [x] Increment the current size of the cache.
     - [x] If the cache size is greater than the max size:
     - [x] Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
-    - [ ] Remove the cache entry at the tail of the linked list (this is the least-recently used one)
-    - [ ] Free the cache entry.
-    - [ ] Ensure the size counter for the number of entries in the cache is correct.
+    - [x] Remove the cache entry at the tail of the linked list (this is the least-recently used one)
+    - [x] Free the cache entry.
+    - [x] Ensure the size counter for the number of entries in the cache is correct.
 - [ ] Implement `cache_get()` in `cache.c`.
-    - [ ] Attempt to find the cache entry pointer by `path` in the hash table.
-    - [ ] If not found, return `NULL`.
-    - [ ] Move the cache entry to the head of the doubly-linked list.
-    - [ ] Return the cache entry pointer.
+    - [x] Attempt to find the cache entry pointer by `path` in the hash table.
+    - [x] If not found, return `NULL`.
+    - [x] Move the cache entry to the head of the doubly-linked list.
+    - [x] Return the cache entry pointer.
 - [ ] Add caching functionality to `server.c`.
     - [ ] Load the file from disk (see `file.c`)
     - [ ] Store it in the cache

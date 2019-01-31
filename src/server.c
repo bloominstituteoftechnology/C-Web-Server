@@ -135,9 +135,7 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
