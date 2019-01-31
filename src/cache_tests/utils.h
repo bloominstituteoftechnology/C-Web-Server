@@ -1,6 +1,6 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
-
+#include <stdio.h>
 #include "../cache.h"
 
 int check_strings(char *input, char *expected)

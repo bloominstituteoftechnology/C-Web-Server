@@ -19,7 +19,6 @@ char *test_cache_create()
   mu_assert(cache->cur_size == 0, "The cur_size field of the cache should be initialized to 0");
   mu_assert(cache->max_size == max_size, "The max_size field of the cache was not initialized to the expected value");
   mu_assert(cache->index != NULL, "The index field of the cache was not initialized");
-
   cache_free(cache);
 
   return NULL;
@@ -64,6 +63,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not put an entry into the tail of the empty cache with the expected form");
   mu_assert(check_cache_entries(hashtable_get(cache->index, "/1"), test_entry_1) == 0, "Your cache_put function did not put the expected entry into the hashtable");
 
+  printf("\n\n~~~~~~\nALL OF THESE ARE PASSING\n~~~~~~\n\n");
   // Add in a second entry to the cache
   cache_put(cache, test_entry_2->path, test_entry_2->content_type, test_entry_2->content, test_entry_2->content_length);
   // Check that the cache is handling both entries as expected
