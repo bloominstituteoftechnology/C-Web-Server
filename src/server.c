@@ -150,10 +150,18 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+
+    // USAGE: cache_get(cache, path)
+    struct cache_entry *cache_item = cache_get(cache, request_path);
+
+    if(cache_item != NULL){
+        printf("Loading from cache...\n");
+        send_response(fd, "HTTP/1.1 200 OK", cache_item->content_type, cache_item->content, cache_item->content_length);
+    } else {
     struct file_data *filedata = NULL;
     char *mime_type;
-
     char full_path[256];
+
     sprintf(full_path, "./serverroot%s", request_path);
     printf("%s\n", full_path);
 
@@ -161,14 +169,23 @@ void get_file(int fd, struct cache *cache, char *request_path)
     mime_type = mime_type_get(full_path);
 
     // verify filedata returns something
-    if(filedata != NULL){
-        // if data, call send_response
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-        file_free(filedata);
-    } else {
-        resp_404(fd);
+        if(filedata != NULL){
+            // if data, add to cache, and call send_response
+            cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+            printf("Loading from server...\n");
+
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+            // free the filedata, since we now have it in the cache
+            file_free(filedata);
+        } else {
+            resp_404(fd);
+        }
+
     }
 
+
+    
     
     
     ///////////////////
