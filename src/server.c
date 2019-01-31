@@ -199,7 +199,11 @@ void post_save(char *req_path, char *body, long content_length)
         exit(-1);
     }
 
+    flock(fd, LOCK_EX);
+
     write(fd, body, content_length);
+
+    flock(fd, LOCK_UN);
 
     close(fd);
 }
