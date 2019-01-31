@@ -75,10 +75,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         body
     );
     printf("response: %s\n", response); // --> We can use a sprintf() to create the response, also returns total number of bytes in result string
-    // memcpy(response + response_length, body, content_length);
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////    
+    // memcpy(response + response_length, body, content_length);  
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -153,7 +150,7 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-// ===========================================WEB SERVER II=========================================
+// =========================WEB SERVER II===============================
     struct cache_entry *find_entry = cache_get(cache, request_path);
     if (find_entry != NULL) {
         printf("Get cached :D\n");
@@ -168,7 +165,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     }
 
 
-// =================================================================================================
+// =====================================================================
     // 1. Create a file_path buffer & initialize a file_data struct
     char file_path[4096];
     struct file_data *filedata; 
@@ -196,7 +193,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
 /**
  * Search for the end of the HTTP header
- * 
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
@@ -263,9 +259,6 @@ void handle_http_request(int fd, struct cache *cache)
         }
     }
     
-
-
-
     // (Stretch) If POST, handle the post request
 }
 
