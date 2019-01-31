@@ -196,9 +196,6 @@ int htcmp(void *a, void *b)
  */
 void *hashtable_get(struct hashtable *ht, char *key)
 {
-    printf("01\n");
-    printf("ht: %d\n", ht->size);
-    printf("key: %s\n", key);
     return hashtable_get_bin(ht, key, strlen(key));
 }
 
@@ -207,26 +204,18 @@ void *hashtable_get(struct hashtable *ht, char *key)
  */
 void *hashtable_get_bin(struct hashtable *ht, void *key, int key_size)
 {
-    printf("2\n");
     int index = ht->hashf(key, key_size, ht->size);
 
-    // printf("3\n");
     struct llist *llist = ht->bucket[index];
 
-    // printf("4\n");
     struct htent cmpent;
     cmpent.key = key;
     cmpent.key_size = key_size;
 
-    // printf("5\n");
     struct htent *n = llist_find(llist, &cmpent, htcmp);
 
-    printf("666\n");
     if (n == NULL) { return NULL; }
 
-    printf("7777\n");
-    // printf("n->data: %s\n", n->data);
-    // printf("n: %s\n", n);
     return n->data;
 }
 

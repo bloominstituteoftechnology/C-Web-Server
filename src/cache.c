@@ -51,19 +51,14 @@ void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
  */
 void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 {
-    printf("\n\n we're inside move_to_head\n");
     if (ce != cache->head) {
-        printf("we're not the head\n");
         if (ce == cache->tail) {
             // We're the tail
-            printf("we're the tail\n");
             cache->tail = ce->prev;
             cache->tail->next = NULL;
 
         } else {
             // We're neither the head nor the tail
-            printf("we're neither head nor tail\n");
-
             ce->prev->next = ce->next;
             ce->next->prev = ce->prev;
         }
@@ -101,9 +96,9 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    struct cache *new_cache = malloc(sizeof(struct cache));     //XXX
-    struct hashtable *ht = hashtable_create(hashsize, NULL);    //XXX
-    new_cache->index = ht;                                      //XXX
+    struct cache *new_cache = malloc(sizeof(struct cache));
+    struct hashtable *ht = hashtable_create(hashsize, NULL);
+    new_cache->index = ht;
 
     new_cache->head = NULL;
     new_cache->tail = NULL;
@@ -141,40 +136,24 @@ void cache_free(struct cache *cache)
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
 // Allocate a new cache entry with the passed parameters.
-    // printf("1\n");
    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
 // Insert the entry at the head of the doubly-linked list.
-    // printf("2\n");
     dllist_insert_head(cache, entry);
 // Store the entry in the hashtable as well, indexed by the entry's path.
-    // printf("3\n");
     hashtable_put(cache->index, path, entry);
 // Increment the current size of the cache.
-    // printf("4\n");
     cache->cur_size++;
 // If the cache size is greater than the max size:
-    // printf("5\n");
     if (cache->cur_size > cache->max_size) {
     // Remove the cache entry at the tail of the linked list (this is the least-recently used one)
-    // printf("cache->max_size: %d\n", cache->max_size);
-    // printf("cache->cur_size: %d\n~~~~\n\n", cache->cur_size);
-    // printf("6\n");
         struct cache_entry *oldtail = dllist_remove_tail(cache);
     // Remove the entry from the hashtable, using the entry's path and the hashtable_delete function.
-    // printf("7\n");
         hashtable_delete(cache->index, oldtail->path);
     // Free the cache entry.
-    // printf("8\n");
-        // printf("oldtail: %s\n", oldtail->path);
         free_entry(oldtail);
-        // printf("oldtail: %s\n", oldtail);
     // Ensure the size counter for the number of entries in the cache is correct.
-    // printf("9\n");
-    // printf("cache->max_size: %d\n", cache->max_size);
-    // printf("cache->cur_size: %d\n", cache->cur_size);
         // assert(cache->cur_size <= cache->max_size);
     }
-
 }
 
 /**
@@ -183,42 +162,11 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
 // Attempt to find the cache entry pointer by path in the hash table.
-    printf("1~\n");
-    printf("cache_get path: %s\n", path);
-    if (path == NULL){
-        return NULL;
-    }
     struct cache_entry *entry = hashtable_get(cache->index, path);
-    if (entry == cache->tail){ printf("works here\n");}
-    else {printf("didn't work here\n");}
 // If not found, return NULL.
-    printf("2~\n");
-    if (entry == NULL){
-    printf("3~\n");
-        return entry;
-    }
+    if (entry == NULL) {return entry; }
 // Move the cache entry to the head of the doubly-linked list.
-    printf("4~\n");
-    printf("ENTRY: %s\n", entry);
-    printf("BEFORE HEAD: %s\n", cache->head->path);
-    printf("BEFORE TAIL: %s\n", cache->tail);
     dllist_move_to_head(cache, entry);
-    printf("HEAD: %s\n", cache->head->path);
-    printf("TAIL: %s\n", cache->tail->path);
-
 // Return the cache entry pointer.
-    printf("5~\n");
     return entry;
 }
-
-// struct cache_entry *cache_get(struct cache *cache, char *path)
-// {
-//     if(!hashtable_get(cache->index, path)){
-//         return NULL;
-
-//     }else{
-//         struct cache_entry *ce = hashtable_get(cache->index, path);
-//         dllist_move_to_head(cache, ce);
-//         return ce; 
-//         }
-// }
