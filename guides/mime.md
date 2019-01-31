@@ -42,7 +42,7 @@ Here are some common MIME types:
 
 > _Octet_ is another name for an 8-bit value, commonly known as a _byte_.
 > (Historically the number of bits in a byte varied, even though today they're
-> vitually always 8 bits. An octet is _always_ 8 bits by definition.)
+> virtually always 8 bits. An octet is _always_ 8 bits by definition.)
 
 There are [a lot of MIME
 types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types).
@@ -55,7 +55,7 @@ If you have a programmatic endpoint (e.g. an endpoint that generates the data
 instead of reading it from disk) then you simply specify the type of the data
 you're sending back.
 
-For example, if you return data is:
+For example, if your return data is:
 
 ```json
 {
