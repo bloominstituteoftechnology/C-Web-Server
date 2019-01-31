@@ -7,13 +7,12 @@ What you need to write:
 * Days 1-2:
   * HTTP request parser
   * HTTP response builder
-* Days
+* Days 3-4:
 * LRU cache
   * Doubly linked list (some functionality provided)
   * Use existing hashtable functionality (below)
 
-* Your code will interface with the existing code. Understanding the existing
-  code is an expected part of this challenge.
+* Your code will interface with the existing code. Understanding the existing code is an expected part of this challenge.
 
 What's already here:
 

@@ -136,9 +136,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     // IMPLEMENT ME! //
     struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);  // Allocate a new cache entry
     
-    dllist_insert_head(cache, entry);    // Insert entry at the head of the doubly linked list
-    hashtable_put(cache->index, path, entry);  // Also store the entry in the hashtable
-    cache->cur_size++;                   // Increment current size of the cache
+    dllist_insert_head(cache, entry);             // Insert entry at the head of the doubly linked list
+    hashtable_put(cache->index, path, entry);     // Also store the entry in the hashtable
+    cache->cur_size++;                            // Increment current size of the cache
     while (cache->cur_size > cache->max_size) {
         struct cache_entry *old_tail = dllist_remove_tail(cache);
         hashtable_delete(cache->index, old_tail->path);
