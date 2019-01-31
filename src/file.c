@@ -6,7 +6,7 @@
 /**
  * Loads a file into memory and returns a pointer to the data.
  * 
- * Buffer is not NUL-terminated.
+ * Buffer is not NULL-terminated.
  */
 struct file_data *file_load(char *filename)
 {
