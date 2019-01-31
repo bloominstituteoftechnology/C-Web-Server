@@ -164,8 +164,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
             return;
         }
         char *content_type = "file";
+        printf("Sending uncached file.\n");
         cache_put(cache, filepath, content_type, filedata->data, filedata->size);
     }else{
+        printf("Sending cached file.\n");
         filedata = malloc(sizeof *filedata);
         filedata->data = entry->content;
         filedata->size = entry->content_length;
@@ -185,7 +187,19 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
-    return header;
+    char *p = header;
+    for(int i=0; i<3; ){
+        if(*p++ == '\r'){
+            if(*p == '\n'){
+                p++;
+            }
+            i++;
+        }
+        if(*p == '\n'){
+            i++;
+        }
+    }
+    return p;
 }
 
 /**
