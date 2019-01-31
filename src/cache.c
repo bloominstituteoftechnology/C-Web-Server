@@ -182,7 +182,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 		
 
 		
-		old_tail = dllist_remove_tail(cache);               //removing the cache entry at the tail of the linked list
+	struct cache_entry *old_tail = dllist_remove_tail(cache);               //removing the cache entry at the tail of the linked list
 
 		hashtable_delete(cache->index, old_tail->path);    //Removing that same entry from the hashtable
 
