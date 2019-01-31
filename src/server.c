@@ -147,24 +147,28 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     printf("\nget_file() called");
 
-    struct file_data *filedata = NULL;       // see file.h and file.c
-    char *mime_type;                         // see mime.h but mostly mime.c
+    struct file_data *filedata = NULL;       // declare a pointer to a file_data struct
+    char *mime_type;                         // declare a pointer to a mime_type aka content_type
     char file_path[4096];                    // declare an array to store the file path
 
-    // I'm going to use requet_path for the cache and only use ./serverroot + request_path for loading file data that's not in the cache
-    struct cache_entry *entry = cache_get(cache, request_path);  // get the desired entry from the cache (if it's there)
+    // Use requet_path for the cache; use full file_path (./serverroot + request_path) for loading files not in the cache
+    struct cache_entry *entry = cache_get(cache, request_path);   // get the desired entry from the cache (if it's there)
 
-    if (entry == NULL) {                       // if cache has no entry with the given request_path
+    if (entry == NULL) {    // if cache has no entry with the given request_path
 
         sprintf(file_path, "./serverroot%s", request_path);   // build a full file path into the ./serverroot directory
         filedata = file_load(file_path);                      // returns filedata->data and filedata->size; *NOTE: file_load allocates memory that should be freed later
         
         // TO-DO: handle case where user inputs '/' as the path, and serve index.html file
-
-        if (filedata == NULL) {
-            resp_404(fd);
-            return;
-        }
+         if (filedata == NULL) {
+             sprintf(file_path, "./serverroot%s/index.html", request_path);
+             filedata = file_load(file_path);
+             if (filedata == NULL) {
+                resp_404(fd);
+                return;
+            }
+         }
+            
         // else if filedata != NULL:
         mime_type = mime_type_get(file_path);  // checks the file extension and returns `content-type` string
 
