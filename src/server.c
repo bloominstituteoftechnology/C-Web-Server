@@ -54,11 +54,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    // sprintf is writes the data in the string which is the first parameter and returns the number of characters written to the string
+   
+    int response_length = sprintf(response,"%s\n Connection: close\n Content-Length: %d\n Content-Type: %s\n\n %s", header, content_length, content_type, body); 
+    printf("response: %s\n", response); 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -75,17 +74,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
+    // Generate a random number between 1 and 20 inclusive
+   
+    char body[8]; 
+    int body_length = sprintf(body, "%d\n", rand() % 20 + 1); 
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, body_length); 
+
 }
 
 /**
@@ -144,6 +141,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[6];  // Delete is 6 characters long, longest HTTP request type
+    char request_url[50]; 
+    char request_protocol[20]; 
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -154,13 +154,19 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
 
+    sscanf(request, "%s %s %s", request_type, request_url, request_protocol); 
+
     // If GET, handle the get endpoints
+
+    if(strcmp(request_type, "GET") == 0){
+        if(strcmp(request_url, "/d20") == 0){
+            get_d20(fd); 
+        }else{
+            resp_404(fd); 
+        }
+    }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
@@ -193,7 +199,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+  
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
