@@ -11,6 +11,7 @@ char *test_cache_create()
   int hash_size = 0;
 
   struct cache *cache = cache_create(max_size, hash_size);
+
   // Check that each field of the cache struct was initialized to the proper value
   mu_assert(cache, "Your cache_create function did not return a valid pointer to the created cache");
   mu_assert(cache->head == NULL, "The head pointer of the cache should be initialized to NULL");
@@ -18,7 +19,6 @@ char *test_cache_create()
   mu_assert(cache->cur_size == 0, "The cur_size field of the cache should be initialized to 0");
   mu_assert(cache->max_size == max_size, "The max_size field of the cache was not initialized to the expected value");
   mu_assert(cache->index != NULL, "The index field of the cache was not initialized");
-
   cache_free(cache);
 
   return NULL;
@@ -49,26 +49,13 @@ char *test_cache_put()
   // Create a cache with 3 slots
   struct cache *cache = cache_create(3, 0);
   // Create 4 test entries
-  struct cache_entry *test_entry_1 = alloc_entry("/1", "text/plain", "100", 2);
-  struct cache_entry *test_entry_2 = alloc_entry("/2", "text/html", "200", 2);
-  struct cache_entry *test_entry_3 = alloc_entry("/3", "application/json", "030", 2);
-  struct cache_entry *test_entry_4 = alloc_entry("/4", "image/png", "archipelago", 2);
-
+  struct cache_entry *test_entry_1 = alloc_entry("/1", "text/plain", "1", 2);
+  struct cache_entry *test_entry_2 = alloc_entry("/2", "text/html", "2", 2);
+  struct cache_entry *test_entry_3 = alloc_entry("/3", "application/json", "3", 2);
+  struct cache_entry *test_entry_4 = alloc_entry("/4", "image/png", "4", 2);
 
   // Add in a single entry to the cache
   cache_put(cache, test_entry_1->path, test_entry_1->content_type, test_entry_1->content, test_entry_1->content_length);
-  // cache_put(cache, test_entry_4->path, test_entry_4->content_type, test_entry_4->content, test_entry_4->content_length);
-  // printf("test_entry_1 path: %s\n", test_entry_1);
-  // printf("hashtable_get path: %s\n", hashtable_get(cache->index, "/1"));
-  
-  
-  // struct cache_entry *whatever = hashtable_get(cache->index, "/1");
-  // printf("Entry 1: %s\n", whatever);
-  // printf("Entry->path: %s\n", whatever->path);
-  // printf("Test Entry->path: %s\n", test_entry_1->path);
-  // printf("Head: %s\n", cache->head);
-  // printf("cache_entry 1: %s\n", test_entry_2;
-
   // Check that the cache is handling a single entry as expected
   mu_assert(cache->cur_size == 1, "Your cache_put function did not correctly increment the cur_size field when adding a new cache entry");
   mu_assert(cache->head->prev == NULL && cache->tail->next == NULL, "The head and tail of your cache should have NULL prev and next pointers when a new entry is put in an empty cache");
@@ -76,8 +63,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not put an entry into the tail of the empty cache with the expected form");
   mu_assert(check_cache_entries(hashtable_get(cache->index, "/1"), test_entry_1) == 0, "Your cache_put function did not put the expected entry into the hashtable");
 
-  printf("PASSING\n\n\n");
-
+  printf("\n\n~~~~~~\nALL OF THESE ARE PASSING\n~~~~~~\n\n");
   // Add in a second entry to the cache
   cache_put(cache, test_entry_2->path, test_entry_2->content_type, test_entry_2->content, test_entry_2->content_length);
   // Check that the cache is handling both entries as expected
@@ -114,7 +100,6 @@ char *test_cache_put()
   return NULL;
 }
 
-
 char *test_cache_get()
 {
   // Create a cache with 2 slots
@@ -128,9 +113,7 @@ char *test_cache_get()
 
   // Insert an entry into the cache, then retrieve it
   cache_put(cache, test_entry_1->path, test_entry_1->content_type, test_entry_1->content, test_entry_1->content_length);
-  printf("hohoho\n\n\n");
   entry = cache_get(cache, test_entry_1->path);
-  printf("THIS PASSES\n\n\n");
   // Check that the retrieved entry's values match the values of the inserted entry
   mu_assert(check_cache_entries(entry, test_entry_1) == 0, "Your cache_get function did not retrieve the newly-added cache entry when there was 1 entry in the cache");
 
