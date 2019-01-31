@@ -179,4 +179,18 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *cache_entry;
+
+    cache_entry = hashtable_get(cache->index, path);    
+
+    if (cache_entry == NULL)
+    {
+        return NULL;
+    }
+
+    dllist_move_to_head(cache, cache_entry);
+    
+    cache_entry = hashtable_get(cache->index, cache->head->path);
+    
+    return cache_entry;
 }
