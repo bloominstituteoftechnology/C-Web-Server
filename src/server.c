@@ -173,7 +173,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
  }
  else{
 	 printf("This entry is from the cache\n");
- 	 send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
+ 	 send_response(fd, "HTTP/1.1 200 OK",cache_entry->content_type, cache_entry->content, cache_entry->content_length);
  
  }
   	
@@ -223,7 +223,7 @@ void handle_http_request(int fd, struct cache *cache)
     	}
     
     	else{
-		if(strcmp(request_path, "/") == 0){
+		if(strcmp(request_path, "/") == 0){         //Automatic index.html serving
 			
 			get_file(fd, cache, "/index.html");
 		}
