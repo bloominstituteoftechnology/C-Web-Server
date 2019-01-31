@@ -51,7 +51,7 @@
 
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536*10;
+    const int max_response_size = 262144;
     char response[max_response_size];
 
     int response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s\n", header, content_length, content_type, body);
@@ -131,23 +131,37 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
-    printf("%s", request_path);
+    struct cache_entry *cache_entry;
 
-    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
-
-    filedata = file_load(filepath);
-
-    if (filedata == NULL)
+    cache_entry = cache_get(cache, request_path);
+    
+  
+    if (cache_entry)
     {
-        resp_404(fd);
-        return;
-    }            
+        send_response(fd, "HTTP/1.1 200 OK",cache_entry->content_type, cache_entry->content, cache_entry->content_length);
+        printf("Cache\n");
+    }
+    else
+    {
+        snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
 
-    mime_type = mime_type_get(filepath);
+        filedata = file_load(filepath);
 
-    send_response(fd, "HTTP/1.1 200 OK",mime_type, filedata->data, filedata->size);
+        if (filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }            
 
-    file_free(filedata);
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 200 OK",mime_type, filedata->data, filedata->size);
+
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+        printf("Not Cache\n");
+    }    
 }
 
 /**
