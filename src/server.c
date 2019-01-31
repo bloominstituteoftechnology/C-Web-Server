@@ -180,7 +180,28 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    return strstr(header, "\n\r");
+    char *body = strstr(header, "\n\r");
+    body += 3;
+    return body;
+}
+
+void post_save(char *req_path, char *body, long content_length)
+{
+    int fd;
+    char path_buffer[1024];
+
+    snprintf(path_buffer, sizeof(path_buffer), "%s%s", SERVER_ROOT, req_path);
+
+    fd = open(path_buffer, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+
+    if (fd < 0) {
+        fprintf(stderr, "fd < 0\n");
+        exit(-1);
+    }
+
+    write(fd, body, content_length);
+
+    close(fd);
 }
 
 /**
@@ -192,6 +213,7 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
     char req_method[8], req_path[1024], req_protocol[128];
     char *body;
+    long content_length;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -222,7 +244,10 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(req_method, "POST") == 0)
     {
         body = find_start_of_body(request);
-        printf("BODY:\n%s\n", body);
+        content_length = strlen(body);
+        post_save(req_path, body, content_length);
+        send_response(fd, "HTTP/1.1 201 Created", "application/json", "{\"status\":\"ok\"}", 15);
+        return;
     }
 
     resp_404(fd);
