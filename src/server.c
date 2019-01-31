@@ -52,8 +52,21 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    int response_length = 0;
 
     // Build HTTP response and store it in response
+
+    response_length = sprintf(response,
+    "%s\n"
+    "Connection: close\n"
+    "Content-Length: %d\n"
+    "Content-Type: %s\n"
+    "\n"
+    "%s", 
+    header,
+    content_length,
+    content_type,
+    body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -81,11 +94,20 @@ void get_d20(int fd)
     // IMPLEMENT ME! //
     ///////////////////
 
+    srand(time(NULL));
+    int random_number;
+    random_number = (rand() % 20) + 1;
+    char num_to_string[8];
+
+    int num_length = sprintf(num_to_string, "%d", random_number);
+
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num_to_string, num_length);
 }
 
 /**
@@ -122,6 +144,23 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -157,14 +196,37 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    else
+    {
     // Read the three components of the first request line
+
+    char response[8], path[1024], protocol[128];
+
+
+    sscanf(request, "%s %s %s", response, path, protocol);
 
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
+        if (strcmp(response, "GET") == 0)
+        {
+            if (strcmp(path, "/d20") == 0)
+            {
+                get_d20(fd);
+            }
+            else
+            {
+                get_file(fd, cache, path);
+            }
+        }
+        else
+        {
+            fprintf(stderr, "unrecognized response type\n");
+            return;
+        }
+    }
 
     // (Stretch) If POST, handle the post request
 }
@@ -187,6 +249,7 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
+    
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
@@ -204,13 +267,13 @@ int main(void)
             perror("accept");
             continue;
         }
+        
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
         printf("server: got connection from %s\n", s);
-        
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
@@ -218,7 +281,7 @@ int main(void)
 
         close(newfd);
     }
-
+    
     // Unreachable code
 
     return 0;
