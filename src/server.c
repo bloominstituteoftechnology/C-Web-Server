@@ -67,11 +67,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         content_length, 
         content_type
     );
-    printf("response pointer: %i\n", *response);
-    printf("response_length: %i\n", response_length);
-    printf("response + response_length: %i\n", *response + response_length);
-
-    printf("body pointer: %i\n", body);
+    // printf("response pointer: %i\n", *response);
+    // printf("response_length: %i\n", response_length);
+    // printf("response + response_length: %i\n", *response + response_length);
+    // printf("body pointer: %i\n", body);
 
 
     memcpy(response + response_length, body, content_length);   // memcpy(void *a, const void *b, size_t n)
@@ -85,7 +84,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     }
     return rv;
 }
-
 
 /**
  * Send a /d20 endpoint response
@@ -149,23 +147,37 @@ void get_file(int fd, struct cache *cache, char *request_path)
     // IMPLEMENT ME! //
     printf("\nget_file() called");
 
-    struct file_data *filedata = NULL;  // see file.h and file.c
-    char *mime_type;                    // see mime.h but mostly mime.c
+    struct file_data *filedata = NULL;       // see file.h and file.c
+    char *mime_type;                         // see mime.h but mostly mime.c
+    char file_path[4096];                    // declare an array to store the file path
 
-    char file_path[256];                                 // declare an array to store the file path
-    sprintf(file_path, "./serverroot%s", request_path);  // build a full file path into the ./serverroot directory
-   
-    filedata = file_load(file_path);       // returns filedata->data and filedata->size; *NOTE: file_load allocates memory that should be freed later
+    // I'm going to use requet_path for the cache and only use ./serverroot + request_path for loading file data that's not in the cache
+    struct cache_entry *entry = cache_get(cache, request_path);  // get the desired entry from the cache (if it's there)
 
-    mime_type = mime_type_get(file_path);  // checks the type of the file and returns string--use this as the content-type header
+    if (entry == NULL) {                       // if cache has no entry with the given request_path
 
-    if (filedata == NULL) {
-        resp_404(fd);
+        sprintf(file_path, "./serverroot%s", request_path);   // build a full file path into the ./serverroot directory
+        filedata = file_load(file_path);                      // returns filedata->data and filedata->size; *NOTE: file_load allocates memory that should be freed later
+        
+        // TO-DO: handle case where user inputs '/' as the path, and serve index.html file
+
+        if (filedata == NULL) {
+            resp_404(fd);
+            return;
+        }
+        // else if filedata != NULL:
+        mime_type = mime_type_get(file_path);  // checks the file extension and returns `content-type` string
+
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);  // put an entry in cache for the given file
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
         return;
     }
-
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-    file_free(filedata);
+    // else if entry != NULL:
+    
+    send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    return;
 }
 
 /**
