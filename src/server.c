@@ -18,7 +18,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -51,22 +50,35 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 265536;
+    const int max_response_size = 65536;
     char response[max_response_size];
-    char *body_str = body;
-    time_t date_time = time(NULL);
 
-    // Build HTTP response and store it in response
-    int response_length = sprintf(
-        response,
-        "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n",
+    time_t rawtime;
+    struct tm *info;
+    time(&rawtime);
+    info = localtime(&rawtime);
+
+    // Build HTTP response and store it in response || double \n here because it'll mess up the HTML loading
+    // int response_length = sprintf(response, "%s\nDate: %s\nConnection: close\nContent-length: %d\nContent-type: %s\n\n%s\n", header, asctime(info), content_length, content_type, body);
+    int response_length = sprintf(response,
+        "%s\n"
+        "Date: %s"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "Connection: close\n"
+        "\n"
+        "%s\n",
         header,
-        asctime(gmtime(&date_time)),
+        asctime(info),
         content_length,
         content_type,
+        body
     );
-
-    memcpy(response + response_length, body, content_length);
+    printf("response: %s\n", response); // --> We can use a sprintf() to create the response, also returns total number of bytes in result string
+    // memcpy(response + response_length, body, content_length);
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////    
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -85,16 +97,29 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    srand(time(0));
-    int lower = 1;
-    int upper = 20;
-    char result[10];
-    int d20 = (rand() % (upper - lower + 1)) + lower;
-    sprintf(result,"%d\n",d20);
+    // 1. Set seed for rand()
+    srand( time(0) );
 
-    // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", result, strlen(result));
+    // 2. Make the random number
+    int random_number = ( rand() % 20 );
+    printf("random number is: %d\n", random_number);
 
+    // 3. Assign the number to the data given into send_response 3rd arg
+    char data[50];
+    sprintf(data, "%d", random_number);
+
+    // 4. Use send_response() to send it back as text/plain data || 
+    /*
+    Argument List for Send_response():
+        1. File Descriptor (this is passed in as an argument)
+        2. This is just a mime of the request_type, set it yourself
+        3. Block of "data" --> we assigned the rand number into it
+        4. Size of the data
+    */
+    send_response(fd, "HTTP/1.1 200 OK, MIME", "text/plain", data, strlen(data));
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
 }
 
 /**
@@ -128,49 +153,45 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    char *mime_type;
-    char path_buffer[1024];
-    struct cache_entry *ce;
-    struct file_data *filedata;
-
-    ce = cache_get(cache, request_path);
-
-    if (ce)
-    {
-        send_response(fd, "HTTP/1.1 200 OK", ce->content_type, ce->content, ce->content_length);
+// ===========================================WEB SERVER II=========================================
+    struct cache_entry *find_entry = cache_get(cache, request_path);
+    if (find_entry != NULL) {
+        printf("Get cached :D\n");
+        send_response(
+            fd,
+            "HTTP/1.1 200 OK",
+            find_entry->content_type,
+            find_entry->content,
+            find_entry->content_length
+        );
         return;
     }
 
-    snprintf(path_buffer, sizeof(path_buffer), "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(path_buffer);
 
-    if (filedata)
-    {
-        mime_type = mime_type_get(request_path);
-        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+// =================================================================================================
+    // 1. Create a file_path buffer & initialize a file_data struct
+    char file_path[4096];
+    struct file_data *filedata; 
+    char *mime_type;  
+
+    // 2. Handle whether or not the request path is empty (aka the home page) or snprintf() the another file path
+    if ( strcmp(request_path, "/") == 0 ) {        
+        snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, "/index.html");
+    } else {
+        snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, request_path);
+    }
+    // 3. Load file data
+    filedata = file_load(file_path);
+
+    // 4. Check if file_load() encountered an error, send response to server and free file
+    if (filedata == NULL) {
+        resp_404(fd);
+    } else {
+        mime_type = mime_type_get(file_path);
         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        cache_put(cache, file_path, mime_type, filedata->data, filedata->size);
         file_free(filedata);
-        return;
     }
-
-    if (!strcmp(request_path, "/")) // IF STRINGS MATCH
-    {
-        strcat(request_path, "index.html");
-        snprintf(path_buffer, sizeof(path_buffer), "%s%s", SERVER_ROOT, request_path);
-        filedata = file_load(path_buffer);
-
-        if (filedata)
-        {
-            mime_type = mime_type_get(request_path);
-            cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
-            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-            file_free(filedata);
-            return;
-        }
-    }
-
-    resp_404(fd);
-    return;
 }
 
 /**
@@ -192,10 +213,13 @@ char *find_start_of_body(char *header)
 void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
-    char request[request_buffer_size];
-    char req_method[16], req_path[1024], req_protocol[124];
+    char request[request_buffer_size]; // --> Holds entire HTTP request once recv() call returns
 
-    // Read request
+    // Read request Args:
+    // 1. Socket --> Specifies socket file descriptor
+    // 2. Buffer --> points to a buffer where the message should be stored
+    // 3. Length --> Length in bytes of the buffer pointed to in 2nd arg
+    // 4. Flags -->  Specifies the type of message reception
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
@@ -203,29 +227,51 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    // Read the three components of the first request line
-    sscanf(request, "%s %s %s", req_method, req_path, req_protocol);
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
+
+    // Read the three components of the first request line || we can do this with sscanf()
+
+    /*
+    - Arg List:
+    - 1. Pointer to the string from where we want to read data
+    - How to use: We first need to supply three vars of appropriate type
+
+    * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
+    * content_type: "text/plain", etc.
+    * body:         the data to send.
+    */    
+    char request_type[20], request_endpoint[20], request_http[100];
+    sscanf(request, "%s %s %s", request_type, request_endpoint, request_http);
+    printf("Inside my handle_http: \n%s\n%s\n%s\n\n\n\n", request_type, request_endpoint, request_http);
 
     // If GET, handle the get endpoints
-    if (strcmp(req_method, "GET") == 0)
-    {
+    if(!strcmp(request_type, "GET")) {
         // Check if it's /d20 and handle that special case
-        if (strcmp(req_path, "/d20") == 0)
-        {
+        // printf("strcmp GET print check\n");
+        if (!strcmp(request_endpoint, "/d20")) {
+            // printf("Request-endpoint: /d20\n");
             get_d20(fd);
-            return;
+        } else {
+            // Otherwise serve the requested file by calling get_file()
+            /*
+                - int fd, struct cache *cache, char *request_path
+            */
+            // printf("Serve requested file (get_file)\n");
+            get_file(fd, cache, request_endpoint);
         }
-        // Otherwise serve the requested file by calling get_file()
-        get_file(fd, cache, req_path);
-        return;
     }
+    
+
+
 
     // (Stretch) If POST, handle the post request
-    resp_404(fd);
-    return;
 }
 
-//// *** MAIN *** ////
+/**
+ * Main
+ */
 int main(void)
 {
     int newfd;  // listen on sock_fd, new connection on newfd
@@ -241,6 +287,7 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
+    // resp_404(listenfd);
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
@@ -248,7 +295,7 @@ int main(void)
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
     
-    while(1) {
+    while(1) {        
         socklen_t sin_size = sizeof their_addr;
 
         // Parent process will block on the accept() call until someone
