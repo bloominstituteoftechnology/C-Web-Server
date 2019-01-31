@@ -50,7 +50,7 @@
 */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 265536;
     char response[max_response_size];
     time_t date_time = time(NULL);
     // Build HTTP response and store it in response
@@ -128,7 +128,7 @@ void resp_404(int fd)
     }
 
     mime_type = mime_type_get(filepath);
-    
+
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
@@ -139,7 +139,7 @@ void resp_404(int fd)
 */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-     ///////////////////
+    ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
     char file_path[4096];
@@ -147,16 +147,17 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
     snprintf(file_path, sizeof(file_path), "./serverroot%s", request_path);
     printf("file path is: %s\n", file_path);
- 
-    if(cache_get(cache, request_path) != NULL){
+
+    if (cache_get(cache, request_path) != NULL)
+    {
         printf("cache get didn't equal NULL");
     }
-    else{  
-    filedata = file_load(file_path);
-    mime_type = mime_type_get(file_path);
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    else
+    {
+        filedata = file_load(file_path);
+        mime_type = mime_type_get(file_path);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
     }
-    
 }
 
 /**
@@ -200,20 +201,23 @@ void handle_http_request(int fd, struct cache *cache)
     printf("request: %s request path: %s request protocol: %s\n", req_type, req_path, req_protocol);
 
     // If GET, handle the get endpoints
-    if(strcmp(req_type, "GET") == 0){
-
-        if(strcmp(req_path, "/d20") ==0){
+    if (strcmp(req_type, "GET") == 0)
+    {
+        // Check if it's /d20 and handle that special case
+        if (strcmp(req_path, "/d20") == 0)
+        {
             get_d20(fd);
-        } else {
+        }
+        else
+        {
+            // Otherwise serve the requested file by calling get_file()
             get_file(fd, cache, req_path);
         }
-    } 
-    else {
+    }
+    else
+    {
         resp_404(fd);
     }
-    // strcmp()
-    // Check if it's /d20 and handle that special case
-    // Otherwise serve the requested file by calling get_file()
 
     // (Stretch) If POST, handle the post request
 }
