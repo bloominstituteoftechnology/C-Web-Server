@@ -9,8 +9,9 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-   struct cache_entry* cache_entry_inst = malloc(sizeof(struct cache_entry));
-    return cache_entry_inst;
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
 }
 
 /**
@@ -18,7 +19,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    free(entry);
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
 }
 
 /**
@@ -122,6 +125,36 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // Allocate a new cache entry with passed parameters
+    struct cache_entry *allocated_entry = alloc_entry(path,
+    content_type, content, content_length);
+
+    // Insert an entry at the head of the doubly-linked list
+    dllist_insert_head(cache, allocated_entry);
+
+   // Store entry in hashtable , indexed by entry's path
+   hashtable_put(cache->index, path, allocated_entry);
+
+   // Increment the size of the cache
+   printf("Size before inc: %d\n", cache->cur_size);
+   cache->cur_size++;
+   printf("Size after inc: %d\n", cache->cur_size);
+
+   // If cache size is greater than the max size:
+   if (cache->cur_size > cache->max_size) {
+       printf("Over max\n");
+
+       // remove entry from hashtable
+       hashtable_delete(cache->index, cache->tail->path);
+
+       // remove the tail and set it to a variable
+       struct cache_entry *old_tail = dllist_remove_tail(cache);
+       cache->tail->prev = old_tail->prev->prev;
+
+        // Remove the cache entry at the tail of the linked list.
+        free_entry(old_tail);
+   }
+
 }
 
 /**
@@ -132,4 +165,12 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *entry = hashtable_get(cache->index,
+    path);
+
+    if(entry != NULL) {
+        dllist_move_to_head(cache,entry);
+        return entry;
+    }
+    return NULL;
 }

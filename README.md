@@ -1,11 +1,11 @@
 day 3 & 4
 - [ ] Implement `cache_put()` in `cache.c`.
-    - [ ] Allocate a new cache entry with the passed parameters.
-    - [ ] Insert the entry at the head of the doubly-linked list.
-    - [ ] Store the entry in the hashtable as well, indexed by the entry's `path`.
-    - [ ] Increment the current size of the cache.
-    - [ ] If the cache size is greater than the max size:
-    - [ ] Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
+    - [x] Allocate a new cache entry with the passed parameters.
+    - [x] Insert the entry at the head of the doubly-linked list.
+    - [x] Store the entry in the hashtable as well, indexed by the entry's `path`.
+    - [x] Increment the current size of the cache.
+    - [x] If the cache size is greater than the max size:
+    - [x] Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
     - [ ] Remove the cache entry at the tail of the linked list (this is the least-recently used one)
     - [ ] Free the cache entry.
     - [ ] Ensure the size counter for the number of entries in the cache is correct.
