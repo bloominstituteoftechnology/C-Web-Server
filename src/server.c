@@ -148,14 +148,18 @@ void get_file(int fd, struct cache *cache, char *request_path)
     snprintf(file_path, sizeof(file_path), "./serverroot%s", request_path);
     printf("file path is: %s\n", file_path);
 
-    if (cache_get(cache, request_path) != NULL)
+    struct cache_entry *cache_request = cache_get(cache, request_path);
+
+    if (cache_request != NULL)
     {
-        printf("cache get didn't equal NULL");
+        send_response(fd, "HTTP/1.1 200 OK", cache_request->content_type, cache_request->content, cache_request->content_length);
     }
     else
     {
         filedata = file_load(file_path);
+      
         mime_type = mime_type_get(file_path);
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
     }
 }

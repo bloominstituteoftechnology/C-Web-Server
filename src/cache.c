@@ -31,7 +31,7 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     entry->path = NULL;
     entry->content_type = NULL;
-    entry->content_length = NULL;
+    entry->content_length = 0;
     entry->content = NULL;
     free(entry);
 }
@@ -145,6 +145,22 @@ void cache_free(struct cache *cache)
  * 
  * NOTE: doesn't check for duplicate cache entries
  */
+void clean_lru_cache(struct cache *cache){
+     if (cache->cur_size  > cache->max_size)
+    { //Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
+       
+
+        //Remove the cache entry at the tail of the linked list (the LRU)
+        //Free the cache entry.
+        struct cache_entry *old_tail = dllist_remove_tail(cache);
+
+        hashtable_delete(cache->index, old_tail->path);
+        free_entry(old_tail); 
+       
+    }
+    
+}
+
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
     //Allocate a new cache entry with the passed parameters.
@@ -156,23 +172,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     //Store the entry in the hashtable as well, indexed by the entry's `path`.
     hashtable_put(cache->index, path, new_entry);
 
+    cache->cur_size++;
     //Increment the current size of the cache.
-    if (cache->cur_size++ < cache->max_size)
-    {
-        cache->cur_size++;
-    }
-    else
-    {
-        //Remove the entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
-        hashtable_delete(cache->index, cache->tail->path);
-
-        //Remove the cache entry at the tail of the linked list (the LRU)
-        //Free the cache entry.
-        struct cache_entry *old_tail = dllist_remove_tail(cache);
-        free_entry(old_tail);
-
-        //counter does not need incremented due to +1 -1 == 0
-    }
+    clean_lru_cache(cache);
 }
 
 /**
