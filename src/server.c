@@ -149,8 +149,13 @@ void get_file(int fd, struct cache *cache, char *request_path)
 	struct file_data *filedata;
 	char *mime_type; 
 
-	sprintf(filepath, "%s%s", SERVER_ROOT, request_path);  //passing the path to locate the files if they are present
-    	
+	snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);  //passing the path to locate the files if they are present
+   
+	//check if the requested file is present in the cache 
+	struct cache_entry *cache_entry = cache_get(cache, filepath);
+
+ if(cache_entry == NULL){
+
 	filedata = file_load(filepath);
 	mime_type = mime_type_get(filepath);
 	
@@ -159,11 +164,18 @@ void get_file(int fd, struct cache *cache, char *request_path)
             	return;
 	}
 
-    	else{                      //else serve the file that matches the request
-    		send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    	else{                    //else serve the file that matches the request
+		printf("This entry is not from the cache\n");
+		cache_put(cache, filepath, mime_type, filedata->data, filedata->size);  //cache the entry
+		send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
     		file_free(filedata);
 	}
-
+ }
+ else{
+	 printf("This entry is from the cache\n");
+ 	 send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
+ 
+ }
   	
 }
 
