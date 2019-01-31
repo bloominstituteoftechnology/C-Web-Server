@@ -202,7 +202,8 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
-
+    printf("Request %s\n", request);
+    char method[5] file[20], protocol[20];
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
