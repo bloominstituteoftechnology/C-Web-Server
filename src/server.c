@@ -237,13 +237,27 @@ void handle_http_request(int fd, struct cache *cache)
         else{
             get_file(fd, cache, request_path);
         }
-    }else{
+    // (Stretch) If POST, handle the post request
+    }else if(!strcmp("POST", request_type)){
+        printf("Got POST request: %s\n", request_path);
+        char final_path[4096];
+        snprintf(final_path, sizeof final_path, "./serverroot%s", request_path);
+        int new_file = open(final_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if(new_file < 0){
+            printf("open file failed\n");
+        }
+        int sz = write(new_file, "try this", 8);
+        printf("write returned: %d\n", sz);
+        // printf("length of %s is %lu.\n", find_start_of_body(request), strlen(find_start_of_body(request)));
+        close(new_file);
+        printf("Wrote to file %s\n", request_path);
+    }
+    else{
         fprintf(stderr, "unknown request type \"%s\"\n", request_type);
         resp_404(fd);
     }
 
 
-    // (Stretch) If POST, handle the post request
 }
 
 /**
