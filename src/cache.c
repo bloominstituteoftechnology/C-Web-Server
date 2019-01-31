@@ -12,6 +12,12 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+    entry->path = path;
+    entry->content_type = content_type;
+    entry->content_length = content_length;
+    entry->content = content;
+    return entry;
 }
 
 /**
@@ -22,6 +28,7 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry);
 }
 
 /**
@@ -94,6 +101,13 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache *cache = malloc(sizeof(struct cache));
+    cache->index = hashtable_create(max_size, NULL);
+    cache->max_size = max_size;
+    cache->cur_size = 0;
+    cache->head = NULL;
+    cache->tail = NULL;
+    return cache;
 }
 
 void cache_free(struct cache *cache)
@@ -125,6 +139,21 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *current_entry = alloc_entry(
+        path, content_type, content, content_length
+    );
+    dllist_insert_head(cache, current_entry);
+    hashtable_put(cache->index, cache->head->path, cache->head);
+    cache->cur_size++;
+    if(cache->cur_size > cache->max_size){
+        hashtable_delete(cache->index, cache->tail->path);
+        free_entry(dllist_remove_tail(cache));
+        if(cache->cur_size!=cache->max_size){
+            fprintf(stderr, "Error occurred in removing tail.\n");
+        }else{
+            printf("Max size exceeded, but successfully removed tail to accomodate.\n");
+        }
+    }
 }
 
 /**
@@ -135,4 +164,10 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+    if(entry == NULL){
+        return NULL;
+    }
+    dllist_move_to_head(cache, entry);
+    return entry;
 }
