@@ -57,14 +57,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Build HTTP response and store it in response
     // char *body_char = body;
 
-    // >>>> this likely has to have headers concatenated onto it
-    sprintf(response, "%s\nDate: Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, content_length, content_type, body);
+    sprintf(response, "%s\nDate: Connection: close\nContent-Length: %d\nContent-Type: %s\n\n", header, content_length, content_type);
     int response_length = strlen(response);
     printf(response);
 
+    memcpy(response + response_length,body,content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -86,7 +86,7 @@ void get_d20(int fd)
     printf("rolled a %s\n", d20_roll);
     // Use send_response() to send it back as text/plain data
 
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", d20_roll, sizeof(d20_roll));
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", d20_roll, strlen(d20_roll));
 }
 
 /**
