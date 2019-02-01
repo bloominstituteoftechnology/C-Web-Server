@@ -9,16 +9,20 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-  struct cache_entry* cache_entry_inst = malloc(sizeof(struct cache_entry));
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
+    //Allocate the memory
+    struct cache_entry* cache_entry_inst = malloc(sizeof(struct cache_entry));
 
-  //Define/init the attribtes or properties of the obj/DS
-  cache_entry_inst->path = path;
-  cache_entry_inst->content_type = content_type;
-  cache_entry_inst->content_length = content_length;
-  cache_entry_inst->content = content;
+    //Define/init the attribtes or properties of the obj/DS
+    cache_entry_inst->path = path;
+    cache_entry_inst->content_type = content_type;
+    cache_entry_inst->content_length = content_length;
+    cache_entry_inst->content = content;
 
-  //return the DS
-return cache_entry_inst;
+    //return the DS
+    return cache_entry_inst;
 }
 
 /**
@@ -26,7 +30,11 @@ return cache_entry_inst;
  */
 void free_entry(struct cache_entry *entry)
 {
-  free(entry);
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
+   free(entry);
+
 }
 
 /**
@@ -96,14 +104,18 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-  struct cache_entry *oldtail = cache->tail;
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
+   struct cache* cache = malloc(sizeof(struct cache));
+   cache->index = hashtable_create(hashsize, NULL);
+   cache->head = NULL;
+   cache->tail = NULL;
+   cache->max_size = max_size;
+   cache->cur_size = 0;
+   return cache;
 
-  cache->tail = oldtail->prev;
-  cache->tail->next = NULL;
 
-  cache->cur_size--;
-
-return oldtail;
 }
 
 void cache_free(struct cache *cache)
@@ -132,6 +144,9 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
     // Allocate a new cache entry with passed parameters
     struct cache_entry *allocated_entry = alloc_entry(path,
     content_type, content, content_length);
@@ -169,6 +184,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
     struct cache_entry *entry = hashtable_get(cache->index,
     path);
 
