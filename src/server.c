@@ -56,10 +56,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
     char *body_char = body;
-    int response_length = strlen(body);
+
     // >>>> this likely has to have headers concatenated onto it
     sprintf(response, "%s\nDate: \nConnection: close\nContent-Length: %d\nContent-Type: text/html\n\n%s", header, content_length, body_char);
-
+    int response_length = strlen(response);
     printf(response);
 
 
@@ -156,14 +156,17 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    char *type;
+    char *path;
+    char *protocol;
+    sscanf(request, "%s %s %s", type, path, protocol);
     // Read the three components of the first request line
 
+    if (strcmp(type, "GET") == 0) {
+      if (strcmp(path, "/d20") == 0) {
+        get_d20(fd);
+      }
+    }
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
@@ -198,7 +201,7 @@ int main(void)
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
 
-    resp_404(listenfd);
+
 
     while(1) {
         socklen_t sin_size = sizeof their_addr;
@@ -219,6 +222,7 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
+        resp_404(newfd);
 
         handle_http_request(newfd, cache);
 
