@@ -55,10 +55,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    char *body_char = body;
+    // char *body_char = body;
 
     // >>>> this likely has to have headers concatenated onto it
-    sprintf(response, "%s\nDate: \nConnection: close\nContent-Length: %d\nContent-Type: text/html\n\n%s", header, content_length, body_char);
+    sprintf(response, "%s\nDate: Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, content_length, content_type, body);
     int response_length = strlen(response);
     printf(response);
 
@@ -80,16 +80,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    printf("about to roll\n");
+    char d20_roll[5];
+    sprintf(d20_roll, "%d", (arc4random_uniform(19) + 1));
+    printf("rolled a %s\n", d20_roll);
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", d20_roll, sizeof(d20_roll));
 }
 
 /**
@@ -156,14 +153,18 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-    char *type;
-    char *path;
-    char *protocol;
+
+
+    char *type = malloc(sizeof(char) * 20);
+    char *path = malloc(sizeof(char) * 20);
+    char *protocol = malloc(sizeof(char) * 20);
     sscanf(request, "%s %s %s", type, path, protocol);
     // Read the three components of the first request line
-
+    printf("have parsed request\n");
     if (strcmp(type, "GET") == 0) {
+
       if (strcmp(path, "/d20") == 0) {
+        printf("about to get_d20\n");
         get_d20(fd);
       }
     }
@@ -222,8 +223,8 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-        resp_404(newfd);
-
+        // resp_404(newfd);
+        printf("about to handle_http_request\n");
         handle_http_request(newfd, cache);
 
         close(newfd);
