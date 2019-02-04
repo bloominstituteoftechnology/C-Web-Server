@@ -58,7 +58,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+    time(&rawtime);
+    info=localtime(&rawtime);
+    int response_length = sprintf
+    (buffer, "Date: %s\nConnection: close\nContent-Length: %d\nContent-Type: %s\n\n", asctime(info), content_length, content_type);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -80,6 +86,7 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
 
     // Use send_response() to send it back as text/plain data
 
