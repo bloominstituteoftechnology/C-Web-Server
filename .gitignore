@@ -10,3 +10,4 @@ src/cache_tests/cache_tests.exe
 src/cache_tests/cache_tests.log
 target/
 data.txt
+*.exe

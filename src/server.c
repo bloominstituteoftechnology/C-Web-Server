@@ -34,7 +34,7 @@
 #include "mime.h"
 #include "cache.h"
 
-#define PORT "3490"  // the port users will be connecting to
+#define PORT "3499"  // the port users will be connecting to
 
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
@@ -52,15 +52,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-
+    time_t rawtime;
+    struct tm *i;
+    //HTTP/1.1 200 OK
+//Date: Wed Dec 20 13:05:11 PST 2017
+//Connection: close
+//Content-Length: 41749
+//Content-Type: text/html
+    time(&rawtime);
+    i = localtime(&rawtime);
     // Build HTTP response and store it in response
-
+    int response_length = sprintf(response, "%s \n Connection: close \n Date: %s \n Content-Type:%s \n Content-length:%d\n""\n",header,asctime(i),content_type,content_length);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    //send response
+    memcpy(response + response_length, body, content_length);
+    int rv = send(fd, response, response_length + content_length , 0);
 
     if (rv < 0) {
         perror("send");
@@ -153,7 +163,7 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
+resp_404(fd);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -177,6 +187,8 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
+
+    
 
     struct cache *cache = cache_create(10, 0);
 
@@ -213,6 +225,7 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
+      
 
         handle_http_request(newfd, cache);
 
