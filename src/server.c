@@ -59,8 +59,24 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    // Setting up the Time Stamp
+    // time_t = https://en.cppreference.com/w/c/chrono/time_t = (in short) = integer value = seconds
+    time_t seconds;
+    // struct for time information (tm)
+    struct tm *info;
+    time(&seconds);
+    char buffer[80];
+    info = localtime(&seconds);
+
+   // header, date, content_length, , connection
+    int response_length = sprintf(response, "%s\n Date: %s\n Content Length: %d\n Content Type: %s\n Connection: close\n", "\n", header, asctime(info), content_length, content_type);
+
+    // we need to advance where we are pointing in the response buffer, (to the end of the header)
+    // to pass the header and not over write all the header data = (res + res_leng),
+    memcpy(response + response_length, body, content_length);
+
+    // Send it all! / Read Request
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -98,6 +114,7 @@ void resp_404(int fd)
     char *mime_type;
 
     // Fetch the 404.html file
+     // snprintf() formats and stores a series of chars and values in the array buffer
     snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
     filedata = file_load(filepath);
 
@@ -152,7 +169,9 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
+    
+    // testing
+    // resp_404(fd);
 
     ///////////////////
     // IMPLEMENT ME! //
