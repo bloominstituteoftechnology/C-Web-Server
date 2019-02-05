@@ -177,20 +177,29 @@ void handle_http_request(int fd, struct cache *cache)
     
     // testing
     // resp_404(fd);
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Read the three components of the first request line
-
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
+    //   Check if it's /d20 and handle that special case
+    //   Otherwise serve the requested file by calling get_file()
     // (Stretch) If POST, handle the post request
+    char request_method[20], request_endpoint[20], request_protocol[20];
+    sscanf(request, "%s %s %s", request_method, request_endpoint, request_protocol);
+    // just checking the request here
+    printf("Request: method: %s , endpt: %s , protocol %s\n", request_method, request_endpoint, request_protocol);
+    // Handle GET endpts
+    if (strcmp(request_method, "GET") == 0) {
+        // check if /d20
+        if (strcmp(request_endpoint, "/d20") == 0) {
+            get_d20(fd);
+            return;
+        } else {
+            get_file(fd, cache, request_endpoint);
+            return;
+        }
+    }
 }
 
 /**
