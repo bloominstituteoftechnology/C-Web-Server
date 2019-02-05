@@ -59,6 +59,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
+    time_t rawtime;
+    struct tm *timedata;
+    time(&rawtime);
+    timedata = localtime(&rawtime);
+
+    int response_length = sprintf(response, "%s\n Date: %s\n Content Length: %d\n Content Type: %s\n Connection: close\n", header, asctime(timedata), content_length, content_type, body);
+
+    printf("response: %s\n", response);
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -144,6 +153,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8];
+    char request_path[1024];
+    char request_protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -152,8 +164,17 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+    
+    sscanf(request, "%s\n %s\n %s\n", request_type, request_path, request_protocol);
+    printf("received request %s %s %s\n", request_type, request_path, request_protocol);
 
-
+    if(strcmp(request_type, "GET") == 0) {
+      if(strcmp(request_path, "/d20") == 0) {
+	get_d20(fd);
+      }
+      get_file(fd, cache, request_path);
+    }
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
