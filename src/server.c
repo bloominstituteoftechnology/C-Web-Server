@@ -66,22 +66,34 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time (&rawtime);
     timeinfo = localtime (&rawtime);
 
-    if (strcmp(header, "HTTP/1.1 404 NOT FOUND") == 0){
-        strcpy(response, header);
-        strcat(response, "\nDate: ");
-        strcat(response, asctime(timeinfo));
-        strcat(response, "Connection: close\nContent-Length: 13\nContent-Type: text/plain");
-        // int header_size = strlen(response);
-        strcat(response, "\n\n404 Not Found");
-        response_length = strlen(response);
-        printf("%s\n", response);
-    }
+    // void tzset(void);
+    extern char *tzname[2];
+
+    printf(body);
+
+    sprintf(response, "%s\n, Date: %s\n Connection: close\nContent-Length: %dContent-Type: %d\n\n %s ", header, asctime(timeinfo), content_length, body, content_type);
+
+    response_length = strlen(response);
+
+    // if (strcmp(header, "HTTP/1.1 404 NOT FOUND") == 0){
+    //     strcpy(response, header);
+    //     strcat(response, "\nDate: ");
+    //     strcat(response, asctime(timeinfo));
+    //     strcat(response, "Connection: close\nContent-Length: 13\nContent-Type: text/plain");
+    //     // int header_size = strlen(response);
+    //     strcat(response, "\n\n404 Not Found");
+    //     response_length = strlen(response);
+    //     printf("%s\n", response);
+
+    //     printf("Time zone: %s\n", tzname[0]);
+    // }
 
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length+1, 0);
 
     if (rv < 0) {
+        printf("rv <0\n");
         perror("send");
     }
 
@@ -209,8 +221,7 @@ int main(void)
 
     //test
     resp_404(listenfd);
-    exit(1);
-    
+    // exit(1);
     
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
@@ -239,6 +250,10 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
+
+        //test
+        resp_404(newfd);
+        // exit(1);
 
         close(newfd);
     }
