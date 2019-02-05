@@ -52,12 +52,31 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    int response_length;
 
     // Build HTTP response and store it in response
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+
+    if (strcmp(header, "HTTP/1.1 404 NOT FOUND") == 0){
+        strcpy(response, header);
+        strcat(response, "\nDate: ");
+        strcat(response, asctime(timeinfo));
+        strcat(response, "Connection: close\nContent-Length: 13\nContent-Type: text/plain");
+        // int header_size = strlen(response);
+        strcat(response, "\n\n404 Not Found");
+        response_length = strlen(response);
+        printf("%s\n", response);
+    }
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -188,6 +207,11 @@ int main(void)
         exit(1);
     }
 
+    //test
+    resp_404(listenfd);
+    exit(1);
+    
+    
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
     // This is the main loop that accepts incoming connections and
