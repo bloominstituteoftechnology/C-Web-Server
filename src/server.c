@@ -48,6 +48,10 @@
  * 
  * Return the value from the send() function.
  */
+
+/*the reason the send functions need a time stamp is cause when going from
+server to client the code goes in chunks and the flaw in this is that there is no 
+order so by giving it a time stamp we are able to orginize the packets*/
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 262144;
@@ -78,17 +82,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    
+    char data[8];
+    srand(time(NULL)); /*to intialise the PRNG(Pseudo-random number generator) */
+    unsigned int randomNumber = (rand() % 20) +1;
+    // char send = sprintf(data, "%d", randomNumber);
+    snprintf(data, sizeof(data), "%d", randomNumber);
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", data, strlen(data));
 }
 
 /**
@@ -125,6 +126,14 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "./serverroot%s", request_path); /*TO FETCH THE FILE*/
+
+    // mime_type = mime_type_get(filepath);
+    // send_response(fd, "HTTP/1.1 200 OK", mime_type, );
 }
 
 /**
