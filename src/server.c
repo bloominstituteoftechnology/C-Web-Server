@@ -87,12 +87,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    char response[10];
+    int rand_num = rand() % 20 + 1;
+    sprintf(response, "%d", rand_num);
     
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
 
     ///////////////////
     // IMPLEMENT ME! //
