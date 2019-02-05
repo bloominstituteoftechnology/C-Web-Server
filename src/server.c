@@ -64,8 +64,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time_t seconds;
     // struct for time information (tm)
     struct tm *info;
-    time(&seconds);
     char buffer[80];
+    time(&seconds);
+
     info = localtime(&seconds);
 
    // header, date, content_length, , connection
@@ -92,16 +93,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Use send_response() to send it back as text/plain data
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char body[30];
+    // getting a random number between 1 and 20
+    int random = rand() % 21 + 1;
+    // packaging up the body
+    int body_length = sprintf(body, "%d\n", random);
+    // use send_resp to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, body_length);
 }
 
 /**
