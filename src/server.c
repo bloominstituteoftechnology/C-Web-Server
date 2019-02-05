@@ -65,6 +65,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     int response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n", header, content_length, content_type, asctime(timeinfo));
+    printf("Response length: %d\n", response_length + content_length);
 
     memcpy(response + response_length, body, content_length);
     response_length += content_length;
@@ -155,6 +156,10 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
+    char method[8];
+    char path[32];
+    char protocol[16];
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -169,11 +174,20 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", method, path, protocol);
 
     // If GET, handle the get endpoints
+    if (strcmp(method, "GET") == 0) {
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+        //    Check if it's /d20 and handle that special case
+        if (strcmp(path, "/d20") == 0) {
+            get_d20(fd);
+        }
+        //    Otherwise serve the requested file by calling get_file()
+        else {
+            get_file(fd, cache, path);
+        }
+    }
 
 
     // (Stretch) If POST, handle the post request
