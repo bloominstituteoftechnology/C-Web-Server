@@ -78,7 +78,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     memcpy(response + response_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -95,16 +95,6 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-}
 
 /**
  * Send a 404 response
@@ -162,6 +152,10 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_protocol[124];
+    char request_path[1024];
+    char request_type[16];
+
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -171,22 +165,26 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
 
     // If GET, handle the get endpoints
+    if(strcmp(request_type, "GET") == 0){
+        //    Check if it's /d20 and handle that special case
+        if(strcmp(request_path, "/d20") == 0){
+            get_d20(fd);
+        }else{
+        //    Otherwise serve the requested file by calling get_file()
+            get_file(fd, cache, request_path);
+        }
+    }else{
+        fprintf(stderr, "unknown request type \"%s\"n", request_type);
+        return;
+        }
+        // (Stretch) If POST, handle the post request
+    }
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
-    // (Stretch) If POST, handle the post request
-}
-
+    
 /**
  * Main
  */
