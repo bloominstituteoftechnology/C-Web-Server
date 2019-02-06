@@ -66,40 +66,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time (&rawtime);
     timeinfo = localtime (&rawtime);
 
+    // printf("%s", asctime(timeinfo));
     // void tzset(void);
     extern char *tzname[2];
 
-    printf(body);
-
-    sprintf(response, "%s\n, Date: %s\n Connection: close\nContent-Length: %dContent-Type: %d\n\n %s ", header, asctime(timeinfo), content_length, body, content_type);
+    sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(timeinfo), content_length, content_type, body);
 
     response_length = strlen(response);
-
-    // if (strcmp(header, "HTTP/1.1 404 NOT FOUND") == 0){
-    //     strcpy(response, header);
-    //     strcat(response, "\nDate: ");
-    //     strcat(response, asctime(timeinfo));
-    //     strcat(response, "Connection: close\nContent-Length: 13\nContent-Type: text/plain");
-    //     // int header_size = strlen(response);
-    //     strcat(response, "\n\n404 Not Found");
-    //     response_length = strlen(response);
-    //     printf("%s\n", response);
-
-    //     printf("Time zone: %s\n", tzname[0]);
-    // }
-
+    printf("\nResponse: \n%s\nResponse length: %d\n", response, response_length);
 
     // Send it all!
     int rv = send(fd, response, response_length+1, 0);
 
     if (rv < 0) {
-        printf("rv <0\n");
+        // printf("rv <0\n");
         perror("send");
     }
 
     return rv;
 }
-
 
 /**
  * Send a /d20 endpoint response
@@ -177,20 +162,27 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
 
     // Read request
-    int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+    // int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
-    if (bytes_recvd < 0) {
-        perror("recv");
-        return;
-    }
+    // if (bytes_recvd < 0) {
+    //     printf("here\n");
+    //     perror("recv");
 
+    //     return;
+    // }
 
+    strcpy(request, "GET /example HTTP/1.1\nHost: lambdaschool.com\n");
+    printf("%s", request);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
+    char delim[] ="\n";
+    char *first_line;
+    first_line[0] = strtok(request, delim);
 
+    printf("%s", first_line[0]);
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
@@ -219,9 +211,10 @@ int main(void)
         exit(1);
     }
 
-    //test
-    resp_404(listenfd);
-    // exit(1);
+    // //test
+    // resp_404(listenfd);
+    handle_http_request(listenfd, cache);
+    // // exit(1);
     
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
