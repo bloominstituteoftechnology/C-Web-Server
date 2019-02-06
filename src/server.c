@@ -66,8 +66,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time (&rawtime);
     timeinfo = localtime (&rawtime);
 
-    // printf("%s", asctime(timeinfo));
-    // void tzset(void);
     extern char *tzname[2];
 
     sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(timeinfo), content_length, content_type, body);
@@ -162,30 +160,85 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
 
     // Read request
-    // int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+    int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
+    // if bytes_recvd is not of proper format, print error
+    if (bytes_recvd < 0) {
+        perror("recv");
+        return;
+    }
 
-    // if (bytes_recvd < 0) {
-    //     printf("here\n");
-    //     perror("recv");
-
-    //     return;
-    // }
-
-    strcpy(request, "GET /example HTTP/1.1\nHost: lambdaschool.com\n");
-    printf("%s", request);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Read the three components of the first request line
+    // Read the three tokens of the first request line
     char delim[] ="\n";
-    char *first_line;
-    first_line[0] = strtok(request, delim);
-
-    printf("%s", first_line[0]);
-    // If GET, handle the get endpoints
+    char *first_line = strtok(request, delim);
+    char CRED_call[10], endpoint[10], http_version[10];
+    sscanf(first_line, "%s %s %s", CRED_call, endpoint, http_version);
+    
+    // printf("%s\n", endpoint);
 
     //    Check if it's /d20 and handle that special case
+    if (strcmp(endpoint, "/d20") == 0){
+        // generate random number
+        srand(time(0));
+        int upper_range = 20;
+        int lower_range = 1;
+        int rand_num = (rand() % (upper_range - lower_range + 1)) + lower_range; 
+        printf("Random number: %d\n", rand_num);
+
+        // generate response
+        //initialize variables for response packet
+        const int max_response_size = 262144;
+        char response[max_response_size];
+        int response_length;
+        //initialize variables needed for displaying local time
+        time_t rawtime;
+        struct tm * timeinfo;
+        time (&rawtime);
+        timeinfo = localtime (&rawtime);
+        printf("content-size: %d\n", sizeof rand_num);
+
+        // generate the response packet (head + body)
+        sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%d", "HTTP/1.1 200 OK", asctime(timeinfo), sizeof rand_num, "text/plain", rand_num);
+
+        response_length = strlen(response);
+        // send response and handle error if unsuccessful
+        int rv = send(fd, response, response_length+1, 0);
+        if (rv < 0) {
+            // printf("rv <0\n");
+            perror("send");
+        }
+    }
+    else{
+        char filepath[4096];
+        struct file_data *filedata; 
+        char *mime_type;
+
+        strcpy(filepath, SERVER_ROOT);
+        strcat(filepath, endpoint);
+        strcat(filepath, ".html");
+
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            // TODO: make this non-fatal
+            fprintf(stderr, "Invalid endpoint\n");
+            exit(3);
+        }
+        else{
+            mime_type = mime_type_get(filepath);
+            // If GET, handle the get endpoints
+            if (strcmp(CRED_call, "GET") == 0){
+                    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+                // printf("GET!!\n");
+            }
+            else{
+                resp_404(fd);
+            }
+        }
+    }
     //    Otherwise serve the requested file by calling get_file()
 
 
@@ -213,7 +266,7 @@ int main(void)
 
     // //test
     // resp_404(listenfd);
-    handle_http_request(listenfd, cache);
+    // handle_http_request(listenfd, cache);
     // // exit(1);
     
     printf("webserver: waiting for connections on port %s...\n", PORT);
@@ -245,7 +298,7 @@ int main(void)
         handle_http_request(newfd, cache);
 
         //test
-        resp_404(newfd);
+        // resp_404(newfd);
         // exit(1);
 
         close(newfd);
