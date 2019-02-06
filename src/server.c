@@ -62,10 +62,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     time_t rawtime;
     struct tm * timeinfo;
-
     time (&rawtime);
     timeinfo = localtime (&rawtime);
-
     extern char *tzname[2];
 
     sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(timeinfo), content_length, content_type, body);
@@ -90,6 +88,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////

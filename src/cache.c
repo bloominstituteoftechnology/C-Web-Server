@@ -12,6 +12,15 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *new_cache_entry = malloc(1*sizeof (struct cache_entry));
+    strcpy(new_cache_entry->path, path);
+    strcpy(new_cache_entry->content_type, content_type);
+    new_cache_entry->content = content;
+    new_cache_entry->content_length = content_length;
+    new_cache_entry->prev = NULL;
+    new_cache_entry->next = NULL;
+
+    return new_cache_entry;
 }
 
 /**
@@ -22,6 +31,10 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
+    free(entry);
 }
 
 /**
@@ -51,13 +64,11 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
             // We're the tail
             cache->tail = ce->prev;
             cache->tail->next = NULL;
-
         } else {
             // We're neither the head nor the tail
             ce->prev->next = ce->next;
             ce->next->prev = ce->prev;
         }
-
         ce->next = cache->head;
         cache->head->prev = ce;
         ce->prev = NULL;
@@ -94,6 +105,15 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache *new_cache = malloc(1*sizeof (struct cache));
+    struct hashtable *index = hashtable_create(hashsize, NULL);
+    new_cache->index = index;
+    new_cache->head = NULL;
+    new_cache->tail = NULL;
+    new_cache->max_size = max_size;
+    new_cache->cur_size = 0;
+
+    return new_cache;
 }
 
 void cache_free(struct cache *cache)
@@ -135,4 +155,5 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
 }
