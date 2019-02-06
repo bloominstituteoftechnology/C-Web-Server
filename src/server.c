@@ -76,8 +76,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // to pass the header and not over write all the header data = (res + res_leng),
     memcpy(response + response_length, body, content_length);
 
-    // Send it all! / Read Request
-    int rv = send(fd, response, response_length + content_length, 0);
+    // Send it all! / Read Request + content_length,
+    int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -102,7 +102,7 @@ void get_d20(int fd)
     ///////////////////
     char body[30];
     // getting a random number between 1 and 20
-    int random = rand() % 21 + 1;
+    int random = rand() % 20 + 1;
     // packaging up the body
     int body_length = sprintf(body, "%d\n", random);
     // use send_resp to send it back as text/plain data
@@ -144,6 +144,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // pointer to file_data struct
+    struct file_data *filedata = NULL;
+    // declare an array to store the file path in
+    char file_path[4096];
+    // pointer to mime/content_type
+    char *mime_type;
+    // get the entry from the cache
+    struct cache_entry *entry = cache_get(cache, request_path);
+
+    // if no entry found in cache
+    if (entry == NULL) {
+        // build file path to ./serverroot
+        sprintf(file_path, "./serverroot %s", request_path);
+        filedata = file_load(file_path);
+        if (filedata == NULL) {
+            // error handling
+            resp_404(fd);
+            return;
+        }
+    }
+    // checks the file / returns content string
+    mime_type = mime_type_get(file_path);
+    //
+    cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
+    return;
 }
 
 /**
@@ -190,9 +217,9 @@ void handle_http_request(int fd, struct cache *cache)
     // just checking the request here
     printf("Request: method: %s , endpt: %s , protocol %s\n", request_method, request_endpoint, request_protocol);
     // Handle GET endpts
-    if (strcmp(request_method, "GET") == 0) {
+    if (strcmp(request_method, "GET")) {
         // check if /d20
-        if (strcmp(request_endpoint, "/d20") == 0) {
+        if (strcmp(request_endpoint, "/d20")) {
             get_d20(fd);
             return;
         } else {
