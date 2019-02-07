@@ -60,13 +60,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
   ///////////////////
 
   time_t rawtime;
-  struct tm *timedata;
+  struct tm *info;
+  char buffer[80];
   time(&rawtime);
-  timedata = localtime(&rawtime);
+  info = localtime(&rawtime);
 
-  int response_length = sprintf(response, "%s\n Date: %s\n Content Length: %d\n Content Type: %s\n Connection: close\n", header, asctime(timedata), content_length, content_type, body);
+  int response_length = sprintf(response, "%s\n" "Date %s" "Content Length: %d\n" "Content Type: %s\n" "Connection: close\n" "%s\n", header, asctime(info), content_length, content_type, body);
 
-  printf("response: %s\n", response);
+  /* printf("response: %s\n", response); */
 
   // Send it all!
   int rv = send(fd, response, response_length, 0);
@@ -75,7 +76,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     perror("send");
   }
 
-  return rv;
+  return response;
 }
 
 
@@ -91,16 +92,17 @@ void get_d20(int fd)
   ///////////////////
 
   char info[30];
-  int randnum = (rand() % 20) + 1;
+  srand(time(NULL));
+  int randnum = rand() % 21 + 1;
   snprintf(info, sizeof(info), "%d", randnum);
-
+  int body_length = sprintf(info, "%d\n", randnum);
   // Use send_response() to send it back as text/plain data
   
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
   
-  send_response(fd, "HTTP/1.1 200 OK", "text/plain", info, strlen(info));
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", info, body_length);
 }
 
 /**
@@ -138,10 +140,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
   // IMPLEMENT ME! //
   ///////////////////
 
-  char fpath[2048];
-  struct fileinfo *filedata;
-  char *mimetype;
-  printf("filepath: %s\n", file_data);
+  /* char fpath[2048]; */
+  /* struct fileinfo *filedata; */
+  /* char *mimetype; */
+  /* printf("filepath: %s\n", filedata); */
 
   /* if(strcmp(request_path, "/") == NULL) { */
   /*   snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, "/index.html"); */
