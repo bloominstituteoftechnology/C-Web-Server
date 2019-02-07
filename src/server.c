@@ -61,16 +61,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&seconds);
     info = localtime(&seconds);
 
-    char body_str = body;
+    //char body_str = body;
 
     int response_length = sprintf(
+      response,
       "%s\n"
       "Date: %s"
       "Connection: close\n"
       "Content-Length: %d\n"
       "Content-Type: %s\n\n",  
-       header,
-       asctime(info),
+      header,
+      asctime(info),
       content_length,
       content_type
     );
@@ -97,7 +98,7 @@ void get_d20(int fd)
     srand(time(NULL) + getpid());
 
     // Use send_response() to send it back as text/plain data
-    char response_body[8];
+    char response_body[16];
     sprintf(response_body, "%d\n", (rand() % 20) + 1);
 
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
