@@ -91,8 +91,8 @@ void get_d20(int fd)
   ///////////////////
 
   char info[30];
-  int random = (rand() % 20) + 1;
-  int length = sprintf(info, "%d\n", random);
+  int randnum = (rand() % 20) + 1;
+  snprintf(info, sizeof(info), "%d", randnum);
 
   // Use send_response() to send it back as text/plain data
   
@@ -100,7 +100,7 @@ void get_d20(int fd)
   // IMPLEMENT ME! //
   ///////////////////
   
-  send_response(fd, "%i", "HTTP/1.1 200 OK", "text/plain", random, info, length);
+  send_response(fd, "HTTP/1.1 200 OK", "text/plain", info, strlen(info));
 }
 
 /**
@@ -138,16 +138,17 @@ void get_file(int fd, struct cache *cache, char *request_path)
   // IMPLEMENT ME! //
   ///////////////////
 
-  char fpath[1024];
+  char fpath[2048];
   struct fileinfo *filedata;
   char *mimetype;
-  sprintf(file_path, sizeof(file_path), "./serverroot%s", request_path);
-  printf("filepath: %s\n", file_path);
-  
-  if (c_entry != NULL) {
-    send_response(fd, "HTTP/1.1 200 OK", );
-  }
-  
+  printf("filepath: %s\n", file_data);
+
+  /* if(strcmp(request_path, "/") == NULL) { */
+  /*   snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, "/index.html"); */
+  /* } */
+  /* else { */
+  /*   snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, request_path); */
+  /* } */
 }
 
 /**
