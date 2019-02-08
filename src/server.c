@@ -181,9 +181,10 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three tokens of the first request line
     char delim[] ="\n";
     char *first_line = strtok(request, delim);
-    char CRED_call[10], endpoint[13], http_version[10];
-    sscanf(first_line, "%s %s %s", CRED_call, endpoint, http_version);
-    printf("%s\n", endpoint);
+    char CRUD_call[5], endpoint[30], http_version[10];
+    sscanf(first_line, "%s %s %s", CRUD_call, endpoint, http_version);
+    
+    printf("endpoint: %s\n", endpoint);
 
     //    Check if it's /d20 and handle that special case
     if (strcmp(endpoint, "/d20") == 0){
@@ -196,12 +197,14 @@ void handle_http_request(int fd, struct cache *cache)
         char *mime_type;
 
         strcpy(filepath, SERVER_ROOT);
+        printf("endpoint: %s, filepath: %s\n", endpoint, filepath);
         // handle default endpoint
-        if (strcmp(endpoint, "/") == 0){
-            strcpy(endpoint, "/index");
+        if (strcmp(endpoint, "/") == 0 ){
+            strcat(endpoint, "index.html");
         }
+        // here!!!
+        printf("endpoint: %s, filepath: %s\n", endpoint, filepath);
         strcat(filepath, endpoint);
-        strcat(filepath, ".html");
 
         filedata = get_file(fd, cache, filepath);
 
@@ -213,7 +216,7 @@ void handle_http_request(int fd, struct cache *cache)
         else{
             mime_type = mime_type_get(filepath);
             // If GET, handle the get endpoints
-            if (strcmp(CRED_call, "GET") == 0){
+            if (strcmp(CRUD_call, "GET") == 0){
                     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
                 // printf("GET!!\n");
             }
