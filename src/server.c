@@ -183,8 +183,8 @@ void handle_http_request(int fd, struct cache *cache)
     char *first_line = strtok(request, delim);
     char CRUD_call[5], endpoint[30], http_version[10];
     sscanf(first_line, "%s %s %s", CRUD_call, endpoint, http_version);
-    
-    printf("endpoint: %s\n", endpoint);
+
+    // printf("endpoint: %s\n", endpoint);
 
     //    Check if it's /d20 and handle that special case
     if (strcmp(endpoint, "/d20") == 0){
@@ -197,14 +197,18 @@ void handle_http_request(int fd, struct cache *cache)
         char *mime_type;
 
         strcpy(filepath, SERVER_ROOT);
-        printf("endpoint: %s, filepath: %s\n", endpoint, filepath);
-        // handle default endpoint
-        if (strcmp(endpoint, "/") == 0 ){
-            strcat(endpoint, "index.html");
+        //handle client auto request for "/favicon.ico"
+        if (strcmp(endpoint, "/favicon.ico")==0){
+            return;
         }
-        // here!!!
-        printf("endpoint: %s, filepath: %s\n", endpoint, filepath);
+
+        // handle default endpoint
+        else if ((strcmp(endpoint, "/")) == 0 || (strcmp(endpoint, "") == 0)){
+            strcpy(endpoint, "/index.html");
+        }
+   
         strcat(filepath, endpoint);
+        // printf("endpoint: %s, filepath: %s\n", endpoint, filepath);
 
         filedata = get_file(fd, cache, filepath);
 
