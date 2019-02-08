@@ -63,7 +63,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time_t rawtime;
     struct tm * timeinfo;
     time (&rawtime);
-    timeinfo = localtime (&rawtime);
+    timeinfo = localtime (&rawtime); 
     extern char *tzname[2];
 
     sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(timeinfo), content_length, content_type, body);
@@ -243,11 +243,6 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
-
-    // //test
-    // resp_404(listenfd);
-    // handle_http_request(listenfd, cache);
-    // // exit(1);
     
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
@@ -276,10 +271,6 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-
-        //test
-        // resp_404(newfd);
-        // exit(1);
 
         close(newfd);
     }

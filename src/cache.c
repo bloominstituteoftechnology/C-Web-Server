@@ -13,9 +13,14 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     // IMPLEMENT ME! //
     ///////////////////
     struct cache_entry *new_cache_entry = malloc(1*sizeof (struct cache_entry));
+    new_cache_entry->path = malloc(4096*sizeof (char));
+    new_cache_entry->content_type = malloc(30*sizeof (char));
+    new_cache_entry->content = malloc(1*sizeof (char));
+    new_cache_entry->prev = malloc(1*sizeof(struct cache_entry));
+    new_cache_entry->next = malloc(1*sizeof(struct cache_entry));
     strcpy(new_cache_entry->path, path);
     strcpy(new_cache_entry->content_type, content_type);
-    new_cache_entry->content = content;
+    strcpy(new_cache_entry->content, content);
     new_cache_entry->content_length = content_length;
     new_cache_entry->prev = NULL;
     new_cache_entry->next = NULL;
@@ -145,6 +150,16 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //remove and free up tail entry of cache if cache is full
+    if (cache->max_size == cache->cur_size){
+            free_entry(dllist_remove_tail(cache));
+    }
+    // create a new cache entry with data from the arguments
+    struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length);
+    // insert new cache entry at the head of dllist
+    dllist_insert_head(cache, new_entry);
+    cache->cur_size++;
+    hashtable_put(cache->index, path, new_entry);
 }
 
 /**
@@ -155,5 +170,14 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    //remove and free up tail entry of cache if cache is full
+    if (cache->max_size == cache->cur_size){
+        free_entry(dllist_remove_tail(cache));
+    }
+    struct cache_entry *entry_found = hashtable_get(cache->index, path);
+    if (entry_found == NULL){
+        return NULL;
+    }
+    dllist_move_to_head(cache, entry_found);
+    return entry_found;
 }
