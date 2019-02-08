@@ -152,6 +152,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     //remove and free up tail entry of cache if cache is full
     if (cache->max_size == cache->cur_size){
+            hashtable_delete(cache->index, cache->tail->path);
             free_entry(dllist_remove_tail(cache));
     }
     // create a new cache entry with data from the arguments
@@ -171,9 +172,7 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     // IMPLEMENT ME! //
     ///////////////////
     //remove and free up tail entry of cache if cache is full
-    if (cache->max_size == cache->cur_size){
-        free_entry(dllist_remove_tail(cache));
-    }
+ 
     struct cache_entry *entry_found = hashtable_get(cache->index, path);
     if (entry_found == NULL){
         return NULL;
