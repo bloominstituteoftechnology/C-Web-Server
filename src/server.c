@@ -181,7 +181,7 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three tokens of the first request line
     char delim[] ="\n";
     char *first_line = strtok(request, delim);
-    char CRED_call[10], endpoint[10], http_version[10];
+    char CRED_call[10], endpoint[13], http_version[10];
     sscanf(first_line, "%s %s %s", CRED_call, endpoint, http_version);
     printf("%s\n", endpoint);
 
