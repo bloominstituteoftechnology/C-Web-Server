@@ -9,13 +9,10 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     struct cache_entry *new_cache_entry = malloc(1*sizeof (struct cache_entry));
     new_cache_entry->path = malloc(4096*sizeof (char));
     new_cache_entry->content_type = malloc(30*sizeof (char));
-    new_cache_entry->content = malloc(1*sizeof (char));
+    new_cache_entry->content = malloc(1*sizeof (void*));
     new_cache_entry->prev = malloc(1*sizeof(struct cache_entry));
     new_cache_entry->next = malloc(1*sizeof(struct cache_entry));
     strcpy(new_cache_entry->path, path);
@@ -33,9 +30,6 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     free(entry->path);
     free(entry->content_type);
     free(entry->content);
@@ -147,9 +141,6 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     //remove and free up tail entry of cache if cache is full
     if (cache->max_size == cache->cur_size){
             hashtable_delete(cache->index, cache->tail->path);
@@ -168,11 +159,6 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    //remove and free up tail entry of cache if cache is full
- 
     struct cache_entry *entry_found = hashtable_get(cache->index, path);
     if (entry_found == NULL){
         return NULL;

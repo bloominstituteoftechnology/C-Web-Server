@@ -54,18 +54,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     int response_length;
 
-    // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    // Initiate variables for displaying time
     time_t rawtime;
     struct tm * timeinfo;
     time (&rawtime);
     timeinfo = localtime (&rawtime); 
     extern char *tzname[2];
 
+    // Build HTTP response and store it in response
     sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(timeinfo), content_length, content_type, body);
 
     response_length = strlen(response);
@@ -106,6 +102,7 @@ void get_d20(int fd)
     sprintf(rand_num_string, "%d", rand_num);
 
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand_num_string, sizeof rand_num);
+    // printf
 }
 
 /**
@@ -137,11 +134,18 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-struct filedata *get_file(int fd, struct cache *cache, char *request_path)
+struct file_data *get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    //if request_path can be found in hash table of cache, return from the entry found in cache
+    // struct cache_entry *cache_entry_found = cache_get(cache, request_path);
+    // if (cache_entry_found != NULL){
+    //     int file_size = cache_entry_found->content_length;
+    //     struct file_data *new_file = malloc(file_size*sizeof (char));
+    //     new_file->data = malloc(1*sizeof(void*));
+    //     new_file->size = file_size;
+    //     strcpy(new_file->data, cache_entry_found->content);
+    //     return new_file;
+    // }
     return file_load(request_path);
 }
 
@@ -174,17 +178,12 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three tokens of the first request line
     char delim[] ="\n";
     char *first_line = strtok(request, delim);
     char CRED_call[10], endpoint[10], http_version[10];
     sscanf(first_line, "%s %s %s", CRED_call, endpoint, http_version);
-    
-    // printf("%s\n", endpoint);
+    printf("%s\n", endpoint);
 
     //    Check if it's /d20 and handle that special case
     if (strcmp(endpoint, "/d20") == 0){
@@ -197,6 +196,10 @@ void handle_http_request(int fd, struct cache *cache)
         char *mime_type;
 
         strcpy(filepath, SERVER_ROOT);
+        // handle default endpoint
+        if (strcmp(endpoint, "/") == 0){
+            strcpy(endpoint, "/index");
+        }
         strcat(filepath, endpoint);
         strcat(filepath, ".html");
 
