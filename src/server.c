@@ -50,6 +50,10 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+    /*This function is responsible for formatting all pieces that make up an 
+      HTTP-response into the proper format that client expects..
+      Need to use  :  sprintf() : to create HTTP response
+                      strlen(), time(), localtime()...*/
     const int max_response_size = 262144;
     char response[max_response_size];
 
@@ -58,6 +62,22 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
+    // time_t is arithmetic time type
+	time_t now;
+	
+	// Obtain current time
+	// time() returns the current time of the system as a time_t value
+	time(&now);
+   	struct tm *local = localtime(&now);
+    int response_length = sprintf(response, "%s \n" 
+				                            "Connection : close \n"
+				                            "Content-Length : %d \n"
+   				                            "Date : %s \n"
+                                            "Content-Type : %s \n"
+				                            "\n"  //blank line between header and body
+				                            "%s\n", header, content_length, asctime(local), content_type, body);
+    //printf("response: %s\n", response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
