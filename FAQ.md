@@ -24,6 +24,19 @@ file they're interested in, but also the domain they're expecting to find it on.
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>In <tt>send_response()</tt>, the <tt>body</tt> argument is passed as a <tt>void*</tt>. Is there some scenario where the <tt>body</tt> is not a string?</b></summary><p>
+
+In the MVP, no it's always a string.
+
+But if you want to serve any kind of binary file (e.g. `foo.jpg`), you'll be
+`send()`ing data that's _not_ a string.
+
+This is why `send_response()` takes a `void*`--it can point to any type of data,
+string or not.
+
+</p></details></p>
 
 
 <!--
