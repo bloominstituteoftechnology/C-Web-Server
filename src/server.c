@@ -50,43 +50,43 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    /*This function is responsible for formatting all pieces that make up an 
-      HTTP-response into the proper format that client expects..
-      Need to use  :  sprintf() : to create HTTP response
-                      strlen(), time(), localtime()...*/
-    const int max_response_size = 262144;
-    char response[max_response_size];
+        /*This function is responsible for formatting all pieces that make up an 
+        HTTP-response into the proper format that client expects..
+        Need to use  :  sprintf() : to create HTTP response
+                        strlen(), time(), localtime()...*/
+        const int max_response_size = 262144;
+        char response[max_response_size];
 
-    // Build HTTP response and store it in response
+        // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    
-    // time_t is arithmetic time type
-	time_t now;
-	
-	// Obtain current time
-	// time() returns the current time of the system as a time_t value
-	time(&now);
-   	struct tm *local = localtime(&now);
-    int response_length = sprintf(response, "%s \n" 
-				                            "Connection : close \n"
-				                            "Content-Length : %d \n"
-   				                            "Date : %s \n"
-                                            "Content-Type : %s \n"
-				                            "\n"  //blank line between header and body
-				                            "%s\n", header, content_length, asctime(local), content_type, body);
-    //printf("response: %s\n", response);
+        ///////////////////
+        // IMPLEMENT ME! //
+        ///////////////////
+        
+        // time_t is arithmetic time type
+        time_t now;
+        
+        // Obtain current time
+        // time() returns the current time of the system as a time_t value
+        time(&now);
+        struct tm *local = localtime(&now);
+        int response_length = sprintf(response, "%s \n" 
+                                                "Connection : close \n"
+                                                "Content-Length : %d \n"
+                                                "Date : %s \n"
+                                                "Content-Type : %s \n"
+                                                "\n"  //blank line between header and body
+                                                "%s\n", header, content_length, asctime(local), content_type, body);
+        //printf("response: %s\n", response);
 
-    // Send it all!
-    int rv = send(fd, response, response_length, 0);
+        // Send it all!
+        int rv = send(fd, response, response_length, 0);
 
-    if (rv < 0) {
-        perror("send");
-    }
+        if (rv < 0) {
+            perror("send");
+        }
 
-    return rv;
+        return rv;
 }
 
 
@@ -162,31 +162,43 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
-    char request[request_buffer_size];
-
-    // Read request
-    int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
-
-    if (bytes_recvd < 0) {
-        perror("recv");
-        return;
-    }
+        const int request_buffer_size = 65536; // 64K
+        char request[request_buffer_size];
+        
+        char request_path[1024];
+        char request_type[8];
+        char request_protocol[200];
 
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+        // Read request
+        int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
-    // Read the three components of the first request line
-
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+        if (bytes_recvd < 0) {
+            perror("recv");
+            return;
+        }
 
 
-    // (Stretch) If POST, handle the post request
+        ///////////////////
+        // IMPLEMENT ME! //
+        ///////////////////
+
+        // Read the three components of the first request line
+        sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+        printf("\nREQUEST  RECEIVED  :  %s %s %s\n", request_type, request_path, request_protocol);
+
+        // If GET, handle the get endpoints
+        if(strcmp(request_type, "GET") == 0) {
+                //Check if it's /d20 and handle that special case
+                if(strcmp(request_path, "/d20") == 0) {
+                    get_d20(fd);
+                }
+                //Otherwise serve the requested file by calling get_file()
+                get_file(fd, cache, request_path);
+        }
+
+
+        // (Stretch) If POST, handle the post request
 }
 
 /**
