@@ -164,11 +164,21 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char method[16], path[32], protocol[32];
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", method, path, protocol);
 
     // If GET, handle the get endpoints
-
+    if(strcmp('GET', method) == 0){
+        if(strcmp('/d20', path) == 0){
+            // how do I handle it?
+        }else{
+            // int fd, struct cache *cache, char *request_path
+            get_file(fd, cache, path);
+        }
+    }else{
+        printf("\nInvalid request method: %s not implemented yet\n", method);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
