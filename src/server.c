@@ -48,12 +48,41 @@
  * 
  * Return the value from the send() function.
  */
+
+// send_respone() = HTTP response builder
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    int response_length = 0; //total number of bytes returned from sprintf()
+    
+    //time.h, time()/localtime() - For getting the current time for the Date field of the response
+    time_t time_info; 
+    struct tm * date_field;
 
-    // Build HTTP response and store it in response
+    time(&time_info);
+    date_field = localtime(&time_info);
+
+    // Build/format HTTP response and store it in response
+
+    response_length= sprintf( //modified class example
+        response, 
+        "%s\n"
+        "Date: %s"
+        "Connection: %s\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n", // end of the header in req & res, marked by blank line
+
+        header,
+        asctime(date_field),
+        "close",
+        content_length,
+        content_type
+    );
+
+    // The total length of the header and body should be stored in the response_length variable
+    response_length += content_length; 
 
     ///////////////////
     // IMPLEMENT ME! //
