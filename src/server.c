@@ -84,11 +84,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    int randomNum = rand() % (20 + 1 - 1) + 1;
+    char num[50];
+    sprintf(num, "%i", randomNum);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    send_response(fd, "HTTP 200 OK", "text/plain", num, 1);
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
@@ -161,6 +163,16 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    char request_type[8000];
+    char path[8000];
+    char header[8000];
+    
+
+    sscanf(request, "%s %s %s", request_type, path, header);
+
+    fprintf(stderr, "%s %s %s\n", request_type, path, header);
+    
+
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -169,7 +181,15 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
-
+    if(strcmp(request_type, "GET") == 0) {
+        if(strcmp(path, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, path);
+        }
+    } else {
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -223,7 +243,6 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-       resp_404(newfd);
         close(newfd);
     }
 
