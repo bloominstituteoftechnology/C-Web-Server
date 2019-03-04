@@ -52,6 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    int body_len = strlen(body);
 
     // Build HTTP response and store it in response
 
@@ -59,8 +60,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
+    sprintf(response, "Header: %s\n"
+                      "Content Type: %s\n"
+                      "Body Length: %d\n"
+                      "\n"
+                      "Body: %s",
+            header, content_type, body_len, body);
+
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, body_len, 0);
 
     if (rv < 0) {
         perror("send");
