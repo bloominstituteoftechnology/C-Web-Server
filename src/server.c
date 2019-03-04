@@ -80,15 +80,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 /**
  * Send a /d20 endpoint response
  */
+//    Note that unlike the other responses that send back file contents, 
+//    the `d20` endpoint will simply compute a random number and send it back. 
+//    It does not read the number from a file.
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    int n = rand() % 20 + 1;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char header[20] = "HTTP/1.1 200 OK"
+    char content_type[10] = "text/plain"
     // Use send_response() to send it back as text/plain data
+    send_response(fd, header, content_type, n, sizeof n);
 
     ///////////////////
     // IMPLEMENT ME! //
