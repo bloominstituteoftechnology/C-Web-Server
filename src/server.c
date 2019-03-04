@@ -54,11 +54,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    // For getting the current time for the Date field of the response,
+    // you'll want to look at the time() and localtime() functions, both of 
+    // which are already included in the time.h header file.
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    // time_t is defined for storing system time values
+    time_t seconds;
+    // Structure containing a calendar date and time broken down into its components
+    struct tm *info;
+    
+    // call time function using the seconds address
+    time(&seconds);
+    // get the local time using localtime function
+    data = localtime(&seconds);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
