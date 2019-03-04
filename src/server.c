@@ -58,13 +58,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // get time
+    time_t curtime;
+    time(&curtime);
+    char *time = ctime(&curtime);
     sprintf(response, "%s\n"
-                      "%s\n"
-                      "%s\n"
-                      "Connection: Close"
+                      "Date: %s\n"
+                      "Connection: Close\n"
+                      "Content-Length: %s\n"
+                      "Content-Type: %s\n"
+
                       "\n"
                       "%s",
-            header, content_length, content_type, body);
+            header, time, content_length, content_type, body);
     int response_length = strlen(response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -209,6 +216,7 @@ int main(void)
         // Parent process will block on the accept() call until someone
         // makes a new connection:
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
+        //resp_404(newfd);
         if (newfd == -1)
         {
             perror("accept");
