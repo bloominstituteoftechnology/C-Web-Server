@@ -1,4 +1,4 @@
-/**
+/****
  * webserver.c -- A webserver written in C
  * 
  * Test with curl (if you don't have it, install it):
@@ -14,7 +14,7 @@
  *    curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
  * 
  * (Posting data is harder to test from a browser.)
- */
+ ****/
 
 #include <stdio.h>
 #include <stdlib.h>
