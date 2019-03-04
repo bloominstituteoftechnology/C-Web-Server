@@ -177,6 +177,7 @@ void handle_http_request(int fd, struct cache *cache)
     if(strcmp('GET', method) == 0){
         if(strcmp('/d20', path) == 0){
             // how do I handle it?
+            get_d20(fd);
         }else{
             // int fd, struct cache *cache, char *request_path
             get_file(fd, cache, path);
