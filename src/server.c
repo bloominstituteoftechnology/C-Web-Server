@@ -52,7 +52,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-
+    sprintf(response, 
+            "%s\n"
+            "Content-Type: %s\n"
+            "Content-Length: %d\n"
+            "Connection: close\n"
+            "\n"
+            "%s",
+            header, content_type, content_length, body
+            );
     // Build HTTP response and store it in response
 
     ///////////////////
@@ -60,7 +68,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, strlen(response), 0);
 
     if (rv < 0) {
         perror("send");
@@ -177,7 +185,7 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
-
+    
     struct cache *cache = cache_create(10, 0);
 
     // Get a listening socket
@@ -215,7 +223,7 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-
+       resp_404(newfd);
         close(newfd);
     }
 
