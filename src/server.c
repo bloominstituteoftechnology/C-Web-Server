@@ -216,6 +216,9 @@ int main(void)
             continue;
         }
 
+        // Test if send_response() works
+        resp_404(newfd);
+
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
                   get_in_addr((struct sockaddr *)&their_addr),
