@@ -54,6 +54,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    int response_length = sprintf( 
+        response,// Stores this value into response
+        "%s\n" // Header
+        "connection: close\n" //connection type
+        "content_length: %d\n" //content length given
+        "content_type: %s\n\n" //content type given
+        "%s\n"/*body*/, header, content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
