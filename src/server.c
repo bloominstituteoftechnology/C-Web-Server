@@ -58,6 +58,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
+
+    sprintf(response, "%s\n" "Content-Type: %s\n" "Content-Length: %d\n" "Connection: close\n" "\n" "%s", header, content_type, content_length, body);
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -80,9 +84,10 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char random_number[8];
+    sprintf(random_number, "%d\n", (rand() % 20) + 1);
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_number, strlen(random_number));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
