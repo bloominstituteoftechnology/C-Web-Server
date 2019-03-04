@@ -52,9 +52,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    char *body = "<h1>Hello, world!</h1>";
+    int length = strlen(body);
 
     // Build HTTP response and store it in response
+    sprintf(response, "HTTP/1.1 404 NOT FOUND\n"
+                        "Content-Type: text/html\n"
+                        "Content-Length: %d\n"
+                        "Connection: close\n"
+                        "\n");
 
+    printf("%s", response); 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
