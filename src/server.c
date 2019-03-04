@@ -52,7 +52,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-    int response_length = strlen(body);
 
     // Build HTTP response and store it in response
 
@@ -60,13 +59,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
-    sprintf(response, "%s\n"
-                      "Content-Type: %s\n"
-                      "Content-Length: %d\n"
-                      "Connection: close\n"
-                      "\n"
-                      "%s",
-            header, content_type, response_length, body);
+    int response_length = sprintf(response, "%s\n"
+                                            "Content-Type: %s\n"
+                                            "Content-Length: %d\n"
+                                            "Connection: close\n"
+                                            "\n"
+                                            "%s",
+                                  header, content_type, content_length, body);
+
+    // The total length of the header and body should be stored in the response_length
+    response_length += content_length;
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -89,12 +91,16 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    int random_num = (rand() % 20) + 1;
+    char response_body[16];
+    sprintf(response_body, "%d\n", random_num);
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 }
 
 /**
@@ -241,9 +247,6 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-
-        // Test if send_response() works
-        // resp_404(newfd);
 
         close(newfd);
     }
