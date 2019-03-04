@@ -154,6 +154,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[200];
+    char path[8192];
+    char protocol[1785];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -169,11 +172,23 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", method, path, protocol);
 
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+    if (strcmp(method, "GET") == 0)
+    {
+        //    Check if it's /d20 and handle that special case
+        if (strcmp(path, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        //    Otherwise serve the requested file by calling get_file()
+        get_file(fd, cache, path);
+    }
+    else
+    {
+        resp_404(fd);
+    }
 
     // (Stretch) If POST, handle the post request
 }
@@ -216,9 +231,6 @@ int main(void)
             continue;
         }
 
-        // Test if send_response() works
-        resp_404(newfd);
-
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
                   get_in_addr((struct sockaddr *)&their_addr),
@@ -229,6 +241,9 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
+
+        // Test if send_response() works
+        // resp_404(newfd);
 
         close(newfd);
     }
