@@ -55,10 +55,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -152,6 +148,8 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+
+    printf("REQUEST:::: %d\n", request);
 
 
     ///////////////////
