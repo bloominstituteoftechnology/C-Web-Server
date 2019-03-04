@@ -52,12 +52,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    time_t rawtime;
+    struct tm *timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
 
     // Build HTTP response and store it in response
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    int response_length = sprintf(response, "%s\n"
+                                "Content-Type: %s\n"
+                                "Content-Length: %d\n"
+                                "Date: %s\n"
+                                "\n",
+                                header, content_type, content_length, asctime(timeinfo));
+
+    memcpy(response + response_length, body, content_length);
+    response_length += content_length;
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -214,6 +228,7 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
+        resp_404(newfd);
         handle_http_request(newfd, cache);
 
         close(newfd);
