@@ -80,13 +80,13 @@ No. The key-value pairs can be in any order.
 Caveat: the first line of the header is always something like this for requests:
 
 ```http
-HTTP/1.1 200 OK
+GET /index.html HTTP/1.1
 ```
 
 and the first line of the response is always something like this:
 
 ```http
-GET /index.html HTTP/1.1
+HTTP/1.1 200 OK
 ```
 
 But _after_ that, with all the things like `Content-Length` and `Content-Type` and all that, those can be in any order.
