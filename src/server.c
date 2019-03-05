@@ -95,33 +95,6 @@ void get_d20(int fd)
 }
 
 /**
- * Send a 404 response
- */
-void resp_404(int fd)
-{
-    char filepath[4096];
-    struct file_data *filedata;
-    char *mime_type;
-
-    // Fetch the 404.html file
-    snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
-    filedata = file_load(filepath);
-
-    if (filedata == NULL)
-    {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
-    }
-
-    mime_type = mime_type_get(filepath);
-
-    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
-}
-
-/**
  * Read and return a file from disk or cache
  */
 void get_file(int fd, struct cache *cache, char *request_path, char *loc)
