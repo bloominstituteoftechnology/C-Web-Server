@@ -42,8 +42,11 @@
 /**
  * Send an HTTP response
  *
- * header:       "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
- * content_type: "text/plain", etc.
+ * header:          "HTTP/1.1 404 NOT FOUND" or "HTTP/1.1 200 OK", etc.
+ * date:            "Wed Dec 20 13:05:11 PST 2017"
+ * content_type:    "text/plain", etc.
+ * content_length:  "41749 "
+ * connection:      "close"
  * body:         the data to send.
  * 
  * Return the value from the send() function.
@@ -89,16 +92,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int generate_random_1_to_20 = rand() % 21;
+
+    char body[3];
+    snprintf(body, sizeof(body), "%d", generate_random_1_to_20);
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
 }
 
 /**
@@ -167,6 +167,12 @@ char *find_start_of_body(char *header)
 
 /**
  * Handle HTTP request and send response
+ * 
+ * method    path     protocol
+ *  |          |         |
+ * GET     /example   HTTP/1.1
+ * Host: lambdaschool.com
+ * 
  */
 void handle_http_request(int fd, struct cache *cache)
 {
@@ -191,19 +197,14 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(method, "GET") == 0)
     {
         // Check if it's /d20 and handle that special case
-        // if (strcmp(path, "/d20") == 0)
-        // {
-        //    get_d20(fd); 
-        // }
-        if (strcmp(path, "/test") == 0)
+        if (strcmp(path, "/d20") == 0)
         {
-            send_response(fd, "HTTP/1.1 200 OK", "text/plain", "TESTING!!!", 10);
+           get_d20(fd);
+           return; 
         }
-        else
-        {           
+         
         // Otherwise serve the requested file by calling get_file()
         get_file(fd, cache, path);
-        }
     }
     
     // (Stretch) If POST, handle the post request
