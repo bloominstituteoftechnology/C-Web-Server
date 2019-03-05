@@ -233,6 +233,9 @@ void handle_http_request(int fd, struct cache *cache)
       resp_404(fd);
     }
 
+
+    resp_404(fd);
+
     // (Stretch) If POST, handle the post request
 }
 
