@@ -129,7 +129,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    snprintf(filepath, sizeof filepath, request_path, SERVER_FILES);
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
     if (filedata == NULL)
