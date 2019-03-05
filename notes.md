@@ -17,3 +17,10 @@
 -   strcmp() for matching the method and path (Return 0 if the same)
 -   Have to do if-else statements
 -   If not handler call resp_404()
+
+## arbitrary file serving
+
+-   Will need to add more to handle_http_request
+-   Will be changing get_file
+-   Will use resp_404 for help
+-   Fetch file = snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);

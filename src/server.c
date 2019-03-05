@@ -134,12 +134,24 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    (void)fd;
     (void)cache;
-    (void)request_path;
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        resp_404(fd);
+    }
+    else
+    {
+        mime_type = mime_type_get(filepath);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    }
 }
 
 /**
@@ -193,9 +205,9 @@ void handle_http_request(int fd, struct cache *cache)
         }
         else
         {
-            resp_404(fd);
+            //    Otherwise serve the requested file by calling get_file()
+            get_file(fd, cache, path);
         }
-        //    Otherwise serve the requested file by calling get_file()
     }
 
     // (Stretch) If POST, handle the post request
