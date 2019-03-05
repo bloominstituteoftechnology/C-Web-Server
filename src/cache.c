@@ -150,10 +150,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         struct cache_entry *temp = dllist_remove_tail(cache);
         free_entry(temp);
     }
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
 }
 
 /**
@@ -167,7 +164,5 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     }
     dllist_move_to_head(cache, pointer);
     return pointer;
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
 }
