@@ -60,19 +60,24 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // get time
-    time_t curtime;
-    time(&curtime);
-    char *time = ctime(&curtime);
-    sprintf(response, "%s\n"
-                      "Date: %s\n"
-                      "Connection: Close\n"
-                      "Content-Length: %s\n"
-                      "Content-Type: %s\n"
+    // time_t curtime;
+    // time(&curtime);
+    // char *time = ctime(&curtime);
 
-                      "\n"
-                      "%s",
-            header, time, content_length, content_type, body);
+    // sprintf(response, "%s\n"
+    //                   "Connection: Close\n"
+    //                   "Content-Length: %s\n"
+    //                   "Content-Type: %s\n"
+
+    //                   "\n"
+    //                   "%s",
+    //         header, content_length, content_type, body);
+
+    sprintf(response, "%s\n%s\n\n\n%s\n", header, content_type, body);
+
     int response_length = strlen(response);
+    printf("%s\n", response);
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -92,7 +97,7 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
 
     char response[10];
-    int rand_num = rand() % 20 + 1;
+    int rand_num = rand() % 20;
     sprintf(response, "%d\n", rand_num);
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
 }
@@ -103,7 +108,7 @@ void get_d20(int fd)
 void resp_404(int fd)
 {
 
-    printf("Lets send a 404 error");
+    printf("Lets send a 404 error\n");
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
@@ -187,7 +192,7 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(path, "/d20") == 0)
         {
             //send random number
-            //get_d20(fd);
+            get_d20(fd);
         }
         else
         {
