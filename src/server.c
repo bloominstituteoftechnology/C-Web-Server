@@ -154,6 +154,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     if (filedata == NULL)
     {
+        // if (strcmp(request_path, "/") == 0)
+        // {
+        //     sprintf(filepath, "%s", "index.html");
+
+        // }
         // respond with a 404
         resp_404(fd);
     }
