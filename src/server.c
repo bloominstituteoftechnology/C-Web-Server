@@ -92,13 +92,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    srand(time(NULL));
+    int n = (rand() % 20) + 1;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char res[8];
+    sprintf(res, "%d\n", n);
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", res, strlen(res));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -181,15 +183,13 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", method, path, protocol);
     // If GET, handle the get endpoints
-    if(strcmp("GET", method) == 0) {
+    if(strcmp(method, "GET") == 0) {
         //    Check if it's /d20 and handle that special case
-        if(strcmp("/d20", path) == 0) {
+        if(strcmp(path, "/d20") == 0) {
             get_d20(fd);
         } 
         //    Otherwise serve the requested file by calling get_file()
-        else {
-            get_file(fd, cache, path);
-        }
+        get_file(fd, cache, path);
     } else {
         resp_404(fd);
     }
