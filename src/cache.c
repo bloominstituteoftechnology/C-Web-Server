@@ -9,13 +9,19 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
+    struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+
+    entry->path = path;
+    entry->content_type = content_type;
+    entry->content = content;
+    entry->content_length = content_length;
+    entry->next = NULL;
+    entry->prev = NULL;
+
+    return entry;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    (void)path;
-    (void)content_type;
-    (void)content;
-    (void)content_length;
 }
 
 /**
@@ -24,7 +30,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 void free_entry(struct cache_entry *entry)
 {
 
-    (void)entry;
+    free(entry);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -100,9 +106,12 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
-    (void)max_size;
-    (void)hashsize;
+    struct cache *newcache = malloc(sizeof(struct cache));
+    newcache->index = hashtable_create(hashsize, NULL);
+    newcache->head = NULL;
+    newcache->tail = NULL;
+    newcache->max_size = max_size;
+    newcache->cur_size = 0;
 }
 
 void cache_free(struct cache *cache)
@@ -131,14 +140,16 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    if(cache->head == NULL) {
+        cache->head = entry;
+        cache->tail = entry;
+        cache->cur_size += 1;
+    } 
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    (void)cache;
-    (void)path;
-    (void)content_type;
-    (void)content;
-    (void)content_length;
 }
 
 /**
