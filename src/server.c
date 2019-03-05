@@ -182,7 +182,21 @@ void handle_http_request(int fd, struct cache *cache)
 
     if (strcmp(method, "GET") == 0)
     {
-        printf("GET request");
+        printf("\n-----\n");
+        printf("GET request\n");
+        printf("method: %s\n", method);
+        printf("path: %s\n", path);
+
+        resp_404(fd);
+
+        if (strcmp(path, "/d20") == 0)
+        {
+            //send random number
+        }
+        else
+        {
+            get_file(fd, cache, path);
+        }
         //    Check if it's /d20 and handle that special case
         //    Otherwise serve the requested file by calling get_file()
     }
