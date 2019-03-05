@@ -38,6 +38,113 @@ string or not.
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>I rebuilt and re-ran the server, but nothing's happening.</b></summary><p>
+
+You have to hit it with a web request. Either send your browser to
+`http://localhost:3490/`, or run curl:
+
+```shell
+curl -D - http://localhost:3490/
+```
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Why is the <tt>Content-Length</tt> different than the number of bytes we pass to <tt>send()</tt>?</b></summary><p>
+
+It's because they refer to the size of the _payload_ at different layers in the
+protocol stack.
+
+Remember that HTTP runs on top of TCP, and TCP runs on top of IP, and IP runs on
+top of Ethernet (on your LAN, anyway).
+
+So we first put together our HTTP packet, and in there we put the size of the
+HTTP data in `Content-Length`, and doesn't count the HTTP header.
+
+But then we wrap _that entire thing_ inside TCP. (Well, the OS does it for us
+when we call `send()`.) So the entirety of the HTTP data, header and body, needs
+to be wrapped up in TCP and sent. So when we call `send()`, we give it that
+entire length.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Does the order of the fields in the HTTP header matter?</b></summary><p>
+
+No. The key-value pairs can be in any order.
+
+Caveat: the first line of the header is always something like this for requests:
+
+```http
+HTTP/1.1 200 OK
+```
+
+and the first line of the response is always something like this:
+
+```http
+GET /index.html HTTP/1.1
+```
+
+But _after_ that, with all the things like `Content-Length` and `Content-Type` and all that, those can be in any order.
+
+Don't forget to end your header with an empty line!
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>After sending the request and getting the response, my client is just sitting there, waiting, and not closing the connection.</b></summary><p>
+
+Make sure you have the
+
+```http
+Connection: close
+```
+
+field in your header.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>After sending a <tt>GET</tt> request, the server is just sitting there waiting for something and not responding.</b></summary><p>
+
+Make sure you end your request header with a blank line. That's how the server
+knows the header is complete.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>How can I use <tt>curl</tt> on the command line to test my server?</b></summary><p>
+
+`curl` sends web requests from the command line and prints the results on
+standard output.
+
+Just hit the URL and print the body:
+
+```shell
+curl http://localhost:3490/
+```
+
+Hit the URL and print out the response headers and the body:
+
+```shell
+curl -D - http://localhost:3490/
+```
+
+Hit the URL, print out the request headers (and body), print out the response
+headers and body:
+
+```shell
+curl -v http://localhost:3490/
+```
+
+</p></details></p>
 
 <!--
 TODO:
