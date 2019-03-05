@@ -98,10 +98,12 @@ void get_d20(int fd)
 {
 
     // Generate a random number between 1 and 20 inclusive
+    int num = (rand() % (20 - 1 + 1) + 1);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
     // Use send_response() to send it back as text/plain data
+    // send_response(fd, "HTTP/1.1 200 OK", "text/plain", num, 1);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -176,9 +178,9 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char *method[50];
-    char *path[200];
-    char *HTTP[50];
+    char method[50];
+    char path[200];
+    char HTTP[50];
 
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", method, path, HTTP);
