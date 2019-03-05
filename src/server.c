@@ -84,10 +84,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    int roll = rand() % (20) + 1;
+    char roll[2];
+    int roll_int = rand() % (20) + 1;
+
+    sprintf(roll, "%i", roll_int);
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", &roll, 1);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", roll, strlen(roll));
 }
 
 /**
@@ -155,8 +158,6 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
     // Read the three components of the first request line
-
-    resp_404(fd);
 
     char method[200];
     char path[8192];
