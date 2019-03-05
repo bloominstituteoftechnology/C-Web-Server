@@ -63,10 +63,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     timestamp = localtime(&rawtime);
     strftime(buffer, 100, "%a %b %d %T %Z %Y", timestamp);
     // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char *newBody = body;
 
     sprintf(response, "%s\n"
@@ -101,15 +97,10 @@ void get_d20(int fd)
     char str[5];
     // Generate a random number between 1 and 20 inclusive
     int num = (rand() % (20 - 1 + 1) + 1);
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Conver number to string
     sprintf(str, "%d", num);
     // Use send_response() to send it back as text/plain data
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", str, strlen(str));
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -185,9 +176,6 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char method[50];
     char path[200];
     char HTTP[50];
