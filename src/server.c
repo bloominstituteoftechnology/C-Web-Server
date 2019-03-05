@@ -64,7 +64,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                             "Content-Type: %s\n"
                                             "Content-Length: %d\n"
                                             "\n"
-                                            "%p\n",
+                                            "%s\n",
                                   header, asctime(info), content_type, content_length, body);
 
     // Send it all!
@@ -87,7 +87,7 @@ void get_d20(int fd)
     int roll = rand() % (20) + 1;
 
     // Use send_response() to send it back as text/plain data
-    send_response(fd, "HTTP/1.1 200 OK", "text/plain", roll, 1);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", &roll, 1);
 }
 
 /**
@@ -122,9 +122,6 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
