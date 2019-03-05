@@ -134,9 +134,23 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "./serverroot%s", request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -169,9 +183,6 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char request_type[8], request_endpoint[1024], request_protocol[128];
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", request_type, request_endpoint, request_protocol);
@@ -217,7 +228,6 @@ int main(void)
     }
 
     printf("webserver: waiting for connections on port %s...\n", PORT);
-    resp_404(1);
 
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
