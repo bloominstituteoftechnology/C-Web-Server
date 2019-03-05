@@ -130,36 +130,32 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    int response_length = snprintf(response, max_response_size,
+                                   "%s\n"
+                                   "Connection: close\n"
+                                   // Date: %s
+                                   "Content-Length: %d\n"
+                                   "Content-Type: %s\n"
+                                   "\n"
+                                   "%s",
+                                   header, content_length, content_type, body);
+
+    // could use memcopy for body to handle binary data.
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    // printf("SEBUGGING \n"
-    //        "fd: %d\n"
-    //        "header: %s\n"
-    //        "content_type: %s\n"
-    //        "body: %s\n"
-    //        "content_length: %d\n\n",
-    //        fd, header, content_type, body, content_length); // <--debugging
-
-    sprintf(response,
-            "%s\n"
-            "Date: %s\n"
-            "content_type: \"%s\"\n"
-            "body: %s\n",
-            header, time_stamp(), content_type, body);
-
-    printf("%s\n", response);
 
     // Send it all!
     // Uncomment after debugging
-    // int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length, 0);
 
-    // if (rv < 0) {
-    //     perror("send");
-    // }
+    if (rv < 0)
+    {
+        perror("send");
+    }
 
-    // return rv;
+    return rv;
 }
 
 /**
@@ -237,6 +233,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[512]; // get or post
+    char path[512];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -252,11 +250,15 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s", method, path);
+    printf("GOT REQUEST: \"%s\" \"%s\"\n", method, path);
 
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
+
+    resp_404(fd);
 
     // (Stretch) If POST, handle the post request
 }
@@ -286,7 +288,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    resp_404(newfd);
+
     while (1)
     {
         socklen_t sin_size = sizeof their_addr;
