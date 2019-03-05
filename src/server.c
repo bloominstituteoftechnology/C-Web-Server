@@ -117,7 +117,7 @@ void resp_404(int fd)
     if (filedata == NULL) {
         // TODO: make this non-fatal
         resp_404(fd);
-        exit(3);
+        return;
     }
 
     mime_type = mime_type_get(filepath);
@@ -145,7 +145,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     if (filedata == NULL) {
         resp_404(fd);
-        exit(3);
+        return;
     }
 
     mime_type = mime_type_get(filepath);
