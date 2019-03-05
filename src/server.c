@@ -71,7 +71,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "Date: %s"
         "Connection: %s\n"
         "Content-Length: %d\n"
-        "Content-Type: %s\n"
+        "Content-Type: %s\n" //mime
         "\n", // end of the header in req & res, marked by blank line
 
         header,
@@ -79,7 +79,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "close",
         content_length,
         content_type
-    );
+    ); //memcopy
 
     // The total length of the header and body should be stored in the response_length variable
     response_length += content_length; 
@@ -107,13 +107,13 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
     
     ///////////////////
-    // IMPLEMENT ME! //
+    // DO NOT IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
-    // IMPLEMENT ME! //
+    //DO NOT IMPLEMENT ME! //
     ///////////////////
 }
 
@@ -148,9 +148,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    //modified from 404_function
+    char file_path[4096];
+    struct file_data *filedata; // buffer, type from file.c
+    char *mime_type; // type of data
+
+    sprintf(file_path, "%s%s", SERVER_ROOT, request_path); //defined at top - SERVER_ROOT "./serverroot"
+    filedata = file_load(file_path); // load the file into buffer
+    
+    if (filedata == NULL) { // check if file was loaded properly
+      resp_404(fd);
+      printf("get_file() -> Cannot find file.\n");
+      return;
+    }
+
+    mime_type = mime_type_get(file_path);
+
+    printf("get_file() -> %d, %s, %s, %s,%d", fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size); // send the buffer
+    
+    file_free(filedata);//malloc
 }
 
 /**
