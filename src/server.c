@@ -33,87 +33,11 @@
 #include "file.h"
 #include "mime.h"
 #include "cache.h"
-#include "timestamp.h"
 
 #define PORT "3490" // the port users will be connecting to
 
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
-
-///////////////////////
-// TIMESTAMP HELPERS //
-///////////////////////
-char *time_day(int day)
-{
-    switch (day)
-    {
-    case 0:
-        return "Sun";
-    case 1:
-        return "Mon";
-    case 2:
-        return "Tue";
-    case 3:
-        return "Wed";
-    case 4:
-        return "Thu";
-    case 5:
-        return "Fri";
-    case 6:
-        return "Sat";
-    }
-}
-
-char *time_month(int month)
-{
-    switch (month)
-    {
-    case 0:
-        return "Jan";
-    case 1:
-        return "Feb";
-    case 2:
-        return "Mar";
-    case 3:
-        return "Apr";
-    case 4:
-        return "May";
-    case 5:
-        return "Jun";
-    case 6:
-        return "Jul";
-    case 7:
-        return "Aug";
-    case 8:
-        return "Sep";
-    case 9:
-        return "Oct";
-    case 10:
-        return "Nov";
-    case 11:
-        return "Dec";
-    }
-}
-
-char time_buffer[512];
-char *time_stamp()
-{
-    time_t rawtime;
-    struct tm *c_time;
-
-    time(&rawtime);
-
-    c_time = localtime(&rawtime);
-    sprintf(time_buffer, "%s, %d %s %d %d:%d:%d CST",
-            time_day(c_time->tm_wday),
-            c_time->tm_mday,
-            time_month(c_time->tm_mon),
-            c_time->tm_year + 1900,
-            c_time->tm_hour,
-            c_time->tm_min,
-            c_time->tm_sec);
-    return time_buffer;
-}
 
 /**
  * Send an HTTP response
@@ -128,17 +52,22 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    time_t rawtime;
+    struct tm *info;
+    char buffer[80];
+    time(&rawtime);
+    info = localtime(&rawtime);
 
     // Build HTTP response and store it in response
     int response_length = snprintf(response, max_response_size,
                                    "%s\n"
                                    "Connection: close\n"
-                                   // Date: %s
+                                   "Date: %s\n"
                                    "Content-Length: %d\n"
                                    "Content-Type: %s\n"
                                    "\n"
                                    "%s",
-                                   header, content_length, content_type, body);
+                                   header, asctime(info), content_length, content_type, body);
 
     // could use memcopy for body to handle binary data.
 
