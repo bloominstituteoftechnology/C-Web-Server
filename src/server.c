@@ -55,7 +55,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "%s\n"
+    int response_length = sprintf(response,
+                      "" 
+                      "%s\n"
                       "Content-Type: %s\n"
                       "Content-Length: %d\n"
                       "Connection: close\n"
@@ -111,14 +113,16 @@ void resp_404(int fd)
     file_free(filedata);
 }
 
-void resp_index(int fd)
+/**
+ * Read and return a file from disk or cache
+ */
+void get_file(int fd, struct cache *cache, char *request_path, char *loc)
 {
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
 
-    // Fetch the index.html file
-    snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+    snprintf(filepath, sizeof filepath, "%s/%s", loc, request_path);
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
@@ -126,20 +130,12 @@ void resp_index(int fd)
         fprintf(stderr, "cannot find system index file\n");
         exit(3);
     }
-
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
 }
-
-/**
- * Read and return a file from disk or cache
- */
-// void get_file(int fd, struct cache *cache, char *request_path)
-// {
-// }
 
 /**
  * Search for the end of the HTTP header
@@ -181,7 +177,7 @@ void handle_http_request(int fd, struct cache *cache)
 
         if (strcmp(path, "/") == 0)
         {
-            resp_index(fd);
+            get_file(fd, cache, "index.html", SERVER_ROOT);
         }
         else if (strcmp(path, "/d20") == 0)
         {   
@@ -189,11 +185,9 @@ void handle_http_request(int fd, struct cache *cache)
         }
         else
         {
-            resp_404(fd);
+            get_file(fd, cache, "404.html", SERVER_FILES);
         }
     }
-    
-    // Otherwise serve the requested file by calling get_file()
     // (Stretch) If POST, handle the post request
 }
 
