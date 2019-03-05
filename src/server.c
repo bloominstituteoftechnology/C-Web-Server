@@ -95,17 +95,24 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    //THIS WILL CALL send_response()...
+        // Generate a random number between 1 and 20 inclusive
+        int random_number = rand() % 20 + 1;
+        printf("random_number   : %d\n",random_number);
 
-    // Use send_response() to send it back as text/plain data
+        ///////////////////
+        // IMPLEMENT ME! //
+        ///////////////////
+        char header_content[] = "HTTP/1.1 200 OK";
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+        char response_body[8];
+        sprintf(response_body, "%d\n", random_number); 
+        printf("\nresponse_body   :  %s", response_body);
+
+        // Use send_response() to send it back as text/plain data
+
+        //send_response(int fd, char *header, char *content_type, void *body, int content_length)
+        send_response(fd, header_content, "text/plain", response_body, random_number);
 }
 
 /**
@@ -139,9 +146,33 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+        ///////////////////
+        // IMPLEMENT ME! //
+        ///////////////////
+        //NEED TO IMPLEMENT THIS FUNCTION TO GET FILE REQUESTED
+        //HERE THE FILE IS "text/plain" ...(referring resp_404()..)
+        char filepath[4096];
+        struct file_data *filedata; 
+        char *mime_type;
+        printf("REQUEST PATH  :    %s\n", request_path);
+        //FETCH THE FILE
+        //The snprintf() function formats and stores a series of characters and values in the array buffer. 
+        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+
+        printf("The filepath: %s\n", filepath);
+
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            resp_404(fd);
+            exit(0);
+        }
+
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
 }
 
 /**
@@ -199,6 +230,15 @@ void handle_http_request(int fd, struct cache *cache)
 
 
         // (Stretch) If POST, handle the post request
+        if(strcmp(request_type, "POST") == 0) {
+                //handle POST REQUEST.....
+                if (strcmp(request_path, "/save") == 0) {
+                        //logic for POST-- SAVE
+                }
+                else {
+                        resp_404(fd);
+                }
+        }
 }
 
 /**
