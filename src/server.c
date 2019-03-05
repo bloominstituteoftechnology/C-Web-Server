@@ -60,7 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     
 
-    sprintf(response, "%s\n" "Content-Type: %s\n" "Content-Length: %d\n" "Connection: close\n" "\n" "%s", header, content_type, content_length, body);
+    int response_length = sprintf(response, "%s\n" "Content-Type: %s\n" "Content-Length: %d\n" "Connection: close\n" "\n" "%s", header, content_type, content_length, body);
 
 
     // Send it all!
@@ -150,6 +150,10 @@ void handle_http_request(int fd, struct cache *cache)
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
+    char method[512]; // GET OR POST
+
+    char path[8192]; // 
+
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
@@ -162,6 +166,19 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    sscanf(request, "%s %s", method, path);
+
+    // printf("GOT REQUEST: \"%s\" \"%s\" \n", method, path);
+
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(path, "/d20") == 0) {
+            get_d20(fd);
+        }
+        else {
+            get_file(fd, cache, path);
+        }
+    } 
+
 
     // Read the three components of the first request line
 
@@ -169,7 +186,6 @@ void handle_http_request(int fd, struct cache *cache)
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
 
     // (Stretch) If POST, handle the post request
 }
