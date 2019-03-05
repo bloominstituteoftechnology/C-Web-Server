@@ -55,7 +55,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
+    time_t rawtime = time(NULL);
+    struct tm *info = localtime(&rawtime);
 
+    int response_length = sprintf(response, "%s\n"
+                                            "Date: %s\n"
+                                            "Connection: close\n"
+                                            "Content-Type: %s\n"
+                                            "Content-Length: %d\n"
+                                            "\n"
+                                            "%p\n",
+                                  header, asctime(info), content_type, content_length, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
