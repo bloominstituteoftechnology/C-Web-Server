@@ -149,11 +149,18 @@ char *find_start_of_body(char *header)
 
 /**
  * Handle HTTP request and send response
+
+GET / HTTP:...
  */
 void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    
+    char method[512];
+    char path[8192];
+    
+    (void)cache;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -163,19 +170,24 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
-
+    sscanf("%s %s", method, path);
+    
+//    printf("GOT REQUEST: \"%s\" \"%s\"\n", method, path);
+    
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
-
+    
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(path, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            resp_404(fd);
+        }
+    }
+    
     // (Stretch) If POST, handle the post request
 }
 
