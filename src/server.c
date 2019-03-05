@@ -187,7 +187,7 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(path, "/d20") == 0)
         {
             //send random number
-            get_d20(fd);
+            //get_d20(fd);
         }
         else
         {
