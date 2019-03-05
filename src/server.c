@@ -59,7 +59,24 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Send it all!
+    // Setting up the Time Stamp
+    // time_t = https://en.cppreference.com/w/c/chrono/time_t = (in short) = integer value = seconds
+    time_t seconds;
+    // struct for time information (tm)
+    struct tm *info;
+    char buffer[80];
+    time(&seconds);
+
+    info = localtime(&seconds);
+
+   // header, date, content_length, , connection
+    int response_length = sprintf(response, "%s\n Date: %s\n Content Length: %d\n Content Type: %s\n Connection: close\n", "\n", header, asctime(info), content_length, content_type);
+
+    // we need to advance where we are pointing in the response buffer, (to the end of the header)
+    // to pass the header and not over write all the header data = (res + res_leng),
+    memcpy(response + response_length, body, content_length);
+
+    // Send it all! / Read Request + content_length,
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -76,16 +93,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Use send_response() to send it back as text/plain data
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char body[30];
+    // getting a random number between 1 and 20
+    int random = rand() % 20 + 1;
+    // packaging up the body
+    int body_length = sprintf(body, "%d\n", random);
+    // use send_resp to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, body_length);
 }
 
 /**
@@ -98,6 +119,7 @@ void resp_404(int fd)
     char *mime_type;
 
     // Fetch the 404.html file
+     // snprintf() formats and stores a series of chars and values in the array buffer
     snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
     filedata = file_load(filepath);
 
@@ -122,6 +144,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // pointer to file_data struct
+    struct file_data *filedata = NULL;
+    // declare an array to store the file path in
+    char file_path[4096];
+    // pointer to mime/content_type
+    char *mime_type;
+    // get the entry from the cache
+    struct cache_entry *entry = cache_get(cache, request_path);
+
+    // if no entry found in cache
+    if (entry == NULL) {
+        // build file path to ./serverroot
+        sprintf(file_path, "./serverroot %s", request_path);
+        filedata = file_load(file_path);
+        if (filedata == NULL) {
+            // error handling
+            resp_404(fd);
+            return;
+        }
+    }
+    // checks the file / returns content string
+    mime_type = mime_type_get(file_path);
+    //
+    cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
+    return;
 }
 
 /**
@@ -152,21 +201,32 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
-
+    
+    // testing
+    // resp_404(fd);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Read the three components of the first request line
-
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
+    //   Check if it's /d20 and handle that special case
+    //   Otherwise serve the requested file by calling get_file()
     // (Stretch) If POST, handle the post request
+    char request_method[20], request_endpoint[20], request_protocol[20];
+    sscanf(request, "%s %s %s", request_method, request_endpoint, request_protocol);
+    // just checking the request here
+    printf("Request: method: %s , endpt: %s , protocol %s\n", request_method, request_endpoint, request_protocol);
+    // Handle GET endpts
+    if (strcmp(request_method, "GET")) {
+        // check if /d20
+        if (strcmp(request_endpoint, "/d20")) {
+            get_d20(fd);
+            return;
+        } else {
+            get_file(fd, cache, request_endpoint);
+            return;
+        }
+    }
 }
 
 /**
