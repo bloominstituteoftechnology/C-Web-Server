@@ -217,7 +217,7 @@ void handle_http_request(int fd, struct cache *cache)
     sscanf(request, "%s %s", method, path);
     // If GET, handle the get endpoints
 
-    if (strcmp(method, "GET"))
+    if (strcmp(method, "GET") == 0)
     {
         //    Check if it's /d20 and handle that special case
         if (strcmp(path, "/d20") == 0)
@@ -234,6 +234,10 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(path, "/hunter") == 0)
     {
         send_response(fd, "HTTP/1.1 200 OK", "text/plain", "Hunter", 6);
+    }
+     else if (strcmp(path, "/index") == 0)
+    {
+       get_file(fd,cache,path);
     }
     else
     {
