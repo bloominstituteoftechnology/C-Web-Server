@@ -60,7 +60,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "connection: close\n" //connection type
         "content_length: %d\n" //content length given
         "content_type: %s\n\n" //content type given
-        "%s\n"/*body*/, header, content_length, content_type, body);
+        "%p\n"/*body*/, header, content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -86,14 +86,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    int n = rand() % 20 + 1;
+    char response[16];
+    sprintf(response, "%d\n", rand() % 20 + 1);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char header[20] = "HTTP/1.1 200 OK"
-    char content_type[10] = "text/plain"
     // Use send_response() to send it back as text/plain data
-    send_response(fd, header, content_type, n, sizeof n);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -134,6 +133,18 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // FILE *fp;
+    // fp = fopen(request_path, "r");
+    // if(fp == NULL){
+    //     fp = fopen("./serverroot/index.html","r");
+    // }else{
+
+    // }    Realized the file.c already did this
+    printf("Request Path: %s\n", request_path);
+    struct file_data *filedata;
+    filedata = file_load(request_path);
+    printf("filedata -> %p\n", filedata->data);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type_get(request_path), filedata->data, filedata->size);
 }
 
 /**
@@ -142,12 +153,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
+// char *find_start_of_body(char *header)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! // (Stretch)
+//     ///////////////////
+// }    commented out because warning was annoying
 
 /**
  * Handle HTTP request and send response
@@ -174,8 +185,8 @@ void handle_http_request(int fd, struct cache *cache)
     sscanf(request, "%s %s %s", method, path, protocol);
 
     // If GET, handle the get endpoints
-    if(strcmp('GET', method) == 0){
-        if(strcmp('/d20', path) == 0){
+    if(strcmp("GET", method) == 0){
+        if(strcmp("/d20", path) == 0){
             // how do I handle it?
             get_d20(fd);
         }else{
