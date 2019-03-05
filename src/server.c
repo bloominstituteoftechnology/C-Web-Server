@@ -52,7 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-    // int header_length = strlen(header);
+    int response_length;
 
     // TIME
     time_t rawtime;
@@ -62,10 +62,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     info = localtime(&rawtime);
 
     // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     sprintf(response, "%s\n"
                       "Date: %s\n"
                       "Content-Type: %s\n"
@@ -75,7 +71,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                       "%s\n",
             header, asctime(info), content_type, content_length, body);
 
-    int response_length = strlen(response);
+    response_length = strlen(response);
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -94,24 +91,21 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // init a string
     char str[5];
+    // get random num
     int random_num = rand() % 20 + 1;
+    // convert to a string
     sprintf(str, "%d", random_num);
+
     if (random_num == NULL)
     {
 
         fprintf(stderr, "cannot print random number Null\n");
         exit(4);
     }
+
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", str, strlen(str));
 }
 
@@ -147,9 +141,31 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[262144];
+    struct file_data *filedata;
+    char *mime_type;
+
+    // Fetch file
+    sprintf(filepath, "%s"
+                      "%s",
+            SERVER_ROOT, request_path);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        // respond with a 404
+        resp_404(fd);
+    }
+    else
+    {
+
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
 }
 
 /**
@@ -182,19 +198,11 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
     char method[200];
     char path[8192];
-    char req_body[8192];
 
-    sscanf(request, "%s %s %s", method, path, req_body);
-    printf("method: \"%s\"\n", method);
-    printf("path: \"%s\"\n", path);
-    printf("req \"%s\"\n", request);
+    sscanf(request, "%s %s", method, path);
     // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0)
     {
@@ -205,7 +213,7 @@ void handle_http_request(int fd, struct cache *cache)
         }
         else
         {
-            resp_404(fd);
+            get_file(fd, cache, path);
         }
     }
 
@@ -261,7 +269,6 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-        // resp_404(newfd);
         handle_http_request(newfd, cache);
 
         close(newfd);
