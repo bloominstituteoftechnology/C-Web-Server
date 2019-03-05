@@ -139,6 +139,27 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    // Fetch the 404.html file
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    printf("%s\n", filepath);
+    if (filedata == NULL)
+    {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find file :(\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -198,7 +219,7 @@ void handle_http_request(int fd, struct cache *cache)
         {
 
             printf("ok we need to get a file in path %s\n", path);
-            //get_file(fd, cache, path);
+            get_file(fd, cache, path);
         }
         //Check if it's /d20 and handle that special case Otherwise serve the requested file by calling get_file()
     }
