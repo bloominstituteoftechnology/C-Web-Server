@@ -52,14 +52,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
     sprintf(response, 
             "%s\n"
+            "Date: %s"
             "Content-Type: %s\n"
             "Content-Length: %d\n"
             "Connection: close\n"
             "\n"
             "%s",
-            header, content_type, content_length, body
+            header, asctime(tm), content_type, content_length, body
             );
     // Build HTTP response and store it in response
 
@@ -113,7 +116,7 @@ void resp_404(int fd)
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
+        resp_404(fd);
         exit(3);
     }
 
@@ -132,6 +135,22 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char * mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    fprintf(stderr, "%s IN GETFILE\n", filepath);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP 200 OK", mime_type, filedata->data, filedata->size);
 }
 
 /**
@@ -182,12 +201,15 @@ void handle_http_request(int fd, struct cache *cache)
 
     // If GET, handle the get endpoints
     if(strcmp(request_type, "GET") == 0) {
+       
         if(strcmp(path, "/d20") == 0) {
             get_d20(fd);
         } else {
+            fprintf(stderr, "IN ELSE\n");
             get_file(fd, cache, path);
         }
     } else {
+         
         resp_404(fd);
     }
     //    Check if it's /d20 and handle that special case
