@@ -91,15 +91,10 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char response[10];
+    int rand_num = rand() % 20 + 1;
+    sprintf(response, "%d\n", rand_num);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
 }
 
 /**
@@ -107,6 +102,8 @@ void get_d20(int fd)
  */
 void resp_404(int fd)
 {
+
+    printf("Lets send a 404 error");
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
@@ -141,7 +138,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
 /**
  * Search for the end of the HTTP header
- * 
+ * s
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
@@ -187,18 +184,18 @@ void handle_http_request(int fd, struct cache *cache)
         printf("method: %s\n", method);
         printf("path: %s\n", path);
 
-        resp_404(fd);
-
         if (strcmp(path, "/d20") == 0)
         {
             //send random number
+            get_d20(fd);
         }
         else
         {
-            get_file(fd, cache, path);
+
+            printf("ok we need to get a file in path %s\n", path);
+            //get_file(fd, cache, path);
         }
-        //    Check if it's /d20 and handle that special case
-        //    Otherwise serve the requested file by calling get_file()
+        //Check if it's /d20 and handle that special case Otherwise serve the requested file by calling get_file()
     }
 
     // (Stretch) If POST, handle the post request
