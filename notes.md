@@ -8,3 +8,12 @@
 -   strlen for content length
 -   look at time() & localtime() for the date (already included in time.h)
 -   to make sure working, call resp_404 in the main
+
+## handle_http_request
+
+-   Parse first line to check for get or post request
+-   request holds the entire HTTP request
+-   sscanf help with the three components
+-   strcmp() for matching the method and path (Return 0 if the same)
+-   Have to do if-else statements
+-   If not handler call resp_404()
