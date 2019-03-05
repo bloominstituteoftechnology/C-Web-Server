@@ -109,19 +109,7 @@ _Read through all the main and stretch goals before writing any code to get an o
    If you can't find an appropriate handler, call `resp_404()` instead to give
    them a "404 Not Found" response.
 
-3. Implement the `get_d20()` handler. This will call `send_response()`.
-
-   See above at the beginning of the assignment for what `get_d20()` should pass to `send_response()`.
-
-   If you need a hint as to what the `send_response()` call should look like, check out the usage of it in `resp_404()`, just above there.
-
-   Note that unlike the other responses that send back file contents, the `d20` endpoint will simply compute a random number and send it back. It does not read the number from a file.
-
-   > The `fd` variable that is passed widely around to all the functions holds a _file descriptor_. It's just a number use to represent an open
-   > communications path. Usually they point to regular files on disk, but in
-   > this case it points to an open _socket_ network connection. All of the code to create and use `fd` has been written already, but we still need to pass it around to the points it is used.
-
-4. Implement arbitrary file serving.
+3. Implement arbitrary file serving.
 
    Any other URL should map to the `serverroot` directory and files that lie within. For example:
 
@@ -134,6 +122,18 @@ _Read through all the main and stretch goals before writing any code to get an o
 
    You also need to set the `Content-Type` header depending on what data is in
    the file. `mime.c` has useful functionality for this.
+
+4. Implement the `get_d20()` handler. This will call `send_response()`. (optional)
+
+   See above at the beginning of the assignment for what `get_d20()` should pass to `send_response()`.
+
+   If you need a hint as to what the `send_response()` call should look like, check out the usage of it in `resp_404()`, just above there.
+
+   Note that unlike the other responses that send back file contents, the `d20` endpoint will simply compute a random number and send it back. It does not read the number from a file.
+
+   > The `fd` variable that is passed widely around to all the functions holds a _file descriptor_. It's just a number use to represent an open
+   > communications path. Usually they point to regular files on disk, but in
+   > this case it points to an open _socket_ network connection. All of the code to create and use `fd` has been written already, but we still need to pass it around to the points it is used.
 
 #### Days 3 and 4
 

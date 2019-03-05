@@ -52,7 +52,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-    int header_length = strlen(header);
 
     time_t rawtime;
     struct tm *info;
@@ -61,14 +60,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     info = localtime(&rawtime);
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "\n%s\n"
-            "%s\n"
+    //snprintf() is safer than sprintf() because it protects from buffer overflow
+    //since snprintf() takes a second argument specifying max number of bytes to write
+    int response_length = snprintf(response, max_response_size,
+            "\n%s\n"
+            "Date: %s"
             "Content-Type: %s\n"
             "Content-Length: %d\n"
             "Connection: close\n"
             "\n"
-            "%s",
-            asctime(info), header, content_type, strlen(body), body) + header_length;
+            "%s\n"
+            "\n",
+            header, asctime(info), content_type, content_length, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -155,6 +158,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[512]; // GET or POST
+    char path[8192];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -164,18 +169,32 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
+    sscanf(request, "%s %s", method, path);
+    printf("REQUEST: \"%s\" \"%s\"\n", method, path);
 
     // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
+    if (strcmp(method, "GET") == 0)
+    {
+        // Check if it's /d20 and handle that special case
+        // if (strcmp(path, "/d20") == 0)
+        // {
+        //    get_d20(fd); 
+        // }
+        if (strcmp(path, "/test") == 0)
+        {
+            send_response(fd, "HTTP/1.1 200 OK", "text/plain", "TESTING!!!", 10);
+        }
+        else
+        {
+            resp_404(fd); 
+        }
+    }
+    else
+    {           
+        // Otherwise serve the requested file by calling get_file()
+        get_file(fd, cache, path);
+    }
 
     // (Stretch) If POST, handle the post request
 }
@@ -227,8 +246,8 @@ int main(void)
 
         handle_http_request(newfd, cache);
 
-        //Testing to see if send_response() works
-        resp_404(newfd);
+        // //Testing to see if send_response() works
+        // resp_404(newfd);
 
         close(newfd);
     }
