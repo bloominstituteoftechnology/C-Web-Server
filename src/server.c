@@ -55,7 +55,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     time_t rawtime;
     struct tm *info;
-    char buffer[80];
     time(&rawtime);
     info = localtime(&rawtime);
 
@@ -133,9 +132,24 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  char filepath[4096];
+  struct file_data *filedata; 
+  char *mime_type;
+
+  snprintf(filepath, sizeof(filepath), "%s/%s", SERVER_ROOT, request_path);
+  filedata = file_load(filepath);
+
+  if (filedata == NULL)
+  {
+      resp_404(fd);
+      return;
+  }
+
+  mime_type = mime_type_get(filepath);
+
+  send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+  file_free(filedata);
 }
 
 /**
@@ -158,7 +172,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char method[512]; // GET or POST
+    char method[5]; // GET or POST
     char path[8192];
 
     // Read request
@@ -171,7 +185,7 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the three components of the first request line
     sscanf(request, "%s %s", method, path);
-    printf("REQUEST: \"%s\" \"%s\"\n", method, path);
+    printf("--> REQUEST: %s %s\n", method, path);
 
     // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0)
@@ -186,16 +200,12 @@ void handle_http_request(int fd, struct cache *cache)
             send_response(fd, "HTTP/1.1 200 OK", "text/plain", "TESTING!!!", 10);
         }
         else
-        {
-            resp_404(fd); 
-        }
-    }
-    else
-    {           
+        {           
         // Otherwise serve the requested file by calling get_file()
         get_file(fd, cache, path);
+        }
     }
-
+    
     // (Stretch) If POST, handle the post request
 }
 
@@ -245,9 +255,6 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-
-        // //Testing to see if send_response() works
-        // resp_404(newfd);
 
         close(newfd);
     }

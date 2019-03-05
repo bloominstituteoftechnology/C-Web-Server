@@ -111,7 +111,6 @@ _Read through all the main and stretch goals before writing any code to get an o
 
 3. Implement arbitrary file serving.
 
-
    Any other URL should map to the `serverroot` directory and files that lie within. For example:
 
    `http://localhost:3490/index.html` serves file `./serverroot/index.html`.
