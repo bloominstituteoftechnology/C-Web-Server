@@ -59,12 +59,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     struct tm *info = localtime(&rawtime);
 
     int response_length = sprintf(response, "%s\n"
-                                            "Date: %s\n"
+                                            "Date: %s"
                                             "Connection: close\n"
                                             "Content-Type: %s\n"
                                             "Content-Length: %d\n"
                                             "\n"
-                                            "%s\n",
+                                            "%s",
                                   header, asctime(info), content_type, content_length, body);
 
     // Send it all!
@@ -155,6 +155,8 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
     // Read the three components of the first request line
+
+    resp_404(fd);
 
     char method[200];
     char path[8192];
