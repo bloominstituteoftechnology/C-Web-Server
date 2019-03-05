@@ -178,10 +178,8 @@ void handle_http_request(int fd, struct cache *cache)
             get_file(fd, cache, path);
         }
     }
-    else
-    {
-        resp_404(fd);
-    }
+
+    resp_404(fd);
 
     // (Stretch) If POST, handle the post request
 }
