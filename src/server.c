@@ -53,6 +53,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    char *body_cpy = body;
 
     // Build HTTP response and store it in response
     int response_length = sprintf(response,
@@ -62,7 +63,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                       "Content-Length: %d\n"
                       "Connection: close\n"
                       "%s\n",
-                      header, content_type, content_length, body);
+                      header, content_type, content_length, body_cpy);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -121,6 +122,7 @@ void get_file(int fd, struct cache *cache, char *request_path, char *loc)
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
+    UNUSED(cache);
 
     snprintf(filepath, sizeof filepath, "%s/%s", loc, request_path);
     filedata = file_load(filepath);
