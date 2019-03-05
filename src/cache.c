@@ -144,11 +144,11 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     dllist_insert_head(cache, entry);
     hashtable_put(cache->index, entry->path, &entry->path);
     cache->cur_size += 1;
-    if(cache->cur_size > cache->max_size) {
+    
+    if((int)cache->cur_size > (int)cache->max_size) {
         hashtable_delete(cache->index, cache->tail->path);
         struct cache_entry *temp = dllist_remove_tail(cache);
         free_entry(temp);
-        cache->cur_size -=1;
     }
     
     ///////////////////
