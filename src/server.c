@@ -38,6 +38,7 @@
 
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
+#define UNUSED(x) (void)(x)
 
 /**
  * Send an HTTP response
@@ -54,6 +55,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    int response_length = sprintf(response, "%s\n"
+                      "Content-Type: %s\n"
+                      "Content-Length: %d\n"
+                      "Connection: close\n"
+                      "%s\n",
+                      header, content_type, content_length, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -72,16 +79,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    char str[5];
+    sprintf(str, "%d", rand()%10+10);
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", str, strlen(str));
 }
 
 /**
@@ -106,6 +107,29 @@ void resp_404(int fd)
     mime_type = mime_type_get(filepath);
 
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+    
+    file_free(filedata);
+}
+
+void resp_index(int fd)
+{
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch the index.html file
+    snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find system index file\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
 }
@@ -113,12 +137,9 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-void get_file(int fd, struct cache *cache, char *request_path)
-{
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-}
+// void get_file(int fd, struct cache *cache, char *request_path)
+// {
+// }
 
 /**
  * Search for the end of the HTTP header
@@ -126,12 +147,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
+/*char *find_start_of_body(char *header)
 {
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
-}
+}*/
 
 /**
  * Handle HTTP request and send response
@@ -140,6 +161,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[200];
+    char path[8192];
+    UNUSED(cache); // silence warning, TODO: Remove later
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -149,21 +173,27 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    printf("REQUEST:::: %d\n", request);
-
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the three components of the first request line
+    sscanf(request, "%s %s", method, path);
 
     // If GET, handle the get endpoints
+    if (strcmp(method, "GET") == 0)
+    {
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
+        if (strcmp(path, "/") == 0)
+        {
+            resp_index(fd);
+        }
+        else if (strcmp(path, "/d20") == 0)
+        {   
+            get_d20(fd);
+        }
+        else
+        {
+            resp_404(fd);
+        }
+    }
+    
+    // Otherwise serve the requested file by calling get_file()
     // (Stretch) If POST, handle the post request
 }
 
@@ -211,14 +241,12 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
         handle_http_request(newfd, cache);
 
         close(newfd);
     }
 
     // Unreachable code
-
     return 0;
 }
 
