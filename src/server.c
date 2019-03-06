@@ -138,7 +138,16 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    snprintf(filepath, sizeof filepath, "./serverroot%s", request_path);
+    struct cache_entry *entry = cache_get(cache, request_path);
+
+    if (entry != NULL)
+    {
+        send_response(
+            fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+        return;
+    }
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
     if (filedata == NULL)
