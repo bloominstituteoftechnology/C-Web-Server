@@ -17,6 +17,8 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     entry->content_length = content_length;
     entry->content_type = content_type;
     entry->path = path;
+
+    return entry;
 }
 
 /**
@@ -109,6 +111,13 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache *cache = malloc(sizeof(struct cache));
+    cache->cur_size = 0;
+    cache->max_size = max_size;
+    // hashtable_create(int size, int (*hashf)(void *, int, int));
+    cache->index = hashtable_create(max_size, NULL);
+
+    return cache;
 }
 
 void cache_free(struct cache *cache)
@@ -143,19 +152,26 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     //     Allocate a new cache entry with the passed parameters.
     // alloc_entry(char *path, char *content_type, void *content, int content_length)
-    struct cache_entry *ce = alloc_entry(path, content_type, content, content_length);
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
     // Insert the entry at the head of the doubly-linked list.
     // void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
-    dllist_insert_head(cache, ce);
+    dllist_insert_head(cache, entry);
     // Store the entry in the hashtable as well, indexed by the entry's path.
     // hashtable_put(struct hashtable *ht, char *key, void *data);
-
+    hashtable_put(cache->index, entry->path, entry->content);
     // Increment the current size of the cache.
+    cache->cur_size++;
     // If the cache size is greater than the max size:
-    // Remove the cache entry at the tail of the linked list.
-    // Remove that same entry from the hashtable, using the entry's path and the hashtable_delete function.
-    // Free the cache entry.
-    // Ensure the size counter for the number of entries in the cache is correct.
+    if (cache->cur_size > cache->max_size)
+    {
+        char *tail_path = cache->tail->path;
+        // Remove the cache entry at the tail of the linked list.
+        free_entry(cache->tail);
+        // /Remove that same entry from the hashtable, using the entry's path and the hashtable_delete function.
+        hashtable_delete(cache->index, tail_path);
+        // Free the cache entry.
+        // Ensure the size counter for the number of entries in the cache is correct.
+    }
 }
 
 /**
