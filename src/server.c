@@ -59,16 +59,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
-    int response_length = sprintf(response, "%s\n"
-                                            "Content-Type: %s\n"
-                                            "Content-Length: %d\n"
-                                            "Connection: close\n"
-                                            "\n"
-                                            "%s",
-                                  header, content_type, content_length, body);
-
-    // The total length of the header and body should be stored in the response_length
-    response_length += content_length;
+    int response_length = snprintf(response, max_response_size,
+                                   "%s\n"
+                                   "Content-Type: %s\n"
+                                   "Content-Length: %d\n"
+                                   "Connection: close\n"
+                                   "\n",
+                                   header, content_type, content_length);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -77,6 +74,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     {
         perror("send");
     }
+
+    rv = send(fd, body, content_length, 0);
+
+    // if (rv < 0)
+    // {
+    //     perror("send");
+    // }
 
     return rv;
 }
@@ -142,14 +146,14 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
 
-    // Fetch index.html
+    // Fetch file
     if (strcmp(request_path, "/") == 0 || strcmp(request_path, "/index.html") == 0)
     {
         snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
     }
     else
     {
-        snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     }
 
     filedata = file_load(filepath);
