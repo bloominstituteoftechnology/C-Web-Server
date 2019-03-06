@@ -75,6 +75,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
             "\n",
             header, asctime(info), content_type, content_length, body);
 
+    memcpy((response + response_length), body, content_length); //use to read binary/images
+    response_length += content_length;
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -178,7 +181,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char method[5]; // GET or POST
+    char method[10]; // GET or POST
     char path[8192];
 
     // Read request
