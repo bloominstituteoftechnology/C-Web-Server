@@ -62,7 +62,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int response_length = snprintf(response, max_response_size,
                                    "%s\n"
                                    "Connection: close\n"
-                                   "Date: %s\n"
+                                   "Date: %s"
                                    "Content-Length: %d\n"
                                    "Content-Type: %s\n"
                                    "\n"
@@ -76,7 +76,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
-    // Uncomment after debugging
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0)
@@ -115,7 +114,7 @@ void resp_404(int fd)
     char *mime_type;
 
     // Fetch the 404.html file
-    snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
+    snprintf(filepath, sizeof(filepath), "%s/404.html", SERVER_FILES);
     filedata = file_load(filepath);
 
     if (filedata == NULL)
@@ -140,6 +139,21 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    // fetch file from disk
+    snprintf(filepath, sizeof(filepath), "%s/%s", SERVER_ROOT, filepath);
+    printf("LOOKING UP: %s\n", filepath); // <--debugging
+    filedata = file_load(request_path);
+    if (filedata == NULL)
+    {
+        resp_404(fd);
+    }
+    else
+    {
+        printf("%s\n", filedata->data);
+    }
 }
 
 /**
@@ -187,7 +201,7 @@ void handle_http_request(int fd, struct cache *cache)
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
-    resp_404(fd);
+    get_file(fd, NULL, path);
 
     // (Stretch) If POST, handle the post request
 }
