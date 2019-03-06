@@ -54,7 +54,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
     time_t rawtime;
     struct tm *info;
-    char buffer[80];
     time(&rawtime);
     info = localtime(&rawtime);
 
@@ -91,6 +90,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    (void)fd;
     // Generate a random number between 1 and 20 inclusive
 
     ///////////////////
@@ -142,17 +142,22 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
+    (void)cache;
     // fetch file from disk
-    snprintf(filepath, sizeof(filepath), "%s/%s", SERVER_ROOT, filepath);
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     printf("LOOKING UP: %s\n", filepath); // <--debugging
-    filedata = file_load(request_path);
+    filedata = file_load(filepath);
     if (filedata == NULL)
     {
         resp_404(fd);
     }
     else
     {
-        printf("%s\n", filedata->data);
+        mime_type = mime_type_get(filepath);
+        // printf("FILEDATA DATA%s\n", filedata->data);
+        // printf("FILEDATA SIZE: %d\n", filedata->size);
+        // int send_response(int fd, char *header, char *content_type, void *body, int content_length)
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
     }
 }
 
@@ -167,6 +172,8 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    (void)header;
+    return;
 }
 
 /**
@@ -174,6 +181,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+    (void)cache;
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
     char method[512]; // get or post
