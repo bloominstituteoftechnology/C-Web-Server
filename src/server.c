@@ -59,9 +59,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     int response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n", header, content_length, content_type, asctime(timeinfo));
     printf("Response length: %d\n", response_length + content_length);
 
@@ -84,6 +81,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    srand(time(NULL) + getpid());
     char response[10];
     int rand_num = rand() % 20 + 1;
     sprintf(response, "%d\n", rand_num);
