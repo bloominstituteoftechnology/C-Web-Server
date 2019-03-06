@@ -167,5 +167,7 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
         return NULL;
     }
     // Move the cache entry to the head of the doubly-linked list.
+    dllist_move_to_head(cache, entry);
     // Return the cache entry pointer.
+    return entry;
 }
