@@ -141,7 +141,11 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         //   Remove that same entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
         hashtable_delete(cache -> index, end_tail -> path);
         //   Free the cache entry.
+        free_entry(end_tail);
         //   Ensure the size counter for the number of entries in the cache is correct.
+        if(cache -> cur_size > cache -> max_size) {
+            cache -> cur_size--;
+        }
     }
     
 }
@@ -154,4 +158,14 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // Attempt to find the cache entry pointer by `path` in the hash table.
+    struct cache_entry *entry = hashtable_get(cache -> index, path);
+    // If not found, return `NULL`.
+    if(entry == NULL) {
+        printf("not found in cache");
+        return NULL;
+    }
+    // Move the cache entry to the head of the doubly-linked list.
+    // Return the cache entry pointer.
 }
