@@ -84,6 +84,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     {
         perror("send");
     }
+    rv = send(fd, body, content_length, 0);
+
+    if (rv < 0)
+    {
+        perror("send");
+    }
 
     return rv;
 }
@@ -160,6 +166,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     {
         // respond with a 404
         resp_404(fd);
+        return;
     }
     else
     {
@@ -235,7 +242,7 @@ void handle_http_request(int fd, struct cache *cache)
     {
         send_response(fd, "HTTP/1.1 200 OK", "text/plain", "Hunter", 6);
     }
-     else if (strcmp(path, "/index") == 0)
+     else if (strcmp(path, "/index.html") == 0)
     {
        get_file(fd,cache,path);
     }
