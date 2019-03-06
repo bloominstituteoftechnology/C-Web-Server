@@ -48,19 +48,27 @@
  * 
  * Return the value from the send() function.
  */
+
+/*the reason the send functions need a time stamp is cause when going from
+server to client the code goes in chunks and the flaw in this is that there is no 
+order so by giving it a time stamp we are able to orginize the packets*/
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 262144;
+    const int max_response_size = 265536;
     char response[max_response_size];
-
+    time_t date_time = time(NULL);
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    // time_t rawtime;  /*for storing system time values*/
+    // struct tm *info;
+    // char buffer[80];
+    // time(&rawtime);
+    // info=localtime(&rawtime);
+    int response_length = sprintf(response,"%s\n" "Date: %s" "Connection: close\n" "Content-Length: %d\n" "Content-Type: %s\n" "\n",
+        header, asctime(gmtime(&date_time)), content_length, content_type);
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    memcpy(response + response_length, body, content_length);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -76,16 +84,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char data[20];
+    srand(time(NULL)); /*to intialise the PRNG(Pseudo-random number generator) */
+    unsigned int randomNumber = (rand() % 20) +1;
+    // char send = sprintf(data, "%d", randomNumber);
+    snprintf(data, sizeof(data), "%d", randomNumber);
 
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", data, strlen(data));
 }
 
 /**
@@ -122,7 +128,30 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char file_path[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    snprintf(file_path, sizeof (file_path), "./serverroot%s", request_path); /*TO FETCH THE FILE*/
+    printf("file path: %s\n", file_path);
+    // mime_type = mime_type_get(filepath);
+    // send_response(fd, "HTTP/1.1 200 OK", mime_type, );
+        struct cache_entry *cache_request = cache_get(cache, request_path);
+
+    if (cache_request != NULL)
+    {
+        send_response(fd, "HTTP/1.1 200 OK", cache_request->content_type, cache_request->content, cache_request->content_length);
+    }
+    else
+    {
+        filedata = file_load(file_path);
+      
+        mime_type = mime_type_get(file_path);
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    }
 }
+
 
 /**
  * Search for the end of the HTTP header
@@ -157,14 +186,31 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char req_type[8];
+    char req_path[1024];
+    char req_protocol[128];
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", req_type, req_path, req_protocol);
+    printf("request: %s request path: %s request protocol: %s\n", req_type, req_path, req_protocol);
 
     // If GET, handle the get endpoints
-
+    if (strcmp(req_type, "GET") == 0)
+    {
     //    Check if it's /d20 and handle that special case
+        if (strcmp(req_path, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else
+        {
     //    Otherwise serve the requested file by calling get_file()
-
+            get_file(fd, cache, req_path);
+        }
+    }
+    else
+    {
+        resp_404(fd);
+    }
 
     // (Stretch) If POST, handle the post request
 }
