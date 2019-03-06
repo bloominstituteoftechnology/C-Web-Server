@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include "file.h"
 
+
 /**
  * Loads a file into memory and returns a pointer to the data.
  * 
