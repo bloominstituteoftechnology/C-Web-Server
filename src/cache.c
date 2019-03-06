@@ -29,6 +29,11 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry->path); // built-in C function free() deallocates the memory previously allocated 
+    free(entry->content_type);
+    free(entry->content);
+    free(entry);
+
 }
 
 /**
