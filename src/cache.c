@@ -115,7 +115,7 @@ struct cache *cache_create(int max_size, int hashsize)
     cache->cur_size = 0;
     cache->max_size = max_size;
     // hashtable_create(int size, int (*hashf)(void *, int, int));
-    cache->index = hashtable_create(max_size, NULL);
+    cache->index = hashtable_create(hashsize, NULL);
 
     return cache;
 }
