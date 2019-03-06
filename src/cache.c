@@ -158,7 +158,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    void *pointer = hashtable_get(cache->index, path);
+    struct cache_entry *pointer = hashtable_get(cache->index, path);
     if(pointer == NULL) {
         return NULL;
     }

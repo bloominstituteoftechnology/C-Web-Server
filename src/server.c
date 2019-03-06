@@ -146,10 +146,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     }
     mime_type = mime_type_get(filepath);
 
-    void *pointerC = cache_get(cache, request_path);
-    if(pointerC != NULL) {
-        fprintf(stderr, "%p/n", cache->pointerC);
-        
+    struct cache_entry *pointer = cache_get(cache, request_path);
+    if(pointer != NULL) {
+        fprintf(stderr, "CHECKED");
+        send_response(fd, "HTTP 200 OK", pointer->content_type, pointer->content, pointer->content_length);
     } else {
         cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
         send_response(fd, "HTTP 200 OK", mime_type, filedata->data, filedata->size);
