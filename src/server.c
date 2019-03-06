@@ -152,7 +152,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     {
         // TODO: make this non-fatal
         fprintf(stderr, "cannot find file :(\n");
-        exit(3);
+        resp_404(fd);
     }
 
     mime_type = mime_type_get(filepath);
