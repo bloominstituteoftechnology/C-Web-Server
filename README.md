@@ -137,6 +137,7 @@ _Read through all the main and stretch goals before writing any code to get an o
 
 #### Days 3 and 4
 
+
 Implement an LRU cache. This will be used to cache files in RAM so you don't have to load them through the OS.
 
 When a file is requested, the cache should be checked to see if it is there. If so, the file is served from the cache. If not, the file is loaded from disk, served, and saved to the cache.
