@@ -164,13 +164,15 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     // If the cache size is greater than the max size:
     if (cache->cur_size > cache->max_size)
     {
-        char *tail_path = cache->tail->path;
         // Remove the cache entry at the tail of the linked list.
-        free_entry(cache->tail);
+        cache->tail->prev->next = NULL;
         // /Remove that same entry from the hashtable, using the entry's path and the hashtable_delete function.
-        hashtable_delete(cache->index, tail_path);
+        // void *hashtable_delete(struct hashtable *ht, char *key);
+        hashtable_delete(cache->index, cache->tail->path);
         // Free the cache entry.
+        free_entry(cache->tail);
         // Ensure the size counter for the number of entries in the cache is correct.
+        cache->cur_size--;
     }
 }
 
