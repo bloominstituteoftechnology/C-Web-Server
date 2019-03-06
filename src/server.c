@@ -52,7 +52,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-    int response_length;
 
     time_t rawtime;
     struct tm *timestamp;
@@ -64,16 +63,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     strftime(buffer, 100, "%a %b %d %T %Z %Y", timestamp);
     // Build HTTP response and store it in response
 
-    sprintf(response,
-            "%s\n"
-            "Date: %s\n"
-            "Connection: close\n"
-            "Content-Length: %d\n"
-            "Content-Type: %s\n"
-            "\n",
-            header, buffer, content_length, content_type);
-
-    response_length = strlen(response);
+    int response_length = snprintf(
+        response, max_response_size,
+        "%s\n"
+        "Date: %s\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n",
+        header, buffer, content_length, content_type);
 
     // Send it all!
     // To get binary working memcopy or two sends (one response, two body)
