@@ -4,7 +4,6 @@
 #include "hashtable.h"
 #include "cache.h"
 
-
 /**
  * Allocate a cache entry
  */
@@ -122,12 +121,27 @@ void cache_free(struct cache *cache)
  * NOTE: doesn't check for duplicate cache entries
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
-{
+{  
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-}
 
+    struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length);// Allocate a new cache entry with the passed parameters.
+   
+    dllist_insert_head(cache, new_entry);// Insert the entry at the head of the doubly-linked list.
+    hashtable_put(cache->index, path, new_entry);// Store the entry in the hashtable as well, indexed by the entry's `path`.
+    cache->cur_size++; //Increment the current size of the cache.
+  
+    if (cache->cur_size > cache->max_size) { //If the cache size is greater than the max size:
+        struct cache_entry *last_tail = dllist_remove_tail(cache); //Remove the cache entry at the tail of the linked list.
+        hashtable_delete(cache->index, last_tail->path);//Remove that same entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
+        free_entry(last_tail); //Free the cache entry.
+       if (cache->cur_size > cache->max_size) {//Ensure the size counter for the number of entries in the cache is correct.
+            cache->cur_size--;
+        }
+    }
+
+}
 /**
  * Retrieve an entry from the cache
  */
