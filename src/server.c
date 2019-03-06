@@ -106,13 +106,6 @@ void get_d20(int fd)
     // convert to a string
     sprintf(str, "%d", random_num);
 
-    if (random_num == NULL)
-    {
-
-        fprintf(stderr, "cannot print random number Null\n");
-        exit(4);
-    }
-
     // Use send_response() to send it back as text/plain data
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", str, strlen(str));
 }
@@ -152,32 +145,46 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[262144];
     struct file_data *filedata;
     char *mime_type;
+    struct cache_entry *ce;
 
-    // Fetch file
-    sprintf(filepath, "%s"
-                      "%s",
-            SERVER_ROOT, request_path);
-
-    filedata = file_load(filepath);
-
-    if (filedata == NULL)
+    if (cache_get(cache, request_path) != NULL)
     {
-        // if (strcmp(request_path, "/") == 0)
-        // {
-        //     sprintf(filepath, "%s", "index.html");
-
-        // }
-        // respond with a 404
-        resp_404(fd);
+        ce = cache_get(cache, request_path);
+        send_response(fd, "HTTP/1.1 200 OK", ce->content_type, ce->content, ce->content_length);
     }
     else
     {
 
-        mime_type = mime_type_get(filepath);
+        // Fetch file
+        sprintf(filepath, "%s"
+                          "%s",
+                SERVER_ROOT, request_path);
 
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        filedata = file_load(filepath);
 
-        file_free(filedata);
+        if (filedata == NULL)
+        {
+            // if (strcmp(request_path, "/") == 0)
+            // {
+            //     sprintf(filepath, "%s", "index.html");
+
+            // }
+            // respond with a 404
+            printf("Will you print that I'm here?");
+            resp_404(fd);
+        }
+        else
+        {
+
+            mime_type = mime_type_get(filepath);
+            printf("Will you print that I'm here?");
+            // put in cache
+            cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+            file_free(filedata);
+        }
     }
 }
 
@@ -187,13 +194,14 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
+/*
 char *find_start_of_body(char *header)
 {
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
 }
-
+*/
 /**
  * Handle HTTP request and send response
  */
