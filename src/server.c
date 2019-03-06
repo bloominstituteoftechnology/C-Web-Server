@@ -86,7 +86,7 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
     char response[10];
     int rand_num = rand() % 20 + 1;
-    sprintf(response, "%d", rand_num);
+    sprintf(response, "%d\n", rand_num);
 
     // Use send_response() to send it back as text/plain data
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
@@ -124,9 +124,25 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        // fetch the 404.html file
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -168,6 +184,9 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s\n", method, path, protocol);
+
+    printf("Request: %s %s %s\n", method, path, protocol);
 
     // If GET, handle the get endpoints
 
