@@ -12,6 +12,14 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *addfile = malloc(sizeof(struct cache_entry));
+
+    addfile->path = path;
+    addfile->content_type = content_type;
+    addfile->content_length = content_length;
+    addfile->content = content;
+
+    return addfile;
 }
 
 /**
@@ -22,6 +30,7 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry);
 }
 
 /**
@@ -94,6 +103,7 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
 }
 
 void cache_free(struct cache *cache)
@@ -125,6 +135,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
 }
 
 /**
