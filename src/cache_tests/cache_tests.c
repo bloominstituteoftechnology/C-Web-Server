@@ -151,7 +151,7 @@ char *all_tests()
   mu_suite_start();
 
   mu_run_test(test_cache_create);
-  // mu_run_test(test_cache_alloc_entry);
+  mu_run_test(test_cache_alloc_entry);
   // mu_run_test(test_cache_put);
   // mu_run_test(test_cache_get);
 
