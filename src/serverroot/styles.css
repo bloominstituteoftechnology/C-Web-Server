@@ -1,0 +1,45 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  font-size: 1.6rem;
+  font-family: 'Courier New', Courier, monospace;
+  color: #16001e;
+  background-color: #f7b2b7;
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 960px;
+}
+
+.nav {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav .logo {
+  display: flex;
+  align-items: center;
+}
+
+.nav .logo img {
+  margin-right: 1rem;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-gap: 50px;
+}
+
+.card .stats .stat .key {
+  font-weight: bold;
+}

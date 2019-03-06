@@ -63,18 +63,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
     sprintf(response, "%s\n"
-                      "Date: %s\n"
+                      "Date: %s"
                       "Content-Type: %s\n"
                       "Content-Length: %d\n"
                       "Connection: close\n"
-                      "\n"
-                      "%s\n",
-            header, asctime(info), content_type, content_length, body);
+                      "\n",
+
+            header,
+            asctime(info), content_type, content_length);
 
     response_length = strlen(response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
+
+    if (rv < 0)
+    {
+        perror("send");
+    }
+
+    rv = send(fd, body, content_length, 0);
 
     if (rv < 0)
     {
@@ -218,11 +226,10 @@ void handle_http_request(int fd, struct cache *cache)
         }
         else
         {
+            // Otherwise serve the requested file by calling get_file()
             get_file(fd, cache, path);
         }
     }
-
-    //    Otherwise serve the requested file by calling get_file()
 
     // (Stretch) If POST, handle the post request
 }
