@@ -69,7 +69,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                   "Date: %s"
                                   "Connection: close\n"
                                   "%s\n",
-                                  header, content_type, content_length, asctime(c_time), body_cpy);
+                                  header, content_type, content_length, 
+                                  asctime(c_time), body_cpy);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -95,14 +96,50 @@ void get_d20(int fd)
 }
 
 /**
- * Read and return a file from disk or cache
+ * Send a 404 response
  */
-void get_file(int fd, struct cache *cache, char *request_path, char *loc)
+void resp_404(int fd)
 {
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
-    UNUSED(cache);
+
+    // Fetch the 404.html file
+    snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find system 404 file\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
+}
+
+/**
+ * Read and return a file from disk or cache
+ */
+void get_file(int fd, struct cache *cache, char *request_path, char *loc)
+{
+    struct cache_entry *entry = cache_get(cache, request_path);
+
+    if (entry != NULL)
+    {
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, 
+                                             entry->content, 
+                                             entry->content_length);
+        return;
+    }
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
 
     snprintf(filepath, sizeof filepath, "%s/%s", loc, request_path);
     filedata = file_load(filepath);
@@ -113,10 +150,14 @@ void get_file(int fd, struct cache *cache, char *request_path, char *loc)
         fprintf(stderr, "cannot find system index file\n");
         exit(3);
     }
+
     mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-
+    send_response(fd, "HTTP/1.1 200 OK", 
+                      mime_type, 
+                      filedata->data, 
+                      filedata->size);
+    cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
     file_free(filedata);
 }
 
@@ -142,7 +183,6 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
     char method[200];
     char path[8192];
-    UNUSED(cache); // silence warning, TODO: Remove later
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -158,6 +198,10 @@ void handle_http_request(int fd, struct cache *cache)
     // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0)
     {
+        if (strcmp(path, "/favicon.ico") == 0)
+        {
+            return;
+        }
 
         if (strcmp(path, "/") == 0)
         {
@@ -180,7 +224,7 @@ void handle_http_request(int fd, struct cache *cache)
  */
 int main(void)
 {
-    int newfd;                          // listen on sock_fd, new connection on newfd
+    int newfd; // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
 

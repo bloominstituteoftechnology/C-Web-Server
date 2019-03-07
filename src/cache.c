@@ -134,6 +134,7 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
+    printf("Cache put called with: %s - %s - %s - %i", path, content_type, content, content_length);
     // Initialize new entry
     struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
     // Insert the new entry at the head position
