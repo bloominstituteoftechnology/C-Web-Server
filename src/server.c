@@ -52,23 +52,31 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    int response_length;
+
+    // Initiate variables for displaying time
+    time_t rawtime;
+    struct tm * timeinfo;
+    time (&rawtime);
+    timeinfo = localtime (&rawtime); 
+    extern char *tzname[2];
 
     // Build HTTP response and store it in response
+    sprintf(response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n%s", header, asctime(timeinfo), content_length, content_type, body);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    response_length = strlen(response);
+    printf("\nResponse: \n%s\nResponse length: %d\n", response, response_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length+1, 0);
 
     if (rv < 0) {
+        // printf("rv <0\n");
         perror("send");
     }
 
     return rv;
 }
-
 
 /**
  * Send a /d20 endpoint response
@@ -76,16 +84,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    srand(time(0));
+    int upper_range = 20;
+    int lower_range = 1;
+    int rand_num = (rand() % (upper_range - lower_range + 1)) + lower_range; 
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char rand_num_string[10];
+    sprintf(rand_num_string, "%d", rand_num);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", rand_num_string, sizeof rand_num);
+    // printf
 }
 
 /**
@@ -117,11 +134,19 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-void get_file(int fd, struct cache *cache, char *request_path)
+struct file_data *get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    //if request_path can be found in hash table of cache, return from the entry found in cache
+    // struct cache_entry *cache_entry_found = cache_get(cache, request_path);
+    // if (cache_entry_found != NULL){
+    //     int file_size = cache_entry_found->content_length;
+    //     struct file_data *new_file = malloc(file_size*sizeof (char));
+    //     new_file->data = malloc(1*sizeof(void*));
+    //     new_file->size = file_size;
+    //     strcpy(new_file->data, cache_entry_found->content);
+    //     return new_file;
+    // }
+    return file_load(request_path);
 }
 
 /**
@@ -147,22 +172,63 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
-
+    // if bytes_recvd is not of proper format, print error
     if (bytes_recvd < 0) {
         perror("recv");
         return;
     }
 
+    // Read the three tokens of the first request line
+    char delim[] ="\n";
+    char *first_line = strtok(request, delim);
+    char CRUD_call[5], endpoint[30], http_version[10];
+    sscanf(first_line, "%s %s %s", CRUD_call, endpoint, http_version);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the three components of the first request line
-
-    // If GET, handle the get endpoints
+    // printf("endpoint: %s\n", endpoint);
 
     //    Check if it's /d20 and handle that special case
+    if (strcmp(endpoint, "/d20") == 0){
+        // generate random number
+        get_d20(fd);
+    }
+    else{
+        char filepath[4096];
+        struct file_data *filedata; 
+        char *mime_type;
+
+        strcpy(filepath, SERVER_ROOT);
+        //handle client auto request for "/favicon.ico"
+        if (strcmp(endpoint, "/favicon.ico")==0){
+            return;
+        }
+
+        // handle default endpoint
+        else if ((strcmp(endpoint, "/")) == 0 || (strcmp(endpoint, "") == 0)){
+            strcpy(endpoint, "/index.html");
+        }
+   
+        strcat(filepath, endpoint);
+        // printf("endpoint: %s, filepath: %s\n", endpoint, filepath);
+
+        filedata = get_file(fd, cache, filepath);
+
+        if (filedata == NULL) {
+            // TODO: make this non-fatal
+            fprintf(stderr, "Invalid endpoint\n");
+            exit(3);
+        }
+        else{
+            mime_type = mime_type_get(filepath);
+            // If GET, handle the get endpoints
+            if (strcmp(CRUD_call, "GET") == 0){
+                    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+                // printf("GET!!\n");
+            }
+            else{
+                resp_404(fd);
+            }
+        }
+    }
     //    Otherwise serve the requested file by calling get_file()
 
 
@@ -187,7 +253,7 @@ int main(void)
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
     }
-
+    
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
     // This is the main loop that accepts incoming connections and
