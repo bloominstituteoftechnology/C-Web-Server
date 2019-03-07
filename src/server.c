@@ -136,7 +136,6 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    printf("hiii");
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
@@ -144,6 +143,10 @@ void get_file(int fd, struct cache *cache, char *request_path)
     //Check to see if file in cache
     struct cache_entry *entry = cache_get(cache, request_path);
 
+    if (strcmp(request_path, "/") == 0)
+    {
+        request_path = "/index.html";
+    }
     if (entry != NULL)
     {
         //If found, send file
