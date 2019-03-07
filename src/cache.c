@@ -9,9 +9,13 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *new_entry = malloc(sizeof *new_entry);
+    new_entry->path = path;
+    new_entry->content_type = content_type;
+    new_entry->content_length = content_length;
+    new_entry->content = content;
+
+    return new_entry;
 }
 
 /**
@@ -19,9 +23,13 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content_length);
+    free(entry->content);
+
+    free(entry->prev);
+    free(entry->next);
 }
 
 /**
@@ -96,9 +104,15 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *cache = malloc(sizeof *cache);
+
+    cache->index = hashtable_create(hashsize, NULL);
+
+    cache->head = NULL;
+    cache->tail = NULL;
+
+    cache->max_size = max_size;
+    cache->cur_size = 0;
 }
 
 void cache_free(struct cache *cache)
@@ -115,8 +129,6 @@ void cache_free(struct cache *cache)
 
         cur_entry = next_entry;
     }
-
-    free(cache);
 }
 
 /**
@@ -128,9 +140,27 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    //Define new entry
+    struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length);
+
+    //Insert into the head of the doubly linked list
+    dllist_insert_head(cache, new_entry);
+
+    //Store the entry in the hashtable
+    hashtable_put(cache->index, new_entry->path, new_entry);
+
+    //Check to see if current elemnts is greater than max size allowed
+    if (cache->cur_size > cache->max_size)
+    {
+        //Remove last element in cache
+        struct cache_entry *old_tail = dllist_remove_tail(cache);
+
+        //Delete from hashtable
+        hashtable_delete(cache->index, old_tail->path);
+
+        //Free memory
+        free_entry(old_tail);
+    }
 }
 
 /**
