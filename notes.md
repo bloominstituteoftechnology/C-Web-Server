@@ -24,3 +24,12 @@
 -   Will be changing get_file
 -   Will use resp_404 for help
 -   Fetch file = snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+
+# Cache
+
+## Plan
+
+-   Create the cache - max-size 10
+-   create cache_entry
+-   Implememnt the cache in get_file
+-   Create put and counter parts
