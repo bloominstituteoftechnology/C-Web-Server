@@ -146,33 +146,48 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-        ///////////////////
-        // IMPLEMENT ME! //
-        ///////////////////
         //NEED TO IMPLEMENT THIS FUNCTION TO GET FILE REQUESTED
         //HERE THE FILE IS "text/plain" ...(referring resp_404()..)
-        char filepath[4096];
-        struct file_data *filedata; 
-        char *mime_type;
-        printf("REQUEST PATH  :    %s\n", request_path);
-        //FETCH THE FILE
-        //The snprintf() function formats and stores a series of characters and values in the array buffer. 
-        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+        
+        //When a file is requested, first check to see if the path to the file is in
+        //the cache (use the file path as the key). If it's there, serve it back.
 
-        printf("The filepath: %s\n", filepath);
-
-        filedata = file_load(filepath);
-
-        if (filedata == NULL) {
-            resp_404(fd);
-            exit(0);
+        struct cache_entry *cached_data = cache_get(cache,request_path);
+        if (cached_data != NULL) {
+            send_response(fd,"HTTP/1.1 200 OK",cached_data->content_type,
+                                               cached_data->content,
+                                               cached_data->content_length);
         }
+        else {
+        //If it's not in cache...
+            //load the file from disk (see `file.c`)
+            //Store it in the cache ....cache_put()
+            //Serve it
+        
+            char filepath[4096];
+            struct file_data *filedata; 
+            char *mime_type;
+            printf("REQUEST PATH  :    %s\n", request_path);
+            //FETCH THE FILE
+            //The snprintf() function formats and stores a series of characters and values in the array buffer. 
+            snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
 
-        mime_type = mime_type_get(filepath);
+            printf("The filepath: %s\n", filepath);
 
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            filedata = file_load(filepath);
 
-        file_free(filedata);
+            if (filedata == NULL) {
+                resp_404(fd);
+                exit(0);
+            }
+            else {
+                mime_type = mime_type_get(filepath);
+
+                cache_put(cache,  request_path, mime_type, filedata->data, filedata->size);
+                send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+                file_free(filedata);
+            }
+        }
 }
 
 /**
