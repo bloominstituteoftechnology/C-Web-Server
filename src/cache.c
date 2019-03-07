@@ -172,7 +172,10 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         // Free the cache entry
         free_entry(old_tail);
         // Ensure counter size is correct
-        cache->cur_size--;
+        if (cache->cur_size != cache->max_size)
+        {
+            cache->cur_size = cache->max_size;
+        }
     }
 }
 
@@ -184,14 +187,13 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     // Get cache entry from hashtable
     if (hashtable_get(cache->index, path) == NULL)
     {
-        printf("here");
         return NULL;
     }
     else
     {
 
         // Move the cache entry to the head of the doubly-linked list.
-        dllist_insert_head(cache, hashtable_get(cache->index, path));
+        dllist_move_to_head(cache, hashtable_get(cache->index, path));
         return cache->head;
     }
 }

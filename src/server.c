@@ -170,14 +170,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
             // }
             // respond with a 404
-            printf("Will you print that I'm here?");
             resp_404(fd);
         }
         else
         {
 
             mime_type = mime_type_get(filepath);
-            printf("Will you print that I'm here?");
             // put in cache
             cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
 
