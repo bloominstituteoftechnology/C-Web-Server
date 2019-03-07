@@ -231,7 +231,7 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
-    struct cache *cache; //= cache_create(10, 0);
+    struct cache *cache = cache_create(10, 0);
 
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);

@@ -165,7 +165,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     //      * Remove that same entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
         hashtable_delete(cache->index, tail_path);
     //      * Free the cache entry.
-    //------HAVE TO IMPLEMENT FREE ENTRY
+        free_entry(cache->tail);
     //      * Ensure the size counter for the number of entries in the cache is correct.
         cache->cur_size -= 1;
     }
