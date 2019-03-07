@@ -9,9 +9,20 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+
+    struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+    entry->path = malloc(strlen(path) + 1);
+    strcpy(entry->path, path);
+
+    entry->content_type = malloc(strlen(content_type) + 1);
+    strcpy(entry->content_type, content_type);
+
+    entry->content = malloc(content_length);
+    memcpy(entry->content, content, content_length);
+
+    entry->content_length = content_length;
+
+    return entry;
 }
 
 /**
@@ -19,9 +30,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry);
 }
 
 /**
@@ -53,13 +62,11 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
     {
         if (ce == cache->tail)
         {
-            // We're the tail
             cache->tail = ce->prev;
             cache->tail->next = NULL;
         }
         else
         {
-            // We're neither the head nor the tail
             ce->prev->next = ce->next;
             ce->next->prev = ce->prev;
         }
