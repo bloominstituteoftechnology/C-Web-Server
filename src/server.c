@@ -136,30 +136,45 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    printf("hiii");
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
 
-    // Fetch the 404.html file
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
+    //Check to see if file in cache
+    struct cache_entry *entry = cache_get(cache, request_path);
 
-    printf("%s\n", filepath);
-    if (filedata == NULL)
+    if (entry != NULL)
     {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find file :(\n");
-        resp_404(fd);
+        //If found, send file
+        mime_type = mime_type_get(entry->path);
+        send_response(fd, "HTTP/1.1 200", mime_type, entry->content, entry->content_type);
     }
+    else
+    {
+        // Fetch file from disk
+        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+        filedata = file_load(filepath);
 
-    mime_type = mime_type_get(filepath);
+        printf("%s\n", filepath);
+        if (filedata == NULL)
+        {
+            //If not found, send 404 page
+            fprintf(stderr, "Cannot find file :(\n");
+            resp_404(fd);
+        }
+        else
+        {
 
-    send_response(fd, "HTTP/1.1 200", mime_type, filedata->data, filedata->size);
+            mime_type = mime_type_get(filepath);
 
-    file_free(filedata);
+            //Store file in cache
+            cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+            send_response(fd, "HTTP/1.1 200", mime_type, filedata->data, filedata->size);
+
+            file_free(filedata);
+        }
+    }
 }
 
 /**
@@ -173,6 +188,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return 0;
 }
 
 /**
@@ -191,10 +207,6 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 
     // Read the three components of the first request line
     char method[200];
@@ -221,7 +233,6 @@ void handle_http_request(int fd, struct cache *cache)
             printf("ok we need to get a file in path %s\n", path);
             get_file(fd, cache, path);
         }
-        //Check if it's /d20 and handle that special case Otherwise serve the requested file by calling get_file()
     }
 
     // (Stretch) If POST, handle the post request

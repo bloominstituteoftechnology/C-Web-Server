@@ -113,6 +113,8 @@ struct cache *cache_create(int max_size, int hashsize)
 
     cache->max_size = max_size;
     cache->cur_size = 0;
+
+    return cache;
 }
 
 void cache_free(struct cache *cache)
@@ -140,6 +142,8 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
+
+    printf("lets PUT this in the cache");
     //Define new entry
     struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length);
 
@@ -168,6 +172,8 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
+
+    printf("lets GET this from the cache");
     //Check to see if item exists in the cache
     struct cache_entry *entry = hashtable_get(cache->index, path);
 
@@ -181,3 +187,13 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
 
     return entry;
 }
+
+// int main(void)
+// {
+//     printf("lets check this cache!\n");
+//     struct cache *cache = cache_create(10, 0);
+//     printf("created cache ");
+//     printf(" with max size %d\n", cache->max_size);
+//     cache_get(cache, "/index.html");
+//     cache_put(cache, "/index.html", "text/html", "a file", 500);
+// }
