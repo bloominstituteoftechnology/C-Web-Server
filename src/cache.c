@@ -102,9 +102,14 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *cache = malloc(sizeof(struct cache));
+    cache->index = hashtable_create(hashsize, NULL);
+    cache->head = NULL;
+    cache->tail = NULL;
+    cache->max_size = max_size;
+    cache->cur_size = 0;
+
+    return cache;
 }
 
 void cache_free(struct cache *cache)
@@ -141,11 +146,26 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     dllist_insert_head(cache, entry);
 
     // Store the entry in the hashtable as well, indexed by the entry's path
-    // hashtable_put()
+    hashtable_put(cache->index, path, content);
 
     // Increment the current size of the cache.
+    cache->cur_size++;
 
     // If the cache size is greater than the max size:
+    if (cache->cur_size > cache->max_size)
+    {
+        // Remove the cache entry at the tail of the linked list.
+        struct cache_entry *tail = dllist_remove_tail(cache);
+
+        // Remove that same entry from the hashtable, using the entry's path and the hashtable_delete function
+        hashtable_delete(cache->index, tail->path);
+
+        // Free the cache entry
+        free_entry(tail);
+
+        // Ensure the size counter for the number of entries in the cache is correct
+        cache->cur_size--;
+    }
 }
 
 /**
@@ -153,7 +173,18 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Attempt to find the cache entry pointer by path in the hash table
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+
+    // If not found, return NULL
+    if (entry == NULL)
+    {
+        return NULL;
+    }
+
+    // Move the cache entry to the head of the doubly-linked list
+    cache->head = entry;
+
+    // Return the cache entry pointer
+    return entry;
 }
