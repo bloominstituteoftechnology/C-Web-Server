@@ -10,10 +10,18 @@
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
     struct cache_entry *c = malloc(sizeof(struct cache_entry));
-    c->path = path;
-    c->content_type = content_type;
+
+    c->path = malloc(strlen(path) + 1);
+    strcpy(c->path, path);
+
+    c->content_type = malloc(strlen(content_type) + 1);
+    strcpy(c->content_type, content_type);
+
     c->content_length = content_length;
-    c->content = content;
+
+    c->content = malloc(content_length);
+    memcpy(c->content, content, content_length);
+
     return c;
 }
 
@@ -22,6 +30,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
     free(entry);
 }
 
@@ -150,7 +161,12 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *c = hashtable_get(cache->index, path);
+
+    if (c == NULL){
+        return NULL;
+    }
+
+    dllist_move_to_head(cache, c);
+    return c;
 }
