@@ -53,10 +53,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-//time
+    //time
     time_t seconds;
     struct tm *info;
-//format the time
+    //format the time
     time(&seconds);
     info = localtime(&seconds);
     char *body_str = body;
@@ -159,6 +159,15 @@ void get_file(int fd, struct cache *cache, char *request_path)
     sprintf(filepath, "%s"
                       "%s",
             SERVER_ROOT, request_path);
+    struct cache_entry *ce = cache_get(filepath);
+    if (time(NULL) - ce->timestamp > 5 * 60)
+    {
+        //expire
+
+        //check file timestampt with stat()
+
+        //if file is newer: delete from cache
+    }
 
     filedata = file_load(filepath);
 
@@ -242,9 +251,9 @@ void handle_http_request(int fd, struct cache *cache)
     {
         send_response(fd, "HTTP/1.1 200 OK", "text/plain", "Hunter", 6);
     }
-     else if (strcmp(path, "/index.html") == 0)
+    else if (strcmp(path, "/index.html") == 0)
     {
-       get_file(fd,cache,path);
+        get_file(fd, cache, path);
     }
     else
     {
