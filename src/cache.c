@@ -141,11 +141,10 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 {
     // Allocate new entry
     struct cache_entry *ce = alloc_entry(path, content_type, content, content_length);
-
     // Insert at head of linked list
     dllist_insert_head(cache, ce);
     // Store in hashtable - indexed by path
-    hashtable_put(cache->index, ce->path, ce->content);
+    hashtable_put(cache->index, ce->path, ce);
     // Increment size of cache
     cache->cur_size += 1;
     // If greater than max-size
@@ -175,6 +174,7 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     }
     else
     {
+
         // Move the cache entry to the head of the doubly-linked list.
         dllist_insert_head(cache, hashtable_get(cache->index, path));
         return cache->head;
