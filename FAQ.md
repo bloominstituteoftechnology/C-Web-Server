@@ -179,6 +179,21 @@ header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Where can I find a complete list of MIME types?</b></summary><p>
+
+Since people are adding new MIME types all the time, there's not really a such
+thing as a _complete_ list.
+
+(You can make up your own MIME types. If they're not official, the second part
+of the MIME type should be prefixed with `x-`, like `application/x-bzip`.)
+
+Common MIME types can be found at [MDN's incomplete list of MIME
+types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types).
+
+</p></details></p>
+
 <!--
 TODO:
 
