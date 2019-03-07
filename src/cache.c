@@ -9,15 +9,20 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    // Pseudo Code
-    // create room with malloc for entry
-    struct cache_entry *entry = malloc(sizeof *entry);
-    // create the entry itself? or put it in?
-    entry->path = path;
-    entry->content_type = content_type;
-    entry->content = content;
+    struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+
+    entry->path = malloc(strlen(path) + 1);
+    strcpy(entry->path, path);
+
+    entry->content_type = malloc(strlen(content_type) + 1);
+    strcpy(entry->content_type, content_type);
+
     entry->content_length = content_length;
-    // return the cache_entry
+
+    entry->content = malloc(content_length);
+    memcpy(entry->content, content, content_length);
+
+    entry->prev = entry->next = NULL;
     return entry;
 }
 
@@ -26,9 +31,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry);
 }
 
 /**
@@ -99,16 +102,16 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
 struct cache *cache_create(int max_size, int hashsize)
 {
     // Sets aside storage for the cache
-    struct cache *cache = malloc(sizeof *cache);
+    struct cache *new_cache = malloc(sizeof *new_cache);
     // if max size is 0 or NULL return null since cache would be useless
     if(max_size < 1){
         return NULL;
     }
-    cache->max_size = max_size;
+    new_cache->max_size = max_size;
     // sets the hashtable(ht) size to 0 if null otherwise sets it to parameter given
-    cache->index->size = (hashsize == NULL) ? 0 : hashsize;
+    new_cache->index->size = hashsize;
     // returns the cache for use later
-    return cache;
+    return new_cache;
 }
 
 void cache_free(struct cache *cache)
@@ -148,9 +151,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 //    * If the cache size is greater than the max size:
     if(cache->cur_size > cache->max_size){
     //      * Remove the cache entry at the tail of the linked list.
-        struct llist_node *tail_val = dllist_remove_tail(cache);
+        char *tail_path = dllist_remove_tail(cache)->path;
     //      * Remove that same entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
-        hashtable_delete(cache->index, tail_val->path);
+        hashtable_delete(cache->index, tail_path);
     //      * Free the cache entry.
     //------HAVE TO IMPLEMENT FREE ENTRY
     //      * Ensure the size counter for the number of entries in the cache is correct.
