@@ -103,6 +103,8 @@ struct cache *cache_create(int max_size, int hashsize)
     c->cur_size = 0;
     c->max_size = max_size;
     c->index = hashtable_create(hashsize, NULL);
+
+    return c;
 }
 
 void cache_free(struct cache *cache)
@@ -132,6 +134,23 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
+    // Initialize new entry
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    // Insert the new entry at the head position
+    dllist_insert_head(cache, entry);
+    // Increase the cache size
+    cache->cur_size++;
+    // Put that same entry in the hashtable associated with the cache
+    hashtable_put(cache->index, path, entry);
+
+    // If our cache is now exceeding the max size (after adding new entry)
+    if (cache->cur_size > cache->max_size)
+    {
+        // Remove the Least Recently Used item in our cache
+        struct cache_entry *cache_item = dllist_remove_tail(cache);
+        // Delete it from the hashtable as well
+        hashtable_delete(cache->index, cache_item->path);
+    }
 }
 
 /**
@@ -139,7 +158,18 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Attempt to find the cache entry pointer by path in the hash table.
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+
+    // If not found, return NULL.
+    if (entry == NULL)
+    {
+        return NULL;
+    }
+
+    // Move the cache entry to the head of the doubly-linked list.
+    dllist_move_to_head(cache, entry);
+
+    // Return the cache entry pointer.
+    return entry;
 }
