@@ -54,10 +54,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    time_t rawtime;
+    struct tm *info;
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    time(&rawtime);
+    info = localtime(&rawtime);
+
+    int response_length = sprintf(response, "%s\n Connection: close\nContent-Length: %d\nContent-Type: %s\n\n%s ", header, content_length, content_type, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -80,12 +83,16 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char number[10];
+    int randomNumber = rand() % 21;
+    int len = sprintf(number, "%d\n", randomNumber);
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", number, len);
 }
 
 /**
@@ -104,7 +111,8 @@ void resp_404(int fd)
     if (filedata == NULL) {
         // TODO: make this non-fatal
         fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        // exit(3);
+        return;
     }
 
     mime_type = mime_type_get(filepath);
@@ -122,20 +130,38 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch the index.html file
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
-/**
+/*
  * Search for the end of the HTTP header
  * 
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
+// char *find_start_of_body(char *header)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! // (Stretch)
+//     ///////////////////
+// }
 
 /**
  * Handle HTTP request and send response
@@ -159,9 +185,23 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    char method[10];
+    char file[1000];
+    char protocol[1000];
 
-    // If GET, handle the get endpoints
+    sscanf(request, "%s %s %s", method, file, protocol);
+    printf("Method: %s\n", method);
 
+    // If GET, handle the get endpointsgit
+    if (strcmp(method, "GET") == 0) {
+        if (strcmp(file, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, file);
+        }
+    } else {
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
