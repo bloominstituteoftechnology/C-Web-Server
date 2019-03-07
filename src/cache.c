@@ -12,7 +12,6 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    // Changed to deep copy
     struct cache_entry *entry = malloc(sizeof(struct cache_entry));
 
     entry->content = malloc(content_length);
@@ -26,8 +25,6 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     entry->path = malloc(strlen(path) + 1);
     strcpy(entry->path, path);
 
-    entry->prev = entry->next = NULL;
-
     return entry;
 }
 
@@ -40,7 +37,7 @@ void free_entry(struct cache_entry *entry)
     // IMPLEMENT ME! //
     ///////////////////
     free(entry->content);
-    // free(entry->content_length); // not needed because not mallocd
+    free(entry->content_length);
     free(entry->content_type);
     free(entry->path);
     free(entry);
@@ -126,7 +123,6 @@ struct cache *cache_create(int max_size, int hashsize)
     cache->max_size = max_size;
     // hashtable_create(int size, int (*hashf)(void *, int, int));
     cache->index = hashtable_create(hashsize, NULL);
-    cache->head = cache->tail = NULL;
 
     return cache;
 }
@@ -195,4 +191,8 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // Attempt to find the cache entry pointer by path in the hash table.
+    // If not found, return NULL.
+    // Move the cache entry to the head of the doubly-linked list.
+    // Return the cache entry pointer.
 }

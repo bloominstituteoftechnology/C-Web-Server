@@ -64,18 +64,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                    "Date: %s"
                                    "Content-Length: %d\n"
                                    "Content-Type: %s\n"
-                                   "\n"
-                                   "%s",
-                                   header, asctime(info), content_length, content_type, body);
+                                   "\n",
+                                   header, asctime(info), content_length, content_type);
 
     // could use memcopy for body to handle binary data.
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Send it all!
     int rv = send(fd, response, response_length, 0);
+
+    if (rv < 0)
+    {
+        perror("send");
+    }
+
+    rv = send(fd, body, content_length, 0);
 
     if (rv < 0)
     {
@@ -136,16 +138,12 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
     (void)cache;
     // fetch file from disk
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    printf("LOOKING UP: %s\n", filepath); // <--debugging
     filedata = file_load(filepath);
     if (filedata == NULL)
     {
@@ -154,9 +152,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     else
     {
         mime_type = mime_type_get(filepath);
-        // printf("FILEDATA DATA%s\n", filedata->data);
-        // printf("FILEDATA SIZE: %d\n", filedata->size);
-        // int send_response(int fd, char *header, char *content_type, void *body, int content_length)
         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
     }
 }
