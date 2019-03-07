@@ -149,11 +149,18 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
-
     if (filedata == NULL)
     {
-        resp_404(fd);
-        return;
+        if (strcmp(request_path, "/") == 0)
+        {
+            snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, "/index.html");
+            filedata = file_load(filepath);
+        }
+        else
+        {
+            resp_404(fd);
+            return;
+        }
     }
 
     mime_type = mime_type_get(filepath);
@@ -170,9 +177,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
+    printf("%s", header);
 }
 
 /**
