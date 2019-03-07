@@ -146,6 +146,39 @@ curl -v http://localhost:3490/
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>How do browsers handle caches?</b></summary><p>
+
+The browser-side cache (as opposed to the server-side cache that you'll be
+writing) has the goal of speeding web page loads by reducing network traffic.
+
+When loading a web page (or other piece of data), the browser first looks in its
+cache on disk to see if the data is there. If it is, it can display it
+immediately and the user doesn't have to wait for it to come in over the
+network.
+
+Of course, there are more details that need to be hashed out.
+
+* Does the browser have a limit on the number of items in the cache?
+* Does the browser have a limit on the amount of data in the cache?
+* How does the browser refresh the cache or expire elements in the cache?
+* How does the browser know which pages should and should not be cached?
+
+Most browsers allow you to see a limit on the cache size in bytes. Old
+information that exceeds that limit will be discarded.
+
+Of course, when the browser hits the cache but finds some old data, it needs to
+_refresh_ that cache entry from the server again.
+
+Entries might be old, or maybe a web page has said it should never be cached.
+
+A web server can offer hints to a web browser about how data should be cached.
+For more information, see the [Cache-Control
+header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
+
+</p></details></p>
+
 <!--
 TODO:
 
