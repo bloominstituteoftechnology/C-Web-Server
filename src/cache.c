@@ -12,6 +12,15 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+        struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
+        new_entry->path = malloc(strlen(path) + 1); //+1 for '\0'
+        strcpy(new_entry->path, path);
+        //USE  strcpy by using MALLOC first or can use strdup
+        new_entry->content_type = strdup(content_type);
+        new_entry->content = content;
+        new_entry->content_length = content_length;
+        
+        return new_entry;
 }
 
 /**
@@ -22,6 +31,10 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+        free(entry->path);
+        free(entry->content_type);
+        free(entry->content);
+        free(entry);
 }
 
 /**
@@ -94,6 +107,12 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+        struct cache *new_cache = malloc(sizeof (struct cache));
+        new_cache->index = hashtable_create(hashsize, NULL);
+        new_cache->head = new_cache->tail = NULL;
+        new_cache->max_size = max_size;
+        new_cache->cur_size = 0;
+        return new_cache;
 }
 
 void cache_free(struct cache *cache)
@@ -101,6 +120,7 @@ void cache_free(struct cache *cache)
     struct cache_entry *cur_entry = cache->head;
 
     hashtable_destroy(cache->index);
+
 
     while (cur_entry != NULL) {
         struct cache_entry *next_entry = cur_entry->next;
@@ -122,9 +142,27 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    //Algorithm:
+        //Allocate a new cache entry with the passed parameters.
+        struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length);
+        //Insert the entry at the head of the doubly-linked list.
+        dllist_insert_head(cache, new_entry);
+        //Store the entry in the hashtable as well, indexed by the entry's path.
+        hashtable_put(cache->index, new_entry->path, new_entry->content);
+        //Increment the current size of the cache.
+        cache->cur_size++;
+
+        //If the cache size is greater than the max size:
+        if(cache->cur_size  >  cache->max_size) {
+                //Remove the cache entry at the tail of the linked list.
+                struct cache_entry *cache_tail_removed = dllist_remove_tail(cache);
+                //Remove that same entry from the hashtable, using the entry's path and the hashtable_delete function.
+                hashtable_delete(cache->index, cache_tail_removed->path);
+                //Free the cache entry.
+                free_entry(cache_tail_removed);
+                //Ensure the size counter for the number of entries in the cache is correct.
+                cache->cur_size--;
+        }
 }
 
 /**
@@ -132,7 +170,18 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    //Algorithm:
+        //Attempt to find the cache entry pointer by `path` in the hash table.
+        struct cache_entry *data = hashtable_get(cache->index, path);
+        if(data == NULL) {
+             //If not found, return `NULL`.
+             return NULL;
+        }
+        else {
+            //Move the cache entry to the head of the doubly-linked list.
+            dllist_move_to_head(cache, data);
+
+            //Return the cache entry pointer.
+        }
+    return data;
 }
