@@ -140,25 +140,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
 
-    // Fetch the 404.html file
-    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
+    struct cache_entry *entry = cache_get(cache, request_path);
 
-    if (filedata == NULL) {
-        // TODO: make this non-fatal
-        resp_404(fd);
+    if(entry != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", entry -> content_type, entry -> content, entry -> content_length);
         return;
-    }
+    } else {
+        snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+        filedata = file_load(filepath);
 
-    mime_type = mime_type_get(filepath);
+        if (filedata == NULL) {
+            resp_404(fd);
+            return;
+        } else {
+            mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata -> data, filedata -> size);
+            cache_put(cache, request_path, mime_type, filedata -> data, filedata -> size);
 
-    file_free(filedata);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata -> data, filedata -> size);
+
+            file_free(filedata);
+        }
+    } 
 }
 
 /**
