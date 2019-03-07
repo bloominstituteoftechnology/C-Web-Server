@@ -168,9 +168,6 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     // Attempt to find the cache entry pointer by path in the hash table.
     void *entry_pointer = hashtable_get(cache->index, path);
     // If not found, return NULL.
