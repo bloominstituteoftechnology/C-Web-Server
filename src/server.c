@@ -143,6 +143,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    cache_get(cache, filepath);
 
     filedata = file_load(filepath);
 
@@ -180,8 +181,6 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    (void)cache;
-
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -245,10 +244,11 @@ int main(void)
     // process then goes back to waiting for new connections.
     while (1)
     {
-
+        // puts(">> 1");
         socklen_t sin_size = sizeof their_addr;
         // Parent process will block on the accept() call until someone
         // makes a new connection:
+        // puts(">> 2");
         newfd = accept(listenfd, (struct sockaddr *)&their_addr, &sin_size);
 
         if (newfd == -1)
@@ -257,6 +257,7 @@ int main(void)
             continue;
         }
         // Print out a message that we got the connection
+        // puts(">> 3");
         inet_ntop(their_addr.ss_family,
                   get_in_addr((struct sockaddr *)&their_addr),
                   s, sizeof s);
@@ -264,9 +265,9 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
+        // puts(">> 4");
         handle_http_request(newfd, cache);
-
+        // puts(">> 5");
         close(newfd);
     }
 
