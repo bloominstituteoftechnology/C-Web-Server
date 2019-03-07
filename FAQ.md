@@ -194,6 +194,65 @@ types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_typ
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Our server only sends out one file at a time. How do browsers get multiple files, like if <tt>index.html</tt> refers to <tt>styles.css</tt>?</b></summary><p>
+
+Turns out they do them in separate requests.
+
+First the browser will get `index.html`. Then it parses the HTML and sees that
+it has references to, for example, `styles.css` and `funnycats.gif`. It then
+issues two more requests, one for each of those files.
+
+There's a fair amount of overhead to this, so modern browsers typically make a
+single TCP connection over the network, and then transmit multiple HTTP requests
+over it. Conceptually, however, this still sends multiple HTTP requests, just
+like above.
+
+In our server, we specify the header
+
+```http
+Connection: close
+```
+
+which tells the browser we're hanging up after this one response. This is just
+to make our code easier.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>How can I fix my server to return binary data as well as text data? I want to get <tt>cat.png</tt> back to the browser.</b></summary><p>
+
+If you are building your HTTP response, both header and body, with a single
+`sprintf()`, you'll have trouble getting the body in there. This is because
+`sprintf()` with `%s` prints a string, and a string ends on the first `'\0'`
+character. Undoubtedly the PNG image is full of `0`s, so it stops printing short
+of end of the data.
+
+There are two options here:
+
+1. Use two calls to `send()`.
+
+   1. Use `sprintf()` to make the header, but that's all.
+
+   2. Call `send()` once to send the header.
+
+   3. Call `send()` again to send the body.
+
+2. Use `memcpy()` to append the body after the header.
+
+   1. Use `sprintf()` to make the header, but that's all.
+
+   2. Use `memcpy()` to copy the body just after the end of the header.
+      `memcpy()` copies a specified number of bytes; it doesn't stop at the
+      first `0` byte.
+
+   3. Call `send()` to send out the complete HTTP response.
+
+</p></details></p>
+
+
 <!--
 TODO:
 
