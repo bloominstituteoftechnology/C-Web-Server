@@ -9,16 +9,16 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    printf("Making an entry\n"); // <-- TESTING
-
     struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+
     entry->path = strdup(path);
     entry->content_type = strdup(content_type);
+
     entry->content = malloc(content_length);
     memcpy(entry->content, content, content_length);
+
     entry->content_length = content_length;
 
-    printf("Made an entry\n"); // <-- TESTING
     return entry;
 }
 
@@ -27,19 +27,11 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    printf("Freeing an entry\n"); // <-- TESTING
-
-    printf("Freeing path\n"); // <-- TESTING
     free(entry->path);
-    printf("Freeing content_type\n"); // <-- TESTING
     free(entry->content_type);
-    printf("Freeing content\n"); // <-- TESTING
     free(entry->content);
 
-    printf("Freeing entry\n"); // <-- TESTING
     free(entry);
-
-    printf("Freed an entry\n"); // <-- TESTING
 }
 
 /**
@@ -114,17 +106,14 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    printf("Making a cache\n"); // <-- TESTING
 
-    struct cache *cache = malloc(sizeof(struct cache));
-    cache->index = hashtable_create(hashsize, NULL);
-    cache->head = NULL;
-    cache->tail = NULL;
-    cache->max_size = max_size;
-    cache->cur_size = 0;
-
-    printf("Made a cache\n"); // <-- TESTING
-    return cache;
+    struct cache *new_cache = malloc(sizeof(*new_cache));
+    new_cache->index = hashtable_create(hashsize, NULL);
+    new_cache->head = NULL;
+    new_cache->tail = NULL;
+    new_cache->max_size = max_size;
+    new_cache->cur_size = 0;
+    return new_cache;
 }
 
 void cache_free(struct cache *cache)
@@ -154,8 +143,6 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    printf("Putting an entry\n"); // <-- TESTING
-
     // Allocate a new cache entry with the passed parameters
     struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
 
@@ -163,7 +150,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     dllist_insert_head(cache, entry);
 
     // Store the entry in the hashtable as well, indexed by the entry's path
-    hashtable_put(cache->index, path, content);
+    hashtable_put(cache->index, path, entry);
 
     // Increment the current size of the cache.
     cache->cur_size++;
@@ -181,10 +168,11 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
         free_entry(tail);
 
         // Ensure the size counter for the number of entries in the cache is correct
-        cache->cur_size--;
+        if (cache->cur_size != cache->max_size)
+        {
+            printf("uh oh");
+        }
     }
-
-    printf("Finished putting an entry\n"); // <-- TESTING
 }
 
 /**
@@ -202,7 +190,7 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     }
 
     // Move the cache entry to the head of the doubly-linked list
-    cache->head = entry;
+    dllist_move_to_head(cache, entry);
 
     // Return the cache entry pointer
     return entry;
