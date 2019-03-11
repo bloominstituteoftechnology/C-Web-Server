@@ -77,9 +77,7 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int random_num = 1 + rand()%20;
 
     // Use send_response() to send it back as text/plain data
 
