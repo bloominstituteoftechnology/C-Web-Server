@@ -26,6 +26,7 @@ char *test_cache_create()
 }
 
 char *test_cache_alloc_entry()
+
 {
   char *path = "/bazz/lurman.html";
   char *content_type = "text/html";
@@ -43,6 +44,7 @@ char *test_cache_alloc_entry()
   free_entry(ce);
 
   return NULL;
+
 }
 
 char *test_cache_put()
