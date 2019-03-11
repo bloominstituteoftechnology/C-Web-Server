@@ -68,7 +68,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
             header, content_type, content_length, body
     );
 
-    printf("%s, response"); // send()
+    printf("%s", response); // send()
 
     int response_length = strlen(response);
 
@@ -92,7 +92,7 @@ void get_d20(int fd)
     
     int random_num = 1 + rand()%20;
     char *temp_num = "xx";
-    int sz = snprinf(NULL, 0, temp_num, random_num);
+    int sz = snprintf(NULL, 0, temp_num, random_num);
     char random_str_num[sz + 1];
     snprintf(random_str_num, sizeof random_str_num, temp_num, random_num);
     int r_num_len = strlen(random_str_num);
@@ -103,8 +103,6 @@ void get_d20(int fd)
     ///////////////////
 
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_str_num, r_num_len);
-
-    return 0;
 }
 
 /**
@@ -154,6 +152,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return 0;
 }
 
 /**
@@ -176,6 +175,10 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // char *first_line = "";
+    char method[200];
+    char path[8192];
+    sscanf(request, "%s %s HTTP/1.1", method, path);
 
     // Read the three components of the first request line
 // GET /example HTTP/1.1
@@ -212,7 +215,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+    resp_404(listenfd);
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -232,9 +235,7 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
         handle_http_request(newfd, cache);
-
         close(newfd);
     }
 

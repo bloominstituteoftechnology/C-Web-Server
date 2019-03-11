@@ -192,7 +192,7 @@ Protocol/Version Status Code
 Date: Timestamp when response was created
 Connection: close     (set to open if more info will be sent)
 Content-Length: number of bytes in the body (w/o blank line)
-Content-Type: MIME (Multipurpose Internet Mail Extensions) type of the content of the body to be rendered  (text/html, text/plain, image/gif, multipart/form-data)
+Content-Type: MIME (Multipurpose Internet Mail Extensions) type of the content of the body to be rendered  (text/html, text/plain, text/css, image/jpg, image/gif, image/png, application/json, application/javascript, multipart/form-data)
 
 <html><head><title>Data being sent back</title></head></html>
 
