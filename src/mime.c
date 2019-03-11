@@ -9,6 +9,8 @@
  */
 char *strlower(char *s)
 {
+
+    
     for (char *p = s; *p != '\0'; p++) {
         *p = tolower(*p);
     }
