@@ -52,12 +52,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-
+    int response_length = strlen(body);
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    sprintf(response,"HTTP/1.1 200 OK\n"
+            "Content-Type: text/html\n"
+            "Content-Length: %d\n"
+            "Connection: close\n"
+            "\n"
+            "%p", response_length, body );
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -179,7 +182,6 @@ int main(void)
     char s[INET6_ADDRSTRLEN];
 
     struct cache *cache = cache_create(10, 0);
-
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
 
@@ -194,6 +196,7 @@ int main(void)
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
     
+    
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -204,7 +207,6 @@ int main(void)
             perror("accept");
             continue;
         }
-
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
@@ -214,7 +216,11 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
+        
+
         handle_http_request(newfd, cache);
+
+        resp_404(newfd);
 
         close(newfd);
     }
