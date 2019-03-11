@@ -62,7 +62,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     snprintf(response, max_response_size,
         "%s\n" 
         "Content-Type: %s\n"
-        "Content-Length %d\n" 
+        "Content-Length: %d\n" 
         "Connection: close\n"
         "\n"
         "%s",
@@ -183,15 +183,15 @@ void handle_http_request(int fd, struct cache *cache)
 
     sscanf(request, "%s %s %s", method, path, http_v);
 
-    printf("Method, path, http_v: %s %s %s\n", method, path, http_v);
+    // printf("Method, path, http_v: %s %s %s\n", method, path, http_v);
 
     // Read the three components of the first request line
 // GET /example HTTP/1.1
     // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0) {
-        send_response(fd, "http/1.1 200 OK", "text/plain", "I got it.", 9);
+        send_response(fd, "HTTP/1.1 200 OK", "text/plain", "Gem ", 4);
     } else if (strcmp(method, "POST") == 0) {
-        send_response(fd, "http/1.1 201 Created", "text/plain", "Stretch", 7);
+        send_response(fd, "HTTP/1.1 201 Created", "text/plain", "Stretch ", 8);
     } else {
         resp_404(fd);
     }
