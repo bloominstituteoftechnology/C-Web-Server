@@ -52,9 +52,31 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-
+    
+    // Generate date
+    time_t rawtime;
+    struct tm *current_time;
+    time(&rawtime);
+    current_time = localtime(&rawtime);
+    
     // Build HTTP response and store it in response
-
+    sprintf(response,
+            "%s\n"
+            "Date: %s" // Example: Wed Dec 20 13:05:11 PST 2017
+            "Connection: close\n"
+            "Content-Length: %d\n"
+            "Content-Type: %s\n"
+            "\n"
+            "%s",
+            header,
+            asctime(current_time),
+            content_length,
+            content_type,
+            body
+    );
+    
+    int response_length = strlen(response);
+    
     ////////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -188,6 +210,7 @@ int main(void)
         exit(1);
     }
 
+    resp_404(0);
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
     // This is the main loop that accepts incoming connections and
