@@ -15,7 +15,7 @@ What you need to write:
 
 What's already here:
 
-* `net.h` and `net.c` contain low-level networking code
+* `net.h` and `net.c` contain low-level networking code #
 * `mime.h` and `mime.c` contains functionality for determining the MIME type of a file
 * `file.h` and `file.c` contains handy file-reading code that you may want to utilize, namely the `file_load()` and `file_free()` functions for reading file data and deallocating file data, respectively (or you could just perform these operations manually as well)
 * `hashtable.h` and `hashtable.c` contain an implementation of a hashtable (this one is a bit more complicated than what you built in the Hashtables sprint)
