@@ -54,6 +54,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    int response_length = sprintf( 
+        response,// Stores this value into response
+        "%s\n" // Header
+        "connection: close\n" //connection type
+        "content_length: %d\n" //content length given
+        "content_type: %s\n\n" //content type given
+        "%p\n"/*body*/, header, content_length, content_type, body);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -73,15 +80,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 /**
  * Send a /d20 endpoint response
  */
+//    Note that unlike the other responses that send back file contents, 
+//    the `d20` endpoint will simply compute a random number and send it back. 
+//    It does not read the number from a file.
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    char response[16];
+    sprintf(response, "%d\n", rand() % 20 + 1);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response, strlen(response));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -122,6 +133,37 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // char filepath[4096];
+    // struct file_data *filedata; 
+
+    // sprintf(filepath,"%s%s", SERVER_ROOT, request_path);
+    // // sprintf(response, "%d\n", rand() % 20 + 1);
+    // printf("\nFILEPATH: %s\n", filepath);
+    // filedata = file_load(filepath);
+
+    // if (filedata == NULL) {
+    //     fprintf(stderr, "cannot find system file\n");
+    //     resp_404(fd);
+    // }
+    // printf("\nFILEDATA: %p\n", filedata->data);
+    // send_response(fd, "HTTP/1.1 200 OK", "text/html", filedata->data, filedata->size);
+
+    // file_free(filedata);
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if(filedata == NULL){
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
 }
 
 /**
@@ -130,12 +172,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
+// char *find_start_of_body(char *header)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! // (Stretch)
+//     ///////////////////
+// }    commented out because warning was annoying
 
 /**
  * Handle HTTP request and send response
@@ -157,11 +199,23 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    char method[16], path[32], protocol[32];
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", method, path, protocol);
 
     // If GET, handle the get endpoints
-
+    if(strcmp("GET", method) == 0){
+        if(strcmp("/d20", path) == 0){
+            // how do I handle it?
+            get_d20(fd);
+        }else{
+            // int fd, struct cache *cache, char *request_path
+            // printf("\n IN ELSE \n");
+            get_file(fd, cache, path);
+        }
+    }else{
+        printf("\nInvalid request method: %s not implemented yet\n", method);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -177,7 +231,6 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
-
     struct cache *cache = cache_create(10, 0);
 
     // Get a listening socket
