@@ -58,6 +58,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%s", header, content_type, content_length, body);
+
+    int response_length = strlen(header) + content_length;
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -153,11 +156,10 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
+    resp_404(fd);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
@@ -193,7 +195,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -213,7 +215,6 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
         handle_http_request(newfd, cache);
 
         close(newfd);
