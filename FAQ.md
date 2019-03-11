@@ -252,6 +252,148 @@ There are two options here:
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>I tried to do the <tt>telnet</tt> demo, but it instantly comes back with a 501 response.</b></summary><p>
+
+Telnet can optionally send some control commands back and forth per the [telnet
+protocol](https://tools.ietf.org/html/rfc854) and it seems the Windows version
+of telnet does this. Try the
+[WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) version.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>What's the main difference between TCP and UDP, and when to use each?</b></summary><p>
+
+TCP offers:
+
+* Error-free data (nothing corrupted)
+* In order data (nothing out of order)
+* Non-duplicated data (no duplicate packets)
+* Complete data (nothing missing)
+
+UDP offers:
+
+* Error-free data (nothing corrupted)
+
+and none of the rest of it.
+
+UDP is a simpler, lower-overhead protocol. It is used in applications where
+speed is a priority and data can be lost without a problem. Skype calls are a
+great example. If you lose 100 ms of content, you can often still understand the
+caller. And if not, we have a protocol for fixing it at the human level ("You
+broke up there--can you say that again?").
+
+Another good UDP use case is sending player data to other players in an MMO. If
+you drop a packet, you'll get the next update in 1/30th of a second, so no big
+loss.
+
+But player type-written chat data, that's something else. When you send a chat,
+you expect it to arrive. TCP is much better.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Does the "T" in TCP stand for Transport or Transmission?</b></summary><p>
+
+It stands for [Transmission](https://tools.ietf.org/html/rfc793).
+
+Confusingly, it is located at the Transport layer of the [OSI layered network
+model](https://en.wikipedia.org/wiki/OSI_model).
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>How are UDP packets lost?</b></summary><p>
+
+The non-answer is that from our perspectives as programmers, it doesn't matter.
+Could have been goats chewing on cables, could have been a meteorite strike,
+could have been the Norse god Loki up to his usual tricks. The data was lost,
+end of story.
+
+But _how_?
+
+One common way is that one of the computers along the route was simply
+overloaded. It was busy routing packets, and one of them came in and was
+ignored. Internet routers make best effort to forward packets, but they don't
+guarantee it. If large numbers of packets are being lost, the network is
+over-congested and needs to have some of the load lightened.
+
+Also, if any of the packets were corrupted in transit (which could commonly be
+due to radio interference on wifi or noisy copper wires), those packets are
+dropped immediately.
+
+Less frequently, the physical medium gets disrupted. Backhoes go through fiber.
+Entire countries have had their internet cut off when a ship anchor dragged over
+their internet backbone.
+
+In those cases, the internet tries to heal the problem by routing around the
+damage, if possible.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>What are the layers of the network stack?</b></summary><p>
+
+The full stack is described in [OSI layered network
+model](https://en.wikipedia.org/wiki/OSI_model). But this is overkill for
+understanding the model in a practical sense.
+
+The simplified four-layer model commonly in use from a programmer perspective:
+
+|       Layer       | Example Protocols                   |
+|:-----------------:|:------------------------------------|
+| Application Layer | HTTP, HTTPS, FTP, TELNET, TFTP, SSH |
+|  Transport Layer  | TCP, UDP                            |
+|   Network Layer   | IP                                  |
+|    Link Layer     | Ethernet                            |
+
+</p></details></p>
+
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>How do you know which layer of the network stack is causing a problem?</b></summary><p>
+
+It's comes down to learning how to troubleshoot network problems.
+
+You start at the lowest layer. Do we have a link-layer (Ethernet) connection to
+the other device?
+
+If so, then you move up a layer. Do we have an IP layer connection to the
+device?
+
+For connectivity, it's almost always one of those.
+
+TCP layer issues are rare, and are usually a consequence of issues at the IP or
+Ethernet layer.
+
+Presentation layer issues (HTTP, FTP, etc) tend to be program bugs, and you just
+debug them normally.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>What does the <tt>flags</tt> parameter do in <tt>send()</tt> and <tt>recv()</tt>?</b></summary><p>
+
+It gives you additional control over how the data is sent. (Using `read()` or
+`write()` with a socket descriptor is the same as calling `recv()` or `send()`
+with the `flags` set to `0`.)
+
+Practically speaking, the only flag that is remotely commonly used is `MSG_OOB`,
+which is used to send _out of band_ data to the receiver. This is data that can
+be logically thought of as being being outside the normal data stream, e.g. for
+priority or exception data. The receiving side gets a signal indicating that
+some out of band data has arrived and that normal processing should be
+interrupted to handle it.
+
+</p></details></p>
 
 <!--
 TODO:
@@ -265,4 +407,5 @@ Template:
 
 <p><details><summary><b></b></summary><p>
 </p></details></p>
+
 -->
