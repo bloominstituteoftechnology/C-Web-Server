@@ -58,7 +58,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%s", header, content_type, content_length, body);
+    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%p", header, content_type, content_length, body);
 
     int response_length = strlen(header) + content_length;
 
@@ -83,8 +83,10 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    int *roll;
+    roll = (rand() % 20) + 1;
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", roll, sizeof(roll));
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -147,6 +149,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char *handle;
+    char *endpoint;
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -156,11 +160,21 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    resp_404(fd);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
     // Read the three components of the first request line
+    sscanf(request, "%s %s", handle, endpoint);
+
+    if(strcmp(handle, "GET") == 0) {
+        if(strcmp(endpoint, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, endpoint);
+        }
+    } else {
+        resp_404(fd);
+    }
 
     // If GET, handle the get endpoints
 
