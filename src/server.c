@@ -52,12 +52,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-
+    
     // Build HTTP response and store it in response
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    sprintf(response, "%s\n" 
+            "Content-Type: %s\n"
+            "Content-Length %d\n" 
+            "Connection: close\n"
+            "\n"
+            "%s",
+            header, content_type, content_length, body
+    );
+
+    printf("%s, response"); // send()
+
+    int response_length = strlen(response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -78,12 +91,20 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
     
     int random_num = 1 + rand()%20;
-
+    char *temp_num = "xx";
+    int sz = snprinf(NULL, 0, temp_num, random_num);
+    char random_str_num[sz + 1];
+    snprintf(random_str_num, sizeof random_str_num, temp_num, random_num);
+    int r_num_len = strlen(random_str_num);
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_str_num, r_num_len);
+
+    return 0;
 }
 
 /**
@@ -157,7 +178,7 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-
+// GET /example HTTP/1.1
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case

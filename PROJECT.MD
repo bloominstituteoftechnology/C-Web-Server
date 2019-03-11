@@ -16,10 +16,23 @@ Already done:
 * `cache.h` and `cache.c` are where you will implement the LRU cache functionality for days 3 and 4
 
 
-Start at main (server.c)
-Start listening for connections
-When a connection arrives, receive the request data.
-Parse the reqest data.
-Build response data.
-Send response data.
-Close the connection and wait for the next one.
+## Start at main (in server.c)
+- Start listening for connections
+- When a connection arrives, receive the request data.
+- Parse the reqest data.
+- Build response data.
+- Send response data.
+- Close the connection and wait for the next one.
+
+handle_http_request() (in server.c)
+implement
+
+/d20() implement
+
+
+send_response() implement
+
+
+get_file() implement
+
+
