@@ -52,19 +52,35 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    time_t t = time(NULL);
+
+    //printf("Body: %s", body);
 
     // Build HTTP response and store it in response
-
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // HTTP/1.1 200 OK
+    // Date: Wed Dec 20 13:05:11 PST 2017
+    // Connection: close
+    // Content-Length: 41749
+    // Content-Type: text/html
+    int response_length = sprintf(response, 
+            "%s\n"
+            "Content-Type: %s\n"
+            "Content-Length: %d\n"
+            "Connection: close\n"   
+            "\n",
+            header, content_type,content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    memcpy(response + response_length, body, content_length);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
-    }
+    }  
 
     return rv;
 }
@@ -76,13 +92,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    printf("Triggered");
+    int min = 1;
+    int max = 20;
+    char result[8];
+    int d20 = (rand() % (max - min)) + min;
+    printf("%d", d20);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    
     // Use send_response() to send it back as text/plain data
-
+    sprintf(result, "%d\n", d20);
+    printf("Result: %s", result);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", result, strlen(result));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -100,7 +123,6 @@ void resp_404(int fd)
     // Fetch the 404.html file
     snprintf(filepath, sizeof filepath, "%s/404.html", SERVER_FILES);
     filedata = file_load(filepath);
-
     if (filedata == NULL) {
         // TODO: make this non-fatal
         fprintf(stderr, "cannot find system 404 file\n");
@@ -119,10 +141,26 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    snprintf(filepath, sizeof filepath, "./serverroot%s", request_path);
+    filedata = file_load(filepath);
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find system 404 file\n");
+        resp_404(fd);
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
+
+
 
 /**
  * Search for the end of the HTTP header
@@ -144,19 +182,35 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[8], path[16], protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
-
+    
     if (bytes_recvd < 0) {
         perror("recv");
         return;
     }
+    //printf("%s", path);
+    sscanf(request, "%s %s %s", method, path, protocol);
+    if(strcmp(method, "GET") == 0){
+        if(strcmp(path, "/d20") == 0){
+            return get_d20(fd);
+        } else if (path[1]){
+            return get_file(fd,cache,path);
+        }
+        return resp_404(fd);
+        //return get_file(fd,cache,path);
+    }
+    return resp_404(fd);
+
 
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+
 
     // Read the three components of the first request line
 
@@ -182,7 +236,7 @@ int main(void)
 
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
-
+    //resp_404(listenfd);
     if (listenfd < 0) {
         fprintf(stderr, "webserver: fatal error getting listening socket\n");
         exit(1);
