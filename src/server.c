@@ -81,7 +81,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     response_length = strlen(response);
 
     // Send it all!
-    printf("response: %s\n", response);
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0)
@@ -97,14 +96,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
 
+    // Generate a random number between 1 and 20 inclusive
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Use send_response() to send it back as text/plain data
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -179,13 +176,27 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char *method[50];
+    char *path[200];
+    char *HTTP[50];
 
     // Read the three components of the first request line
-
+    sscanf(request, "%s %s %s", method, path, HTTP);
     // If GET, handle the get endpoints
+    if (strcmp(method, "GET") == 0)
+    {
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+        //    Check if it's /d20 and handle that special case
+        if (strncmp(path, "/d20", 4) == 0)
+        {
+            get_d20(fd);
+        }
+        else
+        {
+            resp_404(fd);
+        }
+        //    Otherwise serve the requested file by calling get_file()
+    }
 
     // (Stretch) If POST, handle the post request
 }
@@ -235,8 +246,6 @@ int main(void)
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
-        resp_404(newfd);
 
         handle_http_request(newfd, cache);
 
