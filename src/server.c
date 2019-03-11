@@ -53,17 +53,26 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
     // Build HTTP response and store it in response
+    int response_length = strlen(body);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //time
+    time_t rawtime;
+    struct tm *info;
+    time (&rawtime);
+    info = localtime(&rawtime);
+
+    //build header
     sprintf(response, 
         "%s\n"
+        "Date: %s\n"
         "Content-type: %s\n"
         "Content-length: %d\n"
         "Connection: close\n"
         "\n"
-        "%s\n", header, content_type, content_length, body
+        "%s\n", header, asctime(info), content_type, content_length, body
     );
 
     // Send it all!
@@ -166,6 +175,10 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    char method[512];
+    char path[8192];
+    //char request_body
+    sscanf(request, "%s %s %s", method, path);
 
     // If GET, handle the get endpoints
 
