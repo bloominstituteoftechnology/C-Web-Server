@@ -94,6 +94,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    char body[3];
+    int random_int = rand() % 21;
+    sprintf(body, "%d", random_int);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
     // Generate a random number between 1 and 20 inclusive
     
     ///////////////////
@@ -172,7 +176,20 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    char method[200];
+    char path[8192];
+  
+    sscanf(request, "%s %s", method, path);
 
+    if(strcmp(method, "GET") == 0 & strcmp(path, "/d20") == 0)
+    {
+        get_d20(fd);
+    }
+    else
+    {
+        resp_404(fd);
+    }
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -212,7 +229,6 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    resp_404(listenfd);
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
