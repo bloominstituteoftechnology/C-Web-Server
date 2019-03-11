@@ -149,8 +149,16 @@ void get_file(int fd, struct cache *cache, char *request_path)
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
-    if (filedata == NULL) {
-        // TODO: make this non-fatal
+    if (filedata == NULL & strcmp(request_path, "/") == 0) {
+        fprintf(stderr, "cannot find %s\n", request_path);
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+        filedata = file_load(filepath);
+        mime_type = mime_type_get(filepath);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+        return;
+    }
+    else if (filedata == NULL) {
         fprintf(stderr, "cannot find %s\n", request_path);
         exit(3);
     }
