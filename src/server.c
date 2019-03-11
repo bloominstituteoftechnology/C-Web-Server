@@ -70,7 +70,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
                                   content_length, 
                                   body);
 
-    // Send it all!
+    // Send it all! 
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -227,6 +227,7 @@ int main(void)
 
         handle_http_request(newfd, cache);
 
+        resp_404(newfd);
         close(newfd);
     }
 
