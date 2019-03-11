@@ -373,7 +373,7 @@ For connectivity, it's almost always one of those.
 TCP layer issues are rare, and are usually a consequence of issues at the IP or
 Ethernet layer.
 
-Presentation layer issues (HTTP, FTP, etc) tend to be program bugs, and you just
+Application layer issues (HTTP, FTP, etc) tend to be program bugs, and you just
 debug them normally.
 
 </p></details></p>
