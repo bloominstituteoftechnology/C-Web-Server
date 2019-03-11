@@ -351,7 +351,7 @@ The simplified four-layer model commonly in use from a programmer perspective:
 | Application Layer | HTTP, HTTPS, FTP, TELNET, TFTP, SSH |
 |  Transport Layer  | TCP, UDP                            |
 |   Network Layer   | IP                                  |
-|    Link Layer     | Ethernet                            |
+|    Link Layer     | Ethernet (wifi or wired)            |
 
 </p></details></p>
 
