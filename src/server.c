@@ -59,8 +59,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
+
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int response_length = sprintf(response, "%s\nConnection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n", header, content_length, content_type);
+
+  
 
     if (rv < 0) {
         perror("send");
