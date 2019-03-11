@@ -59,13 +59,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
-    sprintf(response, "%s\n" 
-            "Content-Type: %s\n"
-            "Content-Length %d\n" 
-            "Connection: close\n"
-            "\n"
-            "%s",
-            header, content_type, content_length, body
+    snprintf(response, max_response_size,
+        "%s\n" 
+        "Content-Type: %s\n"
+        "Content-Length %d\n" 
+        "Connection: close\n"
+        "\n"
+        "%s",
+        header, content_type, content_length, body
     );
 
     printf("%s", response); // send()
@@ -170,20 +171,30 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
+    // resp_404(fd);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
     // char *first_line = "";
-    char method[200];
+    char method[512];
     char path[8192];
-    sscanf(request, "%s %s HTTP/1.1", method, path);
+    char http_v[512];
+
+    sscanf(request, "%s %s %s", method, path, http_v);
+
+    printf("Method, path, http_v: %s %s %s\n", method, path, http_v);
 
     // Read the three components of the first request line
 // GET /example HTTP/1.1
     // If GET, handle the get endpoints
-
+    if (strcmp(method, "GET") == 0) {
+        send_response(fd, "http/1.1 200 OK", "text/plain", "I got it.", 9);
+    } else if (strcmp(method, "POST") == 0) {
+        send_response(fd, "http/1.1 201 Created", "text/plain", "Stretch", 7);
+    } else {
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -215,7 +226,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    resp_404(listenfd);
+    // resp_404(listenfd);
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
