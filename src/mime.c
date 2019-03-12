@@ -27,7 +27,7 @@ char *mime_type_get(char *filename)
         return DEFAULT_MIME_TYPE;
     }
     
-    ext++;
+    ext++; // move to character after . in ext names (.html)
 
     strlower(ext);
 
