@@ -55,7 +55,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
     // change this to be the content length from return value
-    int response_length = sprintf(response, "%s\n"
+    int response_length = snprintf(response, max_response_size, "%s\n"
             "Content-Type: %s\n"
             // need to add DATE to response
             "Content-Length: %d\n"
@@ -142,7 +142,27 @@ void resp_404(int fd)
 void get_file(int fd, struct cache *cache, char *request_path)
 {
     ///////////////////
-    // IMPLEMENT ME! //
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch the requested file
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        // TODO: make this non-fatal
+        fprintf(stderr, "cannot find system requested file\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
+
+    (void) cache;
     ///////////////////
 }
 
@@ -156,6 +176,8 @@ char *find_start_of_body(char *header)
 {
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
+    (void) header;
+    return NULL;
     ///////////////////
 }
 
@@ -168,7 +190,6 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
     char method[200];
     char path[8192];
-    char *get_method = "GET";
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -187,11 +208,13 @@ void handle_http_request(int fd, struct cache *cache)
     sscanf(request, "%s %s", method, path);
     // printf("method: \"%s\"\n", method);
     // printf("path: \"%s\"\n", path);
-
+    (void) cache;
     // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0) {
         if (strcmp(path, "/d20") == 0) {
             get_d20(fd);
+        } else if (strcmp(path, "/index.html") == 0) {
+            get_file(fd, cache, path);
         } else {
             resp_404(fd);
         }
