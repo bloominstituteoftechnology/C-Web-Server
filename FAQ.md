@@ -395,6 +395,40 @@ interrupted to handle it.
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>What is that <tt>fd</tt> variable?</b></summary><p>
+
+`fd` is the traditional name of a variable that holds a _file descriptor_.
+
+In our web server, this is a number that represents a network connection. (Since
+a program might have several connections open at once, it needs to be able to
+tell the OS which connection it wants to send data to.)
+
+Where does it come from?
+
+The server is normally sitting quietly waiting for new connections to arrive. It
+does this by calling the `accept()` syscall, where it blocks until someone
+connects. At that point `accept()` returns a new file descriptor representing
+the connection. It is this file descriptor that is used in subsequent `send()`
+and `recv()` calls.
+
+Since this file descriptor represents a socket, some documentation refers to it
+as a _socket descriptor_. It's the same as a file descriptor, just different
+terminology.
+
+In Unix, the old saying goes, _everything_ is a file. What this means is that if
+you open a text file for reading, you get a file descriptor back and can use
+that with `read()` and `write()` calls. But it also means that if you call
+`socket()` or `accept()`, you get a socket descriptor back and you can use that
+with `read()` and `write()` calls! Even though one is a traditional file on
+disk, and the other is a socket, the OS treats them both like files.
+
+Turns out with sockets, a `write()` is the same as a `send()` with the `flags`
+parameter set to `0`. Same with `read()` and `recv()`.
+
+</p></details></p>
+
 <!--
 TODO:
 
