@@ -11,10 +11,6 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
   ///////////////////
   // IMPLEMENT ME! //
-  // (void)path;
-  // (void)content_type;
-  // (void)content;
-  // (void)content_length
   ///////////////////
 }
 
