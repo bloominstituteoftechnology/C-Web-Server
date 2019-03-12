@@ -38,7 +38,6 @@
 
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
-#define RAND_MAX 20
 
 /**
  * Send an HTTP response
@@ -61,12 +60,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
             "Content-Length: %d\n"
             "Connection: close\n"
             "\n"
-            "%p", header, content_type, content_length, body
+            "%s", header, content_type, content_length, body
             );
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    printf("%s/n", response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -84,15 +82,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // printf("inside get_d20\n");
     // Generate a random number between 1 and 20 inclusive
-    // srand(time(0));
-    printf("%d\n", rand());
+    int random_value;
+    char body[500000];
+
+    srand(time(0));
+    int get_random() {
+        int num = (rand() % (20 - 1 + 1)) + 1;
+        return num;
+    }
+
+    random_value = get_random();
+    
+    sprintf(body, "<h1>%d</h1>", random_value);
+
+    int content_length = strlen(body);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, content_length);
 
     ///////////////////
     // IMPLEMENT ME! //
