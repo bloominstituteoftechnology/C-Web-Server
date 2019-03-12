@@ -52,7 +52,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
     // Build HTTP response and store it in response
 
     ///////////////////
@@ -65,9 +66,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "Connection: close\n"
         "\n"
         "%s",
-        header,
-        content_type,
-        content_length,
+        header, 
+        asctime(tm), 
+        content_type, 
+        content_length, 
         body
     );
 
@@ -118,7 +120,8 @@ void resp_404(int fd)
     if (filedata == NULL)
     {
         // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
+        // fprintf(stderr, "cannot find system 404 file\n");
+        resp_404(fd);
         exit(3);
     }
 
@@ -137,11 +140,19 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char file_path[1024];
-    struct data *data;
+    char file_path[4096];
+    struct file_data *filedata;
     char * mime_type;
 
-    sprintf();
+    sprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(file_path);
+
+    if(filedata == NULL){
+        resp_404(fd);
+        return;
+    }
+    mime_type = mime_type_get(file_path);
+    send_response(fd, "HTTP 200 OK", mime_type, filedata->data, filedata->size);
 }
 
 /**
