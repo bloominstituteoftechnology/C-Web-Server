@@ -9,9 +9,13 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  ///////////////////
+  // IMPLEMENT ME! //
+  // (void)path;
+  // (void)content_type;
+  // (void)content;
+  // (void)content_length
+  ///////////////////
 }
 
 /**
@@ -19,9 +23,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  ///////////////////
+  // IMPLEMENT ME! //
+  ///////////////////
 }
 
 /**
@@ -29,16 +33,19 @@ void free_entry(struct cache_entry *entry)
  */
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
-    // Insert at the head of the list
-    if (cache->head == NULL) {
-        cache->head = cache->tail = ce;
-        ce->prev = ce->next = NULL;
-    } else {
-        cache->head->prev = ce;
-        ce->next = cache->head;
-        ce->prev = NULL;
-        cache->head = ce;
-    }
+  // Insert at the head of the list
+  if (cache->head == NULL)
+  {
+    cache->head = cache->tail = ce;
+    ce->prev = ce->next = NULL;
+  }
+  else
+  {
+    cache->head->prev = ce;
+    ce->next = cache->head;
+    ce->prev = NULL;
+    cache->head = ce;
+  }
 }
 
 /**
@@ -46,25 +53,27 @@ void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
  */
 void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 {
-    if (ce != cache->head) {
-        if (ce == cache->tail) {
-            // We're the tail
-            cache->tail = ce->prev;
-            cache->tail->next = NULL;
-
-        } else {
-            // We're neither the head nor the tail
-            ce->prev->next = ce->next;
-            ce->next->prev = ce->prev;
-        }
-
-        ce->next = cache->head;
-        cache->head->prev = ce;
-        ce->prev = NULL;
-        cache->head = ce;
+  if (ce != cache->head)
+  {
+    if (ce == cache->tail)
+    {
+      // We're the tail
+      cache->tail = ce->prev;
+      cache->tail->next = NULL;
     }
-}
+    else
+    {
+      // We're neither the head nor the tail
+      ce->prev->next = ce->next;
+      ce->next->prev = ce->prev;
+    }
 
+    ce->next = cache->head;
+    cache->head->prev = ce;
+    ce->prev = NULL;
+    cache->head = ce;
+  }
+}
 
 /**
  * Removes the tail from the list and returns it
@@ -73,14 +82,14 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
  */
 struct cache_entry *dllist_remove_tail(struct cache *cache)
 {
-    struct cache_entry *oldtail = cache->tail;
+  struct cache_entry *oldtail = cache->tail;
 
-    cache->tail = oldtail->prev;
-    cache->tail->next = NULL;
+  cache->tail = oldtail->prev;
+  cache->tail->next = NULL;
 
-    cache->cur_size--;
+  cache->cur_size--;
 
-    return oldtail;
+  return oldtail;
 }
 
 /**
@@ -91,26 +100,27 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  ///////////////////
+  // IMPLEMENT ME! //
+  ///////////////////
 }
 
 void cache_free(struct cache *cache)
 {
-    struct cache_entry *cur_entry = cache->head;
+  struct cache_entry *cur_entry = cache->head;
 
-    hashtable_destroy(cache->index);
+  hashtable_destroy(cache->index);
 
-    while (cur_entry != NULL) {
-        struct cache_entry *next_entry = cur_entry->next;
+  while (cur_entry != NULL)
+  {
+    struct cache_entry *next_entry = cur_entry->next;
 
-        free_entry(cur_entry);
+    free_entry(cur_entry);
 
-        cur_entry = next_entry;
-    }
+    cur_entry = next_entry;
+  }
 
-    free(cache);
+  free(cache);
 }
 
 /**
@@ -122,9 +132,9 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  ///////////////////
+  // IMPLEMENT ME! //
+  ///////////////////
 }
 
 /**
@@ -132,7 +142,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+  ///////////////////
+  // IMPLEMENT ME! //
+  ///////////////////
 }
