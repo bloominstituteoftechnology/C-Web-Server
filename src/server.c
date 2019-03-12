@@ -52,11 +52,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-    int response_length = strlen(response);
 
     // Build HTTP response and store it in response
-    sprintf(response, "%s\n"
+    // change this to be the content length from return value
+    int response_length = sprintf(response, "%s\n"
             "Content-Type: %s\n"
+            // need to add DATE to response
             "Content-Length: %d\n"
             "Connection: close\n"
             "\n"
@@ -94,7 +95,7 @@ void get_d20(int fd)
 
     random_value = get_random();
     
-    sprintf(body, "<h1>%d</h1>", random_value);
+    sprintf(body, "%d\n", random_value);
 
     int content_length = strlen(body);
     ///////////////////
@@ -191,6 +192,8 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(method, "GET") == 0) {
         if (strcmp(path, "/d20") == 0) {
             get_d20(fd);
+        } else {
+            resp_404(fd);
         }
     }
     //    Check if it's /d20 and handle that special case
