@@ -95,7 +95,7 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char str;
+    char str[4];
     int random_number = rand() % 21; //num = (rand() % (upper – lower + 1)) + lower
     sprintf(str, "%d\n", random_number);
 
@@ -142,7 +142,30 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     (void)fd;
     (void)cache;
-    (void)request_path;
+    //read file
+    char filepath[4096];
+    struct file_data *file_data; //loads file into memory and returns pointer to data
+    char *mime_type;
+    //fetch file
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path); 
+    if (entry == NULL)
+        {
+    filedata = file_load(filepath);
+
+        if (filedata == NULL) 
+            {
+                // TODO: make this non-fatal
+                fprintf(stderr, "cannot find file\n");
+                exit(3);
+            }
+        }
+    //get mimetype
+    mime_type = mime_type_get(filepath);
+    //send file out
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    //then free data bc loaded these data into memory
+    file_free(filedata);
+    //server files v root
 }
 
 /**
