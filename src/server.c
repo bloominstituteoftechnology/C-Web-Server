@@ -137,16 +137,23 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
+    struct cache_entry *cached_file = cache_get(cache, request_path);
     
-    sprintf(filepath, "./serverroot%s", request_path);
-    
-    filedata = file_load(filepath);
-    
-    mime_type = mime_type_get(filepath);
-    
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-    
-    file_free(filedata);
+    if (cached_file != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", cached_file->content_type, cached_file->content, cached_file->content_length);
+    } else {
+        sprintf(filepath, "./serverroot%s", request_path);
+        
+        mime_type = mime_type_get(filepath);
+        
+        filedata = file_load(filepath);
+        
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+        
+        file_free(filedata);
+    }
 }
 
 /**
@@ -183,7 +190,6 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     sscanf(request, "%s %s", method, path);
     
-    printf("%s\n", path);
     // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0) {
         if (strcmp(path, "/d20") == 0) {
