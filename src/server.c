@@ -52,7 +52,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-    int response_length;
 
     time_t rawtime;
     struct tm *timestamp;
@@ -63,23 +62,28 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     timestamp = localtime(&rawtime);
     strftime(buffer, 100, "%a %b %d %T %Z %Y", timestamp);
     // Build HTTP response and store it in response
-    char *newBody = body;
 
-    sprintf(response, "%s\n"
-                      "Date: %s\n"
-                      "Connection: close\n"
-                      "Content-Length: %d\n"
-                      "Content-Type: %s\n"
-                      "\n"
-                      "%s\n",
-            header, buffer, content_length, content_type, newBody);
-
-    response_length = strlen(response);
+    int response_length = snprintf(
+        response, max_response_size,
+        "%s\n"
+        "Date: %s\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n",
+        header, buffer, content_length, content_type);
 
     // Send it all!
     // To get binary working memcopy or two sends (one response, two body)
     // Talked about in Tuesday lecture
     int rv = send(fd, response, response_length, 0);
+
+    if (rv < 0)
+    {
+        perror("send");
+    }
+
+    rv = send(fd, body, content_length, 0);
 
     if (rv < 0)
     {
@@ -146,12 +150,13 @@ void get_file(int fd, struct cache *cache, char *request_path)
     if (filedata == NULL)
     {
         resp_404(fd);
+        return;
     }
-    else
-    {
-        mime_type = mime_type_get(filepath);
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-    }
+
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
