@@ -59,11 +59,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     timestamp = localtime(&time_res);
     strftime(buffer, 50, "%a %b %d %T %Z %Y", timestamp);
-    // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    
     char *new_body = body;
 
     sprintf(response, "%s\n"
@@ -78,7 +74,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int response_length = strlen(response);
 
     printf("Response: %s\n", response);
-    // Send it all!
+    
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -98,17 +94,6 @@ void get_d20(int fd)
     int random_int = rand() % 21;
     sprintf(body, "%d", random_int);
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
-    // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -198,8 +183,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-
-    // Read request
+    
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
@@ -220,19 +204,6 @@ void handle_http_request(int fd, struct cache *cache)
     {
         get_file(fd, cache, path);
     }
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the three components of the first request line
-
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
     // (Stretch) If POST, handle the post request
 }
 

@@ -11,7 +11,6 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
     struct cache_entry *new_cache_entry = malloc(sizeof(struct cache_entry));
 
-    // deep copy
     new_cache_entry->path = malloc(strlen(path) + 1);
     strcpy(new_cache_entry->path, path);
 
