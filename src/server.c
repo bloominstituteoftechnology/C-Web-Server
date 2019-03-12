@@ -140,12 +140,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
     mime_type = mime_type_get(filepath);
 
     if(filedata == NULL) {
-        fprintf(stderr, "%s", request_path);
+        resp_404(fd);
     } else {
         send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
     }
 
-    //file_free(filedata);
 }
 
 /**
@@ -168,8 +168,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char *action;
-    char *endpoint;
+    char action[100];
+    char endpoint[100];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
