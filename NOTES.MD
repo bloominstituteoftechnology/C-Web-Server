@@ -284,3 +284,30 @@ int main(void)
 }
 ```
 
+## Cache
+
+Get Requests
+GET /index.html
+GET /index.html
+GET /style.css
+GET /foo.gif
+GET /style.css
+GET /index.html
+
+Cache(3)        Disk
+
+
+
+head               tail
+
+bar -> foo -> style
+style -> bar -> foo
+
+|||||||HASHTABLE|||||||
+index <-> style <-> bar
+
+Add a cache miss to head of list O(1)
+Remove LRU from end of list O(1)
+Remove LRU from hashtable O(1)
+
+Item in cache? O(1)
