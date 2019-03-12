@@ -197,7 +197,6 @@ void handle_http_request(int fd, struct cache *cache)
         }
     }
     
-
     // (Stretch) If POST, handle the post request
 }
 
