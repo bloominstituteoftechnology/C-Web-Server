@@ -58,7 +58,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%p", header, content_type, content_length, body);
+    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%s", header, content_type, content_length, body);
 
     int response_length = strlen(header) + content_length;
 
@@ -76,6 +76,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 /**
  * Send a /d20 endpoint response
  */
+/*
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
@@ -92,6 +93,7 @@ void get_d20(int fd)
     // IMPLEMENT ME! //
     ///////////////////
 }
+*/
 
 /**
  * Send a 404 response
@@ -127,6 +129,23 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+
+    filedata = file_load(filepath);
+
+    mime_type = mime_type_get(filepath);
+
+    if(filedata == NULL) {
+        fprintf(stderr, "%s", request_path);
+    } else {
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    }
+
+    //file_free(filedata);
 }
 
 /**
@@ -149,7 +168,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-    char *handle;
+    char *action;
     char *endpoint;
 
     // Read request
@@ -160,21 +179,16 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    (void)cache;
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
     // Read the three components of the first request line
-    sscanf(request, "%s %s", handle, endpoint);
+    sscanf(request, "%s %s", action, endpoint);
 
-    if(strcmp(handle, "GET") == 0) {
-        if(strcmp(endpoint, "/d20") == 0) {
-            get_d20(fd);
-        } else {
-            get_file(fd, cache, endpoint);
-        }
-    } else {
-        resp_404(fd);
-    }
+
+    get_file(fd, cache, endpoint);
 
     // If GET, handle the get endpoints
 
