@@ -92,16 +92,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char str;
+    int random_number = rand() % 21; //num = (rand() % (upper – lower + 1)) + lower
+    sprintf(str, "%d\n", random_number);
 
     // Use send_response() to send it back as text/plain data
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", str, strlen(str));
 }
 
 /**
@@ -200,7 +202,7 @@ void handle_http_request(int fd, struct cache *cache)
         }
     
     // (Stretch) If POST, handle the post request
-    if (strcmp(method, "POST") == 0)
+    //if (strcmp(method, "POST") == 0)
 }
 
 /**
