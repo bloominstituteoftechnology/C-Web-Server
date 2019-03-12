@@ -119,7 +119,6 @@ void resp_404(int fd)
         // TODO: make this non-fatal
         // fprintf(stderr, "cannot find system 404 file\n");
         resp_404(fd);
-        return;
     }
 
     mime_type = mime_type_get(filepath);
@@ -146,7 +145,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     if (filedata == NULL){
         resp_404(fd);
-        return;
     }
 
     mime_type = mime_type_get(filepath);
