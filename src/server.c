@@ -138,6 +138,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    (void)fd;
+    (void)cache;
+    (void)request_path;
 }
 
 /**
@@ -151,6 +154,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    (void)header;
 }
 
 /**
@@ -158,6 +162,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+    (void)cache;  //rememember to remove all these voids.  reeeeeeeeemember!
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -169,16 +174,14 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Read the three components of the first request line
     char method[512];
     char path[8192];
     
-    sscanf(request, "%s %s %s", method, path);
+    sscanf(request, "%s %s", method, path);
     printf("method: \"%s\"\n", method);
     printf("path: \"%s\"\n", path);
 
@@ -187,18 +190,17 @@ void handle_http_request(int fd, struct cache *cache)
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
     if (strcmp(method, "GET") == 0)
-        if (strcmp(path, xxxxxx) == 0)
+        if (strcmp(path, "/d20") == 0) //strcmp returns 0 if equal
         {
-            //get something
+            get_d20(fd);
         }
         else
         {
             resp_404(fd);
         }
     
-
-
     // (Stretch) If POST, handle the post request
+    if (strcmp(method, "POST") == 0)
 }
 
 /**
