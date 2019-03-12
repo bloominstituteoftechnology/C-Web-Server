@@ -52,18 +52,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    
     // Build HTTP response and store it in response
-    int response_length = sprintf(response,"HTTP/1.1 200 OK\n"
-            "Content-Type: text/html\n"
+    int response_length = sprintf(response,"%s\n"
+            "Content-Type: %s\n"
             "Content-Length: %d\n"
             "Connection: close\n"
-            "\n"
-            "%s",
-            "\n", header, content_type, body );
+            "\n", header, content_type, content_length);
 
+    // update response size with adding response length
+    memcpy(response + response_length, body, content_length);
+
+// HTTP/1.1 404 NOT FOUND
+// Date: Wed Dec 20 13:05:11 PST 2017
+// Connection: close
+// Content-Length: 13
+// Content-Type: text/plain
+
+// 404 Not Found
     printf("RESPONSE: %s\n", response);
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -208,7 +217,6 @@ int main(void)
             continue;
         }
 
-        resp_404(newfd);
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
