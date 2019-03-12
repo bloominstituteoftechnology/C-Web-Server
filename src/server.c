@@ -53,7 +53,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
     // Build HTTP response and store it in response
-
     int response_length = sprintf(response,"HTTP/1.1 200 OK\n"
             "Content-Type: text/html\n"
             "Content-Length: %d\n"
@@ -62,6 +61,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
             "%s",
             "\n", header, content_type, body );
 
+    printf("RESPONSE: %s\n", response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -208,6 +208,7 @@ int main(void)
             continue;
         }
 
+        resp_404(newfd);
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
