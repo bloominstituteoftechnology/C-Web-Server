@@ -63,10 +63,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     timestamp = localtime(&rawtime);
     strftime(buffer, 100, "%a %b %d %T %Z %Y", timestamp);
     // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char *newBody = body;
 
     sprintf(response, "%s\n"
@@ -81,6 +77,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     response_length = strlen(response);
 
     // Send it all!
+    // To get binary working memcopy or two sends (one response, two body)
+    // Talked about in Tuesday lecture
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0)
@@ -96,15 +94,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-
+    char str[5];
     // Generate a random number between 1 and 20 inclusive
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int num = (rand() % (20 - 1 + 1) + 1);
+    // Convert number to string
+    sprintf(str, "%d", num);
     // Use send_response() to send it back as text/plain data
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", str, strlen(str));
 }
 
 /**
@@ -138,6 +134,9 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+    (void)fd;
+    (void)cache;
+    (void)request_path;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -151,9 +150,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
  */
 char *find_start_of_body(char *header)
 {
+    (void)header;
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return NULL;
 }
 
 /**
@@ -161,6 +162,8 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+    (void)cache;
+
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -173,12 +176,9 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    char *method[50];
-    char *path[200];
-    char *HTTP[50];
+    char method[50];
+    char path[200];
+    char HTTP[50];
 
     // Read the three components of the first request line
     sscanf(request, "%s %s %s", method, path, HTTP);
