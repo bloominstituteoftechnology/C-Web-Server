@@ -129,6 +129,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    // Fetch index.html
+    if (strcmp(request_path, "/") == 0 || strcmp(request_path, "/index.html") == 0)
+    {
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+    }
+    else
+    {
+        snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    }
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -185,8 +212,9 @@ void handle_http_request(int fd, struct cache *cache)
     }
     else
     {
-        resp_404(fd);
+        get_file(fd, cache, path);
     }
+    resp_404(fd);
     // (Stretch) If POST, handle the post request
 }
 
