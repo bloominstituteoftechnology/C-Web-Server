@@ -109,7 +109,7 @@ void get_d20(int fd)
 void resp_404(int fd)
 {
     char filepath[4096];
-    struct file_data *filedata; 
+    struct file_data *filedata;
     char *mime_type;
 
     // Fetch the 404.html file
@@ -134,9 +134,19 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    
+    sprintf(filepath, "./serverroot%s", request_path);
+    
+    filedata = file_load(filepath);
+    
+    mime_type = mime_type_get(filepath);
+    
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    
+    file_free(filedata);
 }
 
 /**
@@ -173,16 +183,18 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the three components of the first request line
     sscanf(request, "%s %s", method, path);
     
+    printf("%s\n", path);
     // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0) {
         if (strcmp(path, "/d20") == 0) {
             //    Check if it's /d20 and handle that special case
             get_d20(fd);
-        } else {
+        } else if (path != NULL) {
             //    Otherwise serve the requested file by calling get_file()
+            get_file(fd, cache, path);
+        } else {
             resp_404(fd);
         }
-
     }
     
 
