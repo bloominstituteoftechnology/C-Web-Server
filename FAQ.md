@@ -429,6 +429,71 @@ parameter set to `0`. Same with `read()` and `recv()`.
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>What is an "octet"?</b></summary><p>
+
+It's another word for _byte_, practically speaking.
+
+Specifically, an octet is a number that is exactly 8 bits long.
+
+Although a byte is also 8 bits long on basically all modern architectures,
+historically there have been systems where a byte was a different number of
+bits.
+
+The term _octet_ removes the ambiguity.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Will we be diving into HTTPS or any type of secured connection protocols?</b></summary><p>
+
+Not in this class.
+
+HTTPS runs HTTP on top of another protocol called
+[TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security). There are [a
+number of TLS implementations you can choose
+from](https://en.wikipedia.org/wiki/Comparison_of_TLS_implementations).
+
+HTTP works the same in both HTTP and HTTPS; with the latter, the TLS layer is
+responsible for the encryption.
+
+But the details of how that is done is beyond the scope of the class.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Will we work with both UDP and TCP on this project or just TCP?</b></summary><p>
+
+Just TCP.
+
+Although there's nothing stopping you from sending HTTP with UDP (heck, there's
+nothing stopping you from writing out your HTTP data by hand and snail-mailing
+it to its destination), TCP provides the reliable transport that HTTP needs, so
+people use TCP. That is, they use HTTP/TCP/IP as opposed to HTTP/UDP/IP.
+
+See also: [RFC 1149](https://tools.ietf.org/html/rfc1149).
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>What C libraries do we need for working with sockets?</b></summary><p>
+
+On a Unix system, you don't need to specify anything additional for the build.
+But you do need to include the proper header files for particular functions
+you're using.
+
+If you want to use the `socket()` syscall, for example, check out the [man page
+for `socket()`](http://man7.org/linux/man-pages/man2/socket.2.html) and it'll
+tell you what files you need to `#include`.
+
+See also: [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/).
+
+</p></details></p>
+
 <!--
 TODO:
 
