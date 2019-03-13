@@ -256,7 +256,9 @@ of end of the data.
 
 There are two options here:
 
-1. Use two calls to `send()`.
+1. Use two calls to `send()`. This ends up working better for large files
+   because your response buffer variable only has to be large enough to hold the
+   header (and not the header plus the body).
 
    1. Use `sprintf()` to make the header, but that's all.
 
@@ -264,7 +266,8 @@ There are two options here:
 
    3. Call `send()` again to send the body.
 
-2. Use `memcpy()` to append the body after the header.
+2. Use `memcpy()` to append the body after the header. Make sure your response
+   buffer is big enough to hold your largest file.
 
    1. Use `sprintf()` to make the header, but that's all.
 
