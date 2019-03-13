@@ -9,9 +9,6 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     char *content_str = (char *) content;
 
 
@@ -32,9 +29,6 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     if (entry != NULL) {
         free(entry->path);
         free(entry->content_type);
@@ -110,9 +104,6 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     struct cache *cache = malloc(sizeof(struct cache));
 
     cache->max_size = max_size;
@@ -151,10 +142,16 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    alloc_entry(path, content_type, content, content_length);
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    dllist_insert_head(cache, entry);
+    hashtable_put(cache->index, path, entry);
+    cache->cur_size++;
+
+    if (cache->cur_size > cache->max_size) {
+        struct cache_entry *oldtail = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, path);
+        free_entry(oldtail);
+    }
 }
 
 /**
@@ -162,7 +159,12 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *entry = hashtable_get(cache->index, path);
+
+    if (entry != NULL) {
+        dllist_move_to_head(cache, entry);
+        return cache->head;
+    } else {
+        return NULL;
+    }
 }
