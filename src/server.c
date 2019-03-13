@@ -28,6 +28,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <sys/file.h>
+#include <time.h>
 #include <fcntl.h>
 #include "net.h"
 #include "file.h"
@@ -93,6 +94,7 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
     const int max_int_size = 16;
     char random_str_num[max_int_size];
+    srand(time(0));
     unsigned int random_num = 1 + rand()%20;
 
     snprintf(random_str_num, max_int_size, "%d\n", random_num
@@ -136,14 +138,27 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
+// 1. Check if the file is in the cache.
+// 2. If it is, serve it. We're done.
+// 3. If it's not in the cache, load it from disk.
+// 4. Save it in the cache.
+// 5. Serve it.
 
+    struct cache_entry * ce = cache_get(cache, request_path);
+
+    if (ce != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", ce->content_type, ce->content, ce->content_length);
+    }
+    
     char filepath[4096];
+    // char filepath[8388608];
     struct file_data *filedata; 
     char *mime_type;
 
     // Fetch Server Root file
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
+  
 
     if (filedata == NULL) {
         if (strcmp(request_path, "/") == 0) {
@@ -160,6 +175,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     mime_type = mime_type_get(filepath);
 
+    if (ce) {
+        send_response(fd, "HTTP/1.1 200 OK", ce->content_type, ce->content, ce->content_length);
+    }
+
+    cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
@@ -184,10 +204,10 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+    // const unsigned long long int request_buffer_size = 8388608;
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
     char method[512];
-    // char original_path[2048];
     char path[2048];
 
     // Read request
@@ -200,23 +220,15 @@ void handle_http_request(int fd, struct cache *cache)
 
 
     sscanf(request, "%s %s", method, path);
-    // strcat(path, SERVER_ROOT);
-    // strcat(path, original_path);
-    // strcat(path, " \0\n");
-    printf("Method, path, http_v: %s %s\n", method, path);
+    printf("Method, path: %s %s\n", method, path);
 
-    // Read the three components of the first request line
-
-    // resp_404(fd);
-    // get_file(fd, cache, path);
-    // If GET, handle the get endpoints
     if (strcmp(method, "GET") == 0) {
         if(strcmp(path, "/d20") == 0) {
             get_d20(fd);
         }
         else {
 
-            get_file(fd, NULL, path);
+            get_file(fd, cache, path);
         }
     } else if (strcmp(method, "POST") == 0) {
         send_response(fd, "HTTP/1.1 201 Created", "text/plain", "Stretch ", 8);
@@ -241,7 +253,7 @@ int main(void)
     char s[INET6_ADDRSTRLEN];
 
     struct cache *cache = cache_create(10, 0);
-
+    
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
 

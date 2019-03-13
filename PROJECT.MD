@@ -24,15 +24,7 @@ Already done:
 - Send response data.
 - Close the connection and wait for the next one.
 
-handle_http_request() (in server.c)
-implement
-
-/d20() implement
-
-
-send_response() implement
-
-
-get_file() implement
+## Create Function & Inverse Function: use reverse order
+- cache_create & cache_free: chache_free frees the cache, thus cache_create must malloc it.
 
 

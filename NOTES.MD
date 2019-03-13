@@ -311,3 +311,39 @@ Remove LRU from end of list O(1)
 Remove LRU from hashtable O(1)
 
 Item in cache? O(1)
+
+## Demo Deep Copy: Lifetime of Pointer malloc
+
+### Deep Copy: type char
+// Go with Option B
+// malloc & strcpy
+
+struct foo {
+    char *p;
+}
+
+struct foo *alloc_foo(char *x) {
+    struct foo *f = malloc(sizeof *f);
+    f->p = x;
+    return f;
+}
+
+struct foo *f1(void) {
+
+    // Option A
+    char s[] = "Hello!";
+
+    // Option B: malloc on the heap
+    char *t = malloc(7);
+    strcpy(t, "Hello!");
+
+
+    struct foo *q = alloc_foo(s); // Option A
+    struct foo *q = alloc_foo(t); // Option B
+    return q;
+}
+
+### Deep Copy type void
+    (void) content;
+    ce->content = malloc(content_length);
+    memcpy(ce->content, content, content_length);
