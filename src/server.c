@@ -126,7 +126,7 @@ void resp_404(int fd)
     if (filedata == NULL) {
         // TODO: make this non-fatal
         fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        resp_404(fd);
     }
 
     mime_type = mime_type_get(filepath);
@@ -151,10 +151,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system requested file\n");
         resp_404(fd);
-        exit(3);
     }
 
     mime_type = mime_type_get(filepath);
@@ -216,7 +213,13 @@ void handle_http_request(int fd, struct cache *cache)
             get_d20(fd);
         } else if ((strcmp(path, "/index.html") == 0) || (strcmp(path, "/cat.png") == 0)) {
             get_file(fd, cache, path);
-        } else {
+        } // else if (strcmp(path, "/") == 0) {
+            // char *home;
+            // home = "index.html";
+            // strcat(path, home);
+            // get_file(fd, cache, path);
+        //} 
+        else {
             resp_404(fd);
         }
     }
