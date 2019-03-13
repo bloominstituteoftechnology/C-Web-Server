@@ -131,15 +131,20 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata; 
     char *mime_type;
     struct cache_entry *entry = cache_get(cache, request_path);
+    
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
 
     if (entry != NULL)
     {
         send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+        printf("\n%s\n", "from cache");
         return;
     }
-    
-    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
+    else
+    {
+        cache_put(cache, request_path, mime_type_get(filepath), filedata->data, filedata->size);
+    }
 
     if (filedata == NULL & strcmp(request_path, "/") == 0) {
         fprintf(stderr, "cannot find %s\n", request_path);
