@@ -58,7 +58,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%s", header, content_type, content_length, body);
+    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%p", header, content_type, content_length, body);
 
     int response_length = strlen(header) + content_length;
 
