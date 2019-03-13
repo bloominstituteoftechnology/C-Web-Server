@@ -38,6 +38,12 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //have to free the cache entry passed in but have to free everything we malloc'ed space for
+    //free everything in sttucture, then free the structure itself so entry last
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
+    free(entry);
 }
 
 /**
