@@ -53,17 +53,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
+    printf("Sending Response\n");
     // Build HTTP response and store it in response
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n%p", header, content_type, content_length, body);
+    int response_length = sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n", header, content_type, content_length);
 
-    int response_length = strlen(header) + content_length;
+    memcpy(response+response_length, body, content_length);
 
+    printf("Response Length:%d", response_length);
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length+content_length, 0);
 
     if (rv < 0) {
         perror("send");
