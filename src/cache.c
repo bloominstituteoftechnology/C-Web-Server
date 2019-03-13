@@ -12,6 +12,12 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
+  struct cache_entry *ce = malloc(sizeof(struct cache_entry));
+  ce->path = path;
+  ce->content_length = content_length;
+  ce->content_type = content_type;
+  ce->content = content;
+  return ce;
 }
 
 /**
@@ -22,6 +28,11 @@ void free_entry(struct cache_entry *entry)
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
+  if (entry != NULL)
+  {
+
+    free(entry);
+  }
 }
 
 /**
@@ -99,6 +110,14 @@ struct cache *cache_create(int max_size, int hashsize)
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
+  struct hashtable *ht = hashtable_create(hashsize, NULL);
+  struct cache *cache_inst = malloc(sizeof(struct cache));
+  cache_inst->head = NULL;
+  cache_inst->tail = NULL;
+  cache_inst->cur_size = 0;
+  cache_inst->max_size = max_size;
+  cache_inst->index = ht;
+  return cache_inst;
 }
 
 void cache_free(struct cache *cache)
@@ -131,6 +150,31 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
   ///////////////////
   // IMPLEMENT ME! //
   ///////////////////
+  struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+
+  dllist_insert_head(cache, entry);
+
+  hashtable_put(cache->index, entry->path, entry);
+
+  // Incremtn the current size of the cache
+  cache->cur_size++;
+
+  // if the cache size is greater than the max size
+
+  if (cache->cur_size > cache->max_size)
+  {
+    // Remove the entry from the hashtable, using the entry's path
+    hashtable_delete(cache->index, cache->tail->path);
+    // Remove the cache entry at the tail of the linked list
+    // Free the cache entry
+    free_entry(dllist_remove_tail(cache));
+
+    // Ensure the size counter for the number of entries in the cache is correct.
+    if (cache->cur_size > cache->max_size)
+    {
+      printf("Cache's current size is bigger than its capacity.");
+    }
+  }
 }
 
 /**

@@ -91,6 +91,7 @@ void get_d20(int fd)
   char res_body[8];
 
   sprintf(res_body, "%d\n", (rand() % 20) + 1);
+  printf(res_body);
 
   send_response(fd, "HTTP/1.1 200 OK", "text/plain", res_body, sizeof(res_body));
 }
