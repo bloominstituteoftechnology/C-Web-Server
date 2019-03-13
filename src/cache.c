@@ -12,6 +12,22 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //allocate space for the struct were going to return
+    struct cache_entry *ce = malloc(sizeof *ce);  //size of dereference ce if dereffed it is cache_entry
+    //set all fields to values being passed in to intialize
+    //have a pointer to something but have to make sure what you are pointing to persists(make sure it doesnt accidentally get freed)
+    ce->path = malloc(strlen(path) + 1); //so make a copy of path we know will persist. +1 for null terminator
+    strcpy(ce->path, path);  //(dest, args) 
+
+    ce->content_type = malloc(strlen(content_type) +1);
+    strcpy(ce->content_type, content_type);
+
+    ce->content = malloc(content_length); //content is void pointer so dont know what type so cant use strlen, but know its length so can use that 
+    memcpy(ce->content, content, content_length);
+
+    ce->content_length = content_length;  //int so dont have to malloc 
+
+    return ce;
 }
 
 /**
@@ -125,6 +141,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
 }
 
 /**
