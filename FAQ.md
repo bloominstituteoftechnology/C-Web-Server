@@ -599,6 +599,68 @@ cache in many respects.
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>I added the <tt>Date</tt> HTTP header using <tt>asctime()</tt> (or <tt>ctime()</tt>) but now everything shows up in my browser as plain text and some of the headers are in the body, as well.</b></summary><p>
+
+`asctime()` and `ctime()` add a newline for you, so you don't need to add one in
+your `sprintf()`.
+
+```c
+sprintf(response, "HTTP/1.1 200 OK\n"
+   "Date: %s\n"   // <-- EXTRA NEWLINE
+   "Connection: close\n"
+```
+
+If you do add the newline, you end up with HTTP data that looks like this:
+
+```http
+HTTP/1.1 200 OK
+Date: Wed Jun 30 21:49:08 1993
+
+Content-Type: text/html
+Content-Length: 201
+Connection: close
+
+<some html body>
+```
+
+That's not what you want. The HTTP header ends at the first blank line. You want
+this:
+
+```http
+HTTP/1.1 200 OK
+Date: Wed Jun 30 21:49:08 1993
+Content-Type: text/html
+Content-Length: 201
+Connection: close
+
+<some html body>
+```
+
+and the way to get that is to take the extra newline out of the `Date` header.
+
+```c
+sprintf(response, "HTTP/1.1 200 OK\n"
+   "Date: %s"   // <-- Newline removed--perfect!
+   "Connection: close\n"
+```
+
+The details are buried in the [`asctime()` man
+page](https://linux.die.net/man/3/asctime):
+
+> The `asctime()` function converts the broken-down time value `tm` into a
+> null-terminated string with the same format as `ctime()`.
+
+> The call `ctime(t)` is equivalent to `asctime(localtime(t))`. It converts the
+> calendar time `t` into a null-terminated string of the form
+>
+>     "Wed Jun 30 21:49:08 1993\n"
+
+Note the included trailing newline.
+
+</p></details></p>
+
 <!--
 TODO:
 
