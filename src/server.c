@@ -52,6 +52,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
     // Build HTTP response and store it in response
 
     ///////////////////
@@ -64,7 +66,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         "Connection: close\n"
         "\n"
         "%s",
-        header, 
+        header,
+        // asctime(tm),
         content_type, 
         content_length, 
         body
