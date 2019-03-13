@@ -14,7 +14,6 @@ struct file_data *file_load(char *filename)
     struct stat buf;
     int bytes_read, bytes_remaining, total_bytes = 0;
 
-    printf("%s", filename);
     // Get the file size
     if (stat(filename, &buf) == -1) {
         return NULL;

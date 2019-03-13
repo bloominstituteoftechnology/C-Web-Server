@@ -60,13 +60,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
             // need to add DATE to response
             "Content-Length: %d\n"
             "Connection: close\n"
-            "\n"
-            "%s", header, content_type, content_length, body
+            "\n", header, content_type, content_length
             );
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    memcpy(response + response_length, body, content_length);
+    response_length += content_length;
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -153,6 +153,7 @@ void get_file(int fd, struct cache *cache, char *request_path)
     if (filedata == NULL) {
         // TODO: make this non-fatal
         fprintf(stderr, "cannot find system requested file\n");
+        resp_404(fd);
         exit(3);
     }
 
@@ -213,7 +214,7 @@ void handle_http_request(int fd, struct cache *cache)
     if (strcmp(method, "GET") == 0) {
         if (strcmp(path, "/d20") == 0) {
             get_d20(fd);
-        } else if (strcmp(path, "/index.html") == 0) {
+        } else if ((strcmp(path, "/index.html") == 0) || (strcmp(path, "/cat.png") == 0)) {
             get_file(fd, cache, path);
         } else {
             resp_404(fd);
