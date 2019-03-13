@@ -46,7 +46,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 65536;
+    const int max_response_size = 65536*5;
     char response[max_response_size];
     int response_length;
 
@@ -54,11 +54,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time_t t = time(NULL);
     struct tm *date = localtime(&t);
 
-    response_length = sprintf(response,"%s\nDate: %sConnection: close\nContent-length: %d\nContent-Type: %s\n\n%s" \
-        ,header,asctime(date),content_length,content_type,body);
+    response_length = sprintf(response,"%s\nDate: %sConnection: close\nContent-length: %d\nContent-Type: %s\n\n" \
+        ,header,asctime(date),content_length,content_type);
+
+    // NOTE: Dont use sprintf to add body into response because it doesn't play well with void ptr.
+    memcpy(response+response_length, body, content_length);
+
+    printf("RESPONSE LENGTH: %d\n\n", response_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length+content_length, 0);
     if (rv < 0) {
         perror("send");
     }
@@ -69,7 +74,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
+    srand(time(NULL));
+
+    char random[5];
+    sprintf(random,"%d\n", 1 + rand() % 20);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random, strlen(random) );
 }
 
 /**
@@ -103,9 +113,22 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[1024];
+
+    snprintf(filepath, sizeof filepath, "./serverroot%s",request_path);
+
+    
+    struct file_data *filedata = file_load(filepath);
+
+    if (filedata == NULL){
+        resp_404(fd);
+        return;
+    }
+
+    char *mime_type = mime_type_get(request_path);
+
+    send_response(fd,"HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size );
+    file_free(filedata);
 }
 /**
  * Search for the end of the HTTP header
@@ -138,13 +161,14 @@ void handle_http_request(int fd, struct cache *cache)
 
     char http_method[20], endpoint[20];
     sscanf(request, "%s %s",http_method, endpoint);
-
-    if (strcmp(http_method,"GET") == 0){
-        if (strcmp(endpoint, "/d20")==0){
+    
+    if (strcmp(http_method,"GET") == 0)
+    {
+        if (strcmp(endpoint, "/d20")==0)
+        {
             get_d20(fd);
         } else {
-            // get_file(fd,cache,endpoint);
-            resp_404(fd);
+            get_file(fd,cache,endpoint);
         }
 
     } else {
@@ -172,8 +196,6 @@ int main(void)
     // process then goes back to waiting for new connections.
 
 
-
-
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -193,7 +215,7 @@ int main(void)
         printf("server: got connection from %s\n", s);
 
 
-        resp_404(newfd);
+        // resp_404(newfd); test send_response()
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
@@ -201,6 +223,7 @@ int main(void)
         handle_http_request(newfd, cache);
         close(newfd);
     }
+
     // Unreachable code
     return 0;
 }
