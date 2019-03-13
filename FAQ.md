@@ -196,6 +196,30 @@ types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_typ
 
 <!-- ============================================================================= -->
 
+<p><details><summary><b>Outside of web servers, where are MIME types used?</b></summary><p>
+
+MIME actually stands for _Multipurpose Internet Mail Extension_. It was
+originally invented to allow email to have attachments. And it's still used in
+email today.
+
+Aside from that, there are a variety of miscellaneous uses, but web and email
+cover 99.9% of all of them.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>How does MIME multipart work?</b></summary><p>
+
+It splits the body up into separate MIME sections, each with its own MIME type.
+
+See Wikipedia: [MIME multipart
+messages](https://en.wikipedia.org/wiki/MIME#Multipart_messages)
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
 <p><details><summary><b>Our server only sends out one file at a time. How do browsers get multiple files, like if <tt>index.html</tt> refers to <tt>styles.css</tt>?</b></summary><p>
 
 Turns out they do them in separate requests.
@@ -491,6 +515,87 @@ for `socket()`](http://man7.org/linux/man-pages/man2/socket.2.html) and it'll
 tell you what files you need to `#include`.
 
 See also: [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/).
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>For the LRU cache, why do we need a doubly-linked list? Are there other data structures that could work?</b></summary><p>
+
+One of the things the LRU cache needs to do is delete an item from the middle of
+the list and move it to the head of the list. And we want to do this fast.
+
+| Data Structure     | Delete | Add to Head |
+|--------------------|:------:|:-----------:|
+| Linked List        |  O(n)  |     O(1)    |
+| Doubly-Linked List |  O(1)  |     O(1)    |
+
+The doubly-linked list has the scaling characteristics that we're looking for.
+
+If you have another data structure that works as well, you could use that
+instead.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>How do we add an age to the cache entries to remove them when they get old?</b></summary><p>
+
+Add a timestamp to the cache entry structure.
+
+> The `time()` library call might be good for this. It returns the current time
+> in number of seconds since January 1, 1970.
+
+Then the question is how to expire elements from the cache?
+
+One thing that comes to mind is to periodically scan the cache for expired
+entries, but this is an O(n) process.
+
+Another thing you can do is only check for expired cache entries on a _cache
+hit_. When you fetch an item from the cache and are about to serve it, check the
+time. If it's too old, delete it from the cache and refresh it from disk.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>What about an LFU cache (Least <i>Frequently</i> Used) instead of an LRU cache?</b></summary><p>
+
+LFU is a similar caching strategy. One place it might differ is if you have a
+file that got accessed a million times in a short timeframe, and then never
+again. It would persist in an LFU cache for a long time until other pages got
+used more.
+
+Also new items might be removed too quickly from the cache due to their low
+counts.
+
+It's not a _bad_ strategy--it's just not one that's well-suited for our use.
+
+See also: [Cache Replacement Policies](https://en.wikipedia.org/wiki/Cache_replacement_policies)
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Would using Python's <tt>OrderedDict</tt> data structure be better or worse than using a doubly-linked list for an LRU cache?</b></summary><p>
+
+Turns out it would be the same!
+
+The question is always, "What's the time complexity for doing the operations we
+need to do?"
+
+| Data Structure                | Find Entry | Delete from List | Insert at Head |
+|-------------------------------|:----------:|:----------------:|:--------------:|
+| Hash Table/Doubly-Linked List |    O(1)    |        O(1)      |      O(1)      |
+| `OrderedDict`                 |    O(1)    |        ???       |      O(1)?     |
+
+A bit of research shows that, yes, it's O(1) to insert.
+
+And a bit more shows that it's O(1) to delete from the `OrderedDict`--because it
+is implemented using a doubly-linked list!
+
+In fact, the `OrderedDict` implementation is already very similar to our LRU
+cache in many respects.
 
 </p></details></p>
 
