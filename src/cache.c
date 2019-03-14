@@ -9,29 +9,22 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-    // allocate entry (use malloc)
-    struct cache_entry *entry = malloc(sizeof(cache_entry));
+    struct cache_entry *ce  = malloc(sizeof *ce);
 
-    // assign entry to parameters
-    // deep copy
-    entry->path = malloc(strlen(path) + 1);
-    strcpy(entry->path, path);
+    ce->path = malloc(strlen(path) + 1);
+    strcpy(ce->path, path);
 
-    entry->content_type = malloc(strlen(content_type) + 1);
-    strcpy(entry->content_type, content_type);
-    
-    // shallow copy of content_length
-    entry->content_length = content_length;
+    ce->content_type = malloc(strlen(content_type ) + 1);
+    strcpy(ce->content_type, content_type); 
 
-    entry->content = malloc(content_length);
-    memcpy(entry->content, content, content_length);
+    ce->content_length = content_length;
 
-    cache_entry->prev = ce->next = NULL;
+    ce->content = malloc(content_length);
+    memcpy(ce->content, content, content_length);
 
-    return entry;
+    ce->prev = ce->next = NULL; 
+
+    return ce; 
 }
 
 /**
@@ -39,15 +32,9 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! // 
-    ///////////////////
-
-    // use free()
     free(entry->path);
     free(entry->content_type);
     free(entry->content);
-
     free(entry);
 }
 
@@ -56,7 +43,6 @@ void free_entry(struct cache_entry *entry)
  */
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
-    // Insert at the head of the list
     if (cache->head == NULL) {
         cache->head = cache->tail = ce;
         ce->prev = ce->next = NULL;
@@ -75,12 +61,10 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 {
     if (ce != cache->head) {
         if (ce == cache->tail) {
-            // We're the tail
             cache->tail = ce->prev;
             cache->tail->next = NULL;
 
         } else {
-            // We're neither the head nor the tail
             ce->prev->next = ce->next;
             ce->next->prev = ce->prev;
         }
@@ -118,19 +102,14 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     struct cache *cache = malloc(sizeof *cache);
-    // extern struct hashtable *hashtable_create(int size, int (*hashf)(void *, int, int));
+
     cache->index = hashtable_create(hashsize, NULL);
     cache->head = cache->tail = NULL;
     cache->max_size = max_size;
     cache->cur_size = 0;
 
     return cache;
-
 }
 
 void cache_free(struct cache *cache)
@@ -159,10 +138,23 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Allocate a new cache entry with the passed parameters.
+    
+    // Insert the entry at the head of the doubly-linked list.
 
+    // Store the entry in the hashtable as well, indexed by the entry's `path`.
+
+    // Increment the current size of the cache.
+
+    // If the cache size is greater than the max size:
+
+        // Remove the cache entry at the tail of the linked list.
+
+        // Remove that same entry from the hashtable, using the entry's `path` and the `hashtable_delete` function.
+
+        // Free the cache entry.
+
+        // Ensure the size counter for the number of entries in the cache is correct.
 }
 
 /**
@@ -170,9 +162,12 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Attempt to find the cache entry pointer by `path` in the hash table.
 
+    // If not found, return `NULL`.
+
+    // Move the cache entry to the head of the doubly-linked list.
+
+    // Return the cache entry pointer.
 
 }
