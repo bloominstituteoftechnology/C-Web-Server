@@ -146,6 +146,8 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    
     (void)cache;
     //read file
     char filepath[4096];
@@ -155,6 +157,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
     //append path user requests (which != filepath) to server root (3490/index.html)
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);  
     printf("\"%s\"\n", filepath);
+
+    //time comparison for expiration of cache (implemented with cache put/get)
+    //expire then refresh file and delete item out of cache
+    struct cache_entry *ce = cache_get(filepath);
+
     //load that file
     filedata = file_load(filepath);
     //if file not found
