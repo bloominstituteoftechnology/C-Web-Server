@@ -13,10 +13,10 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 
 
     struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+    
     entry->path = strdup(path);
     entry->content_type = strdup(content_type);
 
-    //double check use of strdup here
     entry->content = strdup(content_str);
     entry->content_length = content_length;
 

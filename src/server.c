@@ -53,17 +53,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-    printf("Sending Response\n");
     // Build HTTP response and store it in response
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
     int response_length = sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n", header, content_type, content_length);
 
     memcpy(response+response_length, body, content_length);
 
-    printf("Response Length:%d", response_length);
     // Send it all!
     int rv = send(fd, response, response_length+content_length, 0);
 
@@ -137,15 +131,35 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
 
-    filedata = file_load(filepath);
+    //filedata = file_load(filepath);
 
     mime_type = mime_type_get(filepath);
 
-    if(filedata == NULL) {
-        resp_404(fd);
+    if( cache_get(cache, filepath) != NULL ) {
+
+        printf("Found file in cache!\n");
+
+        struct cache_entry *entry = cache_get(cache, filepath);
+
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+
     } else {
-        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-        file_free(filedata);
+
+        printf("loading file from disk\n");
+
+        filedata = file_load(filepath);
+
+        if(filedata == NULL) {
+            resp_404(fd);
+        } else {
+
+            printf("storing file in cache\n");
+
+            cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+        }
+
     }
 
 }
