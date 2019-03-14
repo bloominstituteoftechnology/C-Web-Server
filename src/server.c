@@ -137,25 +137,47 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    char filepath[4096];
-    struct file_data *filedata;
-    char *mime_type;
+    // char filepath[4096];
+    // struct file_data *filedata;
+    // char *mime_type;
+    ///////////////////
+    // IMPLEMENT ME! //
+    ///////////////////
 
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    printf("\"%s\"\n", filepath);
-    filedata = file_load(filepath);
+    struct cache_entry *cache_entry = cache_get(cache, request_path);
 
-    if (filedata == NULL)
+    if (cache_entry != NULL)
     {
-        // TODO: make this non-fatal
-        resp_404(fd);
+        send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
     }
+    else
+    {
+        char filepath[4096];
+        struct file_data *filedata;
+        char *mime_type;
 
-    mime_type = mime_type_get(filepath);
+        if (strcmp(request_path, "/") == 0 || strcmp(request_path, "/index.html") == 0)
+        {
+            snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+        }
+        else
+        {
+            snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+        }
 
-    send_response(fd, "HTTP/1.1 200 ok", mime_type, filedata->data, filedata->size);
+               filedata = file_load(filepath);
 
-    file_free(filedata);
+        if (filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
+
+        mime_type = mime_type_get(filepath);
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+    }
 }
 
 /**
