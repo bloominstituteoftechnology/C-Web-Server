@@ -133,9 +133,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     //filedata = file_load(filepath);
 
-    mime_type = mime_type_get(filepath);
+    //mime_type = mime_type_get(filepath);
 
-    if( cache_get(cache, filepath) != NULL ) {
+/*     if( cache_get(cache, filepath) != NULL ) {
 
         printf("Found file in cache!\n");
 
@@ -159,6 +159,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
             send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
             file_free(filedata);
         }
+
+    } */
+
+    //struct cache_entry *entry = cache_get(cache, filepath);
+
+    if ( cache_get(cache, request_path) == NULL ) {
+
+        printf("loading file from disk\n");
+
+        filedata = file_load(filepath);  
+
+        mime_type = mime_type_get(filepath);
+
+        if(filedata == NULL) {
+            resp_404(fd);
+        } else {
+            printf("storing file in cache\n");
+            cache_put(cache, request_path, mime_type, filedata->data, filedata->size); 
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            file_free(filedata);     
+        }
+
+    } else {
+
+        printf("Found file in cache!\n");
+        struct cache_entry *entry = cache_get(cache, request_path);
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
 
     }
 
@@ -194,8 +221,6 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-
-    (void)cache;
 
     ///////////////////
     // IMPLEMENT ME! //
