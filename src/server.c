@@ -54,10 +54,42 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    // For getting the current time for the Date field of the response,
+    // you'll want to look at the time() and localtime() functions, both of 
+    // which are already included in the time.h header file.
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // time_t is defined for storing system time values
+    time_t seconds;
+    // Structure containing a calendar date and time broken down into its components
+    struct tm *data;
+    
+    // call time function using the seconds address
+    time(&seconds);
+    // get the local time using localtime function
+    data = localtime(&seconds);
+
+    // string to set our body to
+    char *str_body = body;
+
+    // format the response
+    int response_length = sprintf( response,
+        "%s\n"
+        "Date: %s\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n",
+        header,
+        asctime(data),
+        content_length,
+        content_type
+    );
+
+    printf("Response length: %d\n", response_length + content_length);
+
+    // pass body to memory of respone+response_length, content_length = num bytes to copy
+    memcpy(response + response_length, body, content_length);
+    response_length += content_length;
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -77,15 +109,22 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
     
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Set the random seed based on time
+    srand(time(NULL));
+
+    // Generate random number
+    int randomNumber = rand() % 21;
+
+    // Body of the response to send
+    char body[8];
+
+    // Format the body
+    sprintf(body, "%d\n", randomNumber);
 
     // Use send_response() to send it back as text/plain data
+    // Send the response
+    send_response(fd, "HTTP/1.1 200 ok", "text/plain", body, strlen(body));
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -119,9 +158,32 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char file_path[256];
+    struct file_data *file_body = NULL;
+    char *mime_type;
+
+    // Format the file
+    sprintf(file_path, "./serverroot%s", request_path);
+    // snprintf(file_path, sizeof file_path, "%s%s", SERVER_ROOT, request_path);
+
+    // Set the body to the file's contents
+    file_body = file_load(file_path);
+
+    // If there isn't anything loaded, send a 404 not found,
+    // otherwise, send the file's contents
+    if (file_body == NULL) {
+      resp_404(fd);
+    } else {
+
+      // Set the MIME
+      mime_type = mime_type_get(file_path);
+
+      // Send the file
+      send_response(fd, "HTTP/1.1 200 OK", mime_type, file_body->data, file_body->size);
+
+      // Free the file
+      file_free(file_body);
+    }
 }
 
 /**
@@ -144,6 +206,9 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[8];
+    char path[32];
+    char protocol[16];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -153,18 +218,23 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Read the three components of the first request line
+    sscanf(request, "%s %s %s", method, path, protocol);
+    printf("PATH -> %s\n", path);
 
     // If GET, handle the get endpoints
-
+    if (strcmp(method, "GET") == 0 && strcmp(path, "d20") == 0) {
     //    Check if it's /d20 and handle that special case
+      get_d20(fd);
+    } else if (strcmp(method, "GET") == 0) {
     //    Otherwise serve the requested file by calling get_file()
+      get_file(fd, cache, path);
+    } else {
+      resp_404(fd);
+    }
 
+
+    resp_404(fd);
 
     // (Stretch) If POST, handle the post request
 }
