@@ -144,6 +144,25 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    /* requires same variable setup as the 404 response */
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if(filedata == NULL) {
+        fprintf(stderr, "Cannot find file at path %s\n", request_path);
+        exit(3);
+        /* there's probably a better way to do this that doesn't force the exit each time */
+    }
+
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    
+    file_free(filedata);
 }
 
 /**
