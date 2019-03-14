@@ -54,13 +54,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    int response_length = sprintf(response, "%s\nContent-Type: %s\nContent-Length: %d\nConnection: close\n\n", header, content_type, content_length);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    memcpy(response+response_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length+content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -73,6 +72,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 /**
  * Send a /d20 endpoint response
  */
+/*
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
@@ -80,13 +80,16 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    int *roll;
+    roll = (rand() % 20) + 1;
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", roll, sizeof(roll));
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 }
+*/
 
 /**
  * Send a 404 response
@@ -122,6 +125,70 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+
+    //filedata = file_load(filepath);
+
+    //mime_type = mime_type_get(filepath);
+
+/*     if( cache_get(cache, filepath) != NULL ) {
+
+        printf("Found file in cache!\n");
+
+        struct cache_entry *entry = cache_get(cache, filepath);
+
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+
+    } else {
+
+        printf("loading file from disk\n");
+
+        filedata = file_load(filepath);
+
+        if(filedata == NULL) {
+            resp_404(fd);
+        } else {
+
+            printf("storing file in cache\n");
+
+            cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+        }
+
+    } */
+
+    //struct cache_entry *entry = cache_get(cache, filepath);
+
+    if ( cache_get(cache, request_path) == NULL ) {
+
+        printf("loading file from disk\n");
+
+        filedata = file_load(filepath);  
+
+        mime_type = mime_type_get(filepath);
+
+        if(filedata == NULL) {
+            resp_404(fd);
+        } else {
+            printf("storing file in cache\n");
+            cache_put(cache, request_path, mime_type, filedata->data, filedata->size); 
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            file_free(filedata);     
+        }
+
+    } else {
+
+        printf("Found file in cache!\n");
+        struct cache_entry *entry = cache_get(cache, request_path);
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+
+    }
+
 }
 
 /**
@@ -144,6 +211,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char action[100];
+    char endpoint[100];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -153,12 +222,14 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
     // Read the three components of the first request line
+    sscanf(request, "%s %s", action, endpoint);
+
+
+    get_file(fd, cache, endpoint);
 
     // If GET, handle the get endpoints
 
@@ -193,7 +264,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -213,7 +284,6 @@ int main(void)
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
         handle_http_request(newfd, cache);
 
         close(newfd);
