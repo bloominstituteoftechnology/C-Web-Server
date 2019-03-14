@@ -54,11 +54,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    int response_length = snprintf(response, max_response_size,
+        "%s\n"
+        "Connection: close \n"
+        // "Date : %s"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n",
+        header, content_length, content_type
+    ); 
+    // update response size with adding response length
+    memcpy(response + response_length, body, content_length);
+    response_length += content_length; 
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+// HTTP/1.1 404 NOT FOUND
+// Date: Wed Dec 20 13:05:11 PST 2017
+// Connection: close
+// Content-Length: 13
+// Content-Type: text/plain
 
+// 404 Not Found
+    printf("RESPONSE: %s\n", response);
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -122,6 +138,27 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+
+    // Test Print
+    printf("\"%s\"\n", filepath);
+
+    filedata = file_load(filepath);
+    if (filedata == NULL) {
+        // TODO: Make this non-fatal
+        resp_404(fd);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    file_free(filedata);
+
 }
 
 /**
@@ -153,18 +190,24 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    char path[8192];
+    char method[512];
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
-
+    sscanf(request, "%s %s", method, path);
+    printf("GOT REQUEST: \"%s\" \"%s\"\n", method, path); 
     // If GET, handle the get endpoints
-
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
+    if(strcmp(path, "/") == 0){
+        send_response(fd, "HTTP/1.1 200 OK", "text/plain", "Derp", 9);
+    } else {
+        get_file(fd, NULL, path);
+    }
 
     // (Stretch) If POST, handle the post request
 }
@@ -193,7 +236,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
