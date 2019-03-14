@@ -9,9 +9,24 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache_entry *ce = malloc(sizeof(struct cache_entry));
+    // ce->path = strdup(path);
+    ce->path = malloc(strlen(path) + 1);
+    strcpy(ce->path, path);
+
+    // ce->content_type = strdup(content_type);
+    ce->content_type = malloc(strlen(content_type) + 1);
+    strcpy(ce->content_type, content_type);
+
+    ce->content = malloc(content_length);
+    memcpy(ce->content, content, content_length);
+
+    ce->content_length = content_length;
+
+    ce->prev = NULL;
+    ce->next = NULL;
+
+    return ce;
 }
 
 /**
@@ -19,9 +34,14 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
+
+    if (entry != NULL)
+    {
+        free(entry);
+    }
 }
 
 /**
@@ -30,10 +50,13 @@ void free_entry(struct cache_entry *entry)
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
     // Insert at the head of the list
-    if (cache->head == NULL) {
+    if (cache->head == NULL)
+    {
         cache->head = cache->tail = ce;
         ce->prev = ce->next = NULL;
-    } else {
+    }
+    else
+    {
         cache->head->prev = ce;
         ce->next = cache->head;
         ce->prev = NULL;
@@ -46,13 +69,16 @@ void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
  */
 void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 {
-    if (ce != cache->head) {
-        if (ce == cache->tail) {
+    if (ce != cache->head)
+    {
+        if (ce == cache->tail)
+        {
             // We're the tail
             cache->tail = ce->prev;
             cache->tail->next = NULL;
-
-        } else {
+        }
+        else
+        {
             // We're neither the head nor the tail
             ce->prev->next = ce->next;
             ce->next->prev = ce->prev;
@@ -64,7 +90,6 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
         cache->head = ce;
     }
 }
-
 
 /**
  * Removes the tail from the list and returns it
@@ -91,9 +116,15 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *cache = malloc(sizeof(struct cache));
+
+    cache->max_size = max_size;
+    cache->cur_size = 0;
+    cache->index = hashtable_create(hashsize, NULL);
+    cache->head = NULL;
+    cache->tail = NULL;
+
+    return cache;
 }
 
 void cache_free(struct cache *cache)
@@ -102,7 +133,8 @@ void cache_free(struct cache *cache)
 
     hashtable_destroy(cache->index);
 
-    while (cur_entry != NULL) {
+    while (cur_entry != NULL)
+    {
         struct cache_entry *next_entry = cur_entry->next;
 
         free_entry(cur_entry);
@@ -122,9 +154,29 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Allocate new entry
+    struct cache_entry *ce = alloc_entry(path, content_type, content, content_length);
+    // Insert at head of linked list
+    dllist_insert_head(cache, ce);
+    // Store in hashtable - indexed by path
+    hashtable_put(cache->index, ce->path, ce);
+    // Increment size of cache
+    cache->cur_size += 1;
+    // If greater than max-size
+    if (cache->cur_size > cache->max_size)
+    {
+        // Remove cache entry at end of linked list
+        struct cache_entry *old_tail = dllist_remove_tail(cache);
+        // Remove entry from hashtable using path for hashtable delete
+        hashtable_delete(cache->index, old_tail->path);
+        // Free the cache entry
+        free_entry(old_tail);
+        // Ensure counter size is correct
+        if (cache->cur_size != cache->max_size)
+        {
+            cache->cur_size = cache->max_size;
+        }
+    }
 }
 
 /**
@@ -132,7 +184,16 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Get cache entry from hashtable
+    if (hashtable_get(cache->index, path) == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+
+        // Move the cache entry to the head of the doubly-linked list.
+        dllist_move_to_head(cache, hashtable_get(cache->index, path));
+        return cache->head;
+    }
 }
