@@ -54,7 +54,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-
+    /* initial commit after internet issues */
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
