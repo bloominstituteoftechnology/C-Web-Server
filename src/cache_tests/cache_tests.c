@@ -82,7 +82,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->head->next->prev, test_entry_3) == 0, "Your cache_put function did not update the head->next->prev pointer to point to the new head entry");
   mu_assert(check_cache_entries(cache->head->next->next, test_entry_1) == 0, "Your cache_put function did not update the head->next->next pointer to point to the tail entry");
   mu_assert(check_cache_entries(cache->tail->prev, test_entry_2) == 0, "Your cache_put function did not update the tail->prev pointer to poin to the second-to-last entry");
-  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not correctly update the tail pointer of the cache"); 
+  mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not correctly update the tail pointer of the cache");
 
   // Add in a fourth entry to the cache
   cache_put(cache, test_entry_4->path, test_entry_4->content_type, test_entry_4->content, test_entry_4->content_length);
