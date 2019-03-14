@@ -146,9 +146,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
-    
-    (void)cache;
     //read file
     char filepath[4096];
     struct file_data *filedata; //loads file into memory and returns pointer to data
@@ -159,8 +156,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
     printf("\"%s\"\n", filepath);
 
     //time comparison for expiration of cache (implemented with cache put/get)
-    //expire then refresh file and delete item out of cache
-    struct cache_entry *ce = cache_get(filepath);
+    struct cache_entry *ce = cache_get(cache, filepath);
+    //expire then refresh file and delete item out of cache (eg if cur time less that time greater than 1min)
+    if (time(NULL) - ce->timestamp > 60) { //timestamp decl in struct cache_entry in cache.h so know when it was created
+
+    }
 
     //load that file
     filedata = file_load(filepath);

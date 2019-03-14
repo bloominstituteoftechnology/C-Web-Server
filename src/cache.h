@@ -8,7 +8,7 @@ struct cache_entry {
     int content_length;
     void *content;
 
-    time_t timestamp;
+    //time_t timestamp;  //added for comparison implementing cache get/put
 
     struct cache_entry *prev, *next; // Doubly-linked list
 };
