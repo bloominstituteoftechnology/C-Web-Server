@@ -13,14 +13,23 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     // IMPLEMENT ME! //
     ///////////////////
     // allocate entry (use malloc)
-    struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+    struct cache_entry *entry = malloc(sizeof(cache_entry));
 
     // assign entry to parameters
-    entry->path = path;
-    entry->content_type = content_type;
+    // deep copy
+    entry->path = malloc(strlen(path) + 1);
+    strcpy(entry->path, path);
+
+    entry->content_type = malloc(strlen(content_type) + 1);
+    strcpy(entry->content_type, content_type);
     
-    // malloc content with content_length
+    // shallow copy of content_length
+    entry->content_length = content_length;
+
     entry->content = malloc(content_length);
+    memcpy(entry->content, content, content_length);
+
+    cache_entry->prev = ce->next = NULL;
 
     return entry;
 }
@@ -112,6 +121,16 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    struct cache *cache = malloc(sizeof *cache);
+    // extern struct hashtable *hashtable_create(int size, int (*hashf)(void *, int, int));
+    cache->index = hashtable_create(hashsize, NULL);
+    cache->head = cache->tail = NULL;
+    cache->max_size = max_size;
+    cache->cur_size = 0;
+
+    return cache;
+
 }
 
 void cache_free(struct cache *cache)
@@ -143,6 +162,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
 }
 
 /**
@@ -153,4 +173,6 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+
 }
