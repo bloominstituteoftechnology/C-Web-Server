@@ -15,10 +15,14 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ce->path = malloc(strlen(path) + 1);
     strcpy(ce->path, path);
 
-    ce->content_type(strlen(content_type) + 1);
+    ce->content_type = (strlen(content_type) + 1);
     strcpy(ce->content_type, content_type);
 
     ce->content_length = content_length;
+
+    ce->content = malloc(content_length);
+    memcpy(ce->content, content, content_length);
+
 
     ce->prev = NULL;
     ce->next = NULL;
@@ -149,9 +153,9 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 {
     ///////////////////
     // Allocate a new cache entry with the passed parameters.
-    struct cache_entry *ce = alloc_entry(path, content_type, content, content_length);
+    struct cache_entry *new_ce = alloc_entry(path, content_type, content, content_length);
     // Insert the entry at the head of the doubly-linked list.
-    dllist_insert_head(cache, ce);
+    dllist_insert_head(cache, new_ce);
     // Store the entry in the hashtable as well, indexed by the entry's `path`.
 
     // Increment the current size of the cache.
