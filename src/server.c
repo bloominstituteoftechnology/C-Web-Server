@@ -53,11 +53,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+    // get current time
+    time_t rawtime;
+    char date_info[1024];
+    time(&rawtime);
+    date_info = asctime(localtime(&rawtime));
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Build HTTP response and store it in response
+    scanf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %s\nContent-Type: %s\n\n%s\n", header, date_info, content_length, content_type, body);
+
+    int response_length = strlen(response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
