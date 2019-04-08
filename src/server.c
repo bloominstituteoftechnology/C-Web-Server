@@ -55,16 +55,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // get current time
     time_t rawtime;
-    char date_info[1024];
     time(&rawtime);
-    date_info = asctime(localtime(&rawtime));
 
     // Build HTTP response and store it in response
-    scanf(response, "%s\nDate: %s\nConnection: close\nContent-Length: %s\nContent-Type: %s\n\n%s\n", header, date_info, content_length, content_type, body);
+    int response_length = sprintf(response,
+      "%s\r\n"
+      "Connection: close\r\n"
+      "Content-Length: %d\r\n"
+      "Content-Type: %s\r\n"
+      "Date: %s\r\n"
+      "%s\r\n", 
+      header, content_length, content_type, asctime(localtime(&rawtime)), (char *) body);
 
-    int response_length = strlen(response);
-
-    // Send it all!
+        // Send it all!
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -158,10 +161,13 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // GET /example HTTP/1.1
+    // Host: lambdaschool.com
+    char method[5];
+    char path[1024];
+    char host[1024];
+    scanf("%s %s HTTP.1.1\n Host: %s");
+    printf("%s %s HTTP.1.1\n Host: %s", method, path, host);
 
     // Read the three components of the first request line
 
@@ -219,7 +225,8 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
-        handle_http_request(newfd, cache);
+        resp_404(newfd);
+        // handle_http_request(newfd, cache);
 
         close(newfd);
     }
