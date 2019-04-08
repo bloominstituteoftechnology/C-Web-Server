@@ -84,6 +84,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    printf("got here");
+    srand(time(NULL)); 
+    int r = rand() % 21;
+    char num_str[3];
+    sprintf(num_str, "%d", r);
+    printf("num_str: %s, str_len: %d", num_str, (int) strlen(num_str));
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", num_str, (int) strlen(num_str));
     
     ///////////////////
     // IMPLEMENT ME! //
@@ -125,12 +133,12 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-void get_file(int fd, struct cache *cache, char *request_path)
-{
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-}
+// void get_file(int fd, struct cache *cache, char *request_path)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! //
+//     ///////////////////
+// }
 
 /**
  * Search for the end of the HTTP header
@@ -138,12 +146,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
+// char *find_start_of_body(char *header)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! // (Stretch)
+//     ///////////////////
+// }
 
 /**
  * Handle HTTP request and send response
@@ -166,12 +174,22 @@ void handle_http_request(int fd, struct cache *cache)
     char method[5];
     char path[1024];
     char host[1024];
-    scanf("%s %s HTTP.1.1\n Host: %s");
-    printf("%s %s HTTP.1.1\n Host: %s", method, path, host);
+    // printf("received: %s", request);
+    sscanf(request, "%s %s HTTP/1.1\r\n Host: %s", method, path, host);
+    // printf("method: %s\n", method);
+    // printf("path: %s\n", path);
+    // printf("host: %s\n", host);
 
     // Read the three components of the first request line
 
     // If GET, handle the get endpoints
+    if (strcmp(method, "GET") == 0) {
+      if (strcmp(path, "/d20") == 0) {
+        get_d20(fd);
+      } else {
+        resp_404(fd);
+      }
+    }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
@@ -225,8 +243,7 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
-        resp_404(newfd);
-        // handle_http_request(newfd, cache);
+        handle_http_request(newfd, cache);
 
         close(newfd);
     }
