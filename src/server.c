@@ -84,24 +84,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    printf("got here");
     srand(time(NULL)); 
     int r = rand() % 21;
     char num_str[3];
     sprintf(num_str, "%d", r);
-    printf("num_str: %s, str_len: %d", num_str, (int) strlen(num_str));
-
     send_response(fd, "HTTP/1.1 200 OK", "text/plain", num_str, (int) strlen(num_str));
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
@@ -133,12 +120,29 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-// void get_file(int fd, struct cache *cache, char *request_path)
-// {
-//     ///////////////////
-//     // IMPLEMENT ME! //
-//     ///////////////////
-// }
+void get_file(int fd, struct cache *cache, char *request_path)
+{   
+    char * root = "serverroot";
+    int full_path_len = strlen(root) + strlen(request_path);
+    char full_path[full_path_len + 1];
+    strcpy(full_path, root);
+    strcat(full_path, request_path);
+    printf("full_path: %s\n", full_path);
+    FILE *fp = fopen(full_path, "r");
+    if (!fp) {
+        resp_404(fd);
+    } else {
+        fseek(fp, 0, SEEK_END);
+        long fsize = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        char buff[fsize];
+        fread(buff, 1, fsize, fp);
+        fclose(fp);
+        printf("%s\n", buff);
+        send_response(fd, "HTTP/1.1 200 OK", "text/html", buff, fsize);
+    }
+}
 
 /**
  * Search for the end of the HTTP header
@@ -187,7 +191,7 @@ void handle_http_request(int fd, struct cache *cache)
       if (strcmp(path, "/d20") == 0) {
         get_d20(fd);
       } else {
-        resp_404(fd);
+        get_file(fd, cache, path);
       }
     }
 
