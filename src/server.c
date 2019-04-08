@@ -70,6 +70,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         perror("send");
     }
 
+    rv = send(fd, body, content_length, 0);
+
     return rv;
 }
 
@@ -79,16 +81,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    int rand = rand() % 20 + 1;
+    int random = (rand() % 20) + 1;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 }
 
 /**
