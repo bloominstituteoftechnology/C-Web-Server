@@ -181,6 +181,41 @@ header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)
 
 <!-- ============================================================================= -->
 
+<p><details><summary><b>What is MIME? Outside of web servers, where are MIME types used?</b></summary><p>
+
+The idea with MIME is that you're going to attach a piece of metadata to the
+data you're sending to let the receiver know what _type_ (or kind) of data it is
+so they can do the right thing with it.
+
+In HTTP, the MIME type goes in the header in the `Content-Type` field. Examples:
+
+```http
+Content-Type: text/html
+```
+
+```http
+Content-Type: application/javascript
+```
+
+```http
+Content-Type: image/png
+```
+
+When the browser knows the MIME type, it can display the data in the way it
+needs to be displayed. It can render HTML if it's HTML, or draw the image if
+it's a PNG, etc.
+
+MIME actually stands for _Multipurpose Internet Mail Extension_. It was
+originally invented to allow email to have attachments. And it's still used in
+email today.
+
+Aside from that, there are a variety of miscellaneous uses, but web and email
+cover 99.9% of all of them.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
 <p><details><summary><b>Where can I find a complete list of MIME types?</b></summary><p>
 
 Since people are adding new MIME types all the time, there's not really a such
@@ -191,19 +226,6 @@ of the MIME type should be prefixed with `x-`, like `application/x-bzip`.)
 
 Common MIME types can be found at [MDN's incomplete list of MIME
 types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types).
-
-</p></details></p>
-
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Outside of web servers, where are MIME types used?</b></summary><p>
-
-MIME actually stands for _Multipurpose Internet Mail Extension_. It was
-originally invented to allow email to have attachments. And it's still used in
-email today.
-
-Aside from that, there are a variety of miscellaneous uses, but web and email
-cover 99.9% of all of them.
 
 </p></details></p>
 
@@ -664,9 +686,81 @@ Note the included trailing newline.
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Do other higher-level languages use sockets under the hood for network communication?</b></summary><p>
+
+Short answer: yes, or something equivalent.
+
+Sockets is actually a programming API defined for Unix and Unix-like systems
+that includes the calls like `socket()`, `connect()`, `recv()`, and so on.
+
+If the OS you're using has a sockets API implemented, then yes, the higher-level
+language is using sockets. (This includes OSes like macOS, Linux, BSD, etc.)
+
+If you're on Windows, it uses a different API called
+[Winsock](https://en.wikipedia.org/wiki/Winsock), which basically does the same
+thing.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>In TCP, what is the Transmission Control Block (TCB)?</b></summary><p>
+
+It's an internal data structure in the OS that's used to hold metadata about a
+single TCP connection. It's not something that users interact with directly.
+(They interact with it indirectly via the sockets programming API and the
+syscalls it provides.)
+
+TCP has a lot of work to do in order to recreate the data stream accurately. It
+might be getting packets out of order, they might have errors, they might be
+missing, or they might be duplicated. TCP has to manage this craziness, while
+asking the remote computer for retransmissions of missing data, into a single,
+correct stream to present to the user.
+
+It needs a place to keep track of the current work for any particular
+connection. That place is the TCB data structure.
+
+* [More at Wikipedia](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Resource_usage)
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Does UDP ever send the same data multiple times?</b></summary><p>
+
+No. There is no automatic retransmission with UDP.
+
+Rarely a UDP packet might get duplicated in transit by a buggy system or some
+weird router configuration.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>How much faster is UDP than TCP? How can I measure it?</b></summary><p>
+
+The answer to this question is surprisingly complex, and there are a significant
+number of cases where TCP can outperform UDP.
+
+In general, TCP is better at managing _bandwidth_ (how much data you can shove
+through the pipe in a certain amount of time), but UDP is better with _latency_
+(how long it takes a packet to arrive). But there are counterexamples to this,
+certainly.
+
+A good rule of thumb is try TCP first. If it's not cutting it, then you can do
+something more complex with UDP.
+
+A tool like `iperf` can give you an indication about which type of data runs
+best on your particular network configuration.
+
+* [Informative discussion on SO](https://stackoverflow.com/questions/47903/udp-vs-tcp-how-much-faster-is-it)
+
+</p></details></p>
+
 <!--
 TODO:
-
 -->
 
 <!-- ============================================================================= -->
