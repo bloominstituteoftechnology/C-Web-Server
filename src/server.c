@@ -58,17 +58,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
 
     // Build HTTP response and store it in response
-    int response_length = sprintf(response,
+    int header_length = sprintf(response,
       "%s\r\n"
       "Connection: close\r\n"
       "Content-Length: %d\r\n"
       "Content-Type: %s\r\n"
-      "Date: %s\r\n"
-      "%s\r\n", 
-      header, content_length, content_type, asctime(localtime(&rawtime)), (char *) body);
+      "Date: %s\r\n",
+      header, content_length, content_type, asctime(localtime(&rawtime)));
+    
+    memcpy(response + header_length, body, content_length);
 
-        // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, header_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -136,11 +136,11 @@ void get_file(int fd, struct cache *cache, char *request_path)
         long fsize = ftell(fp);
         fseek(fp, 0, SEEK_SET);
 
-        char buff[fsize];
+        unsigned char buff[fsize];
         fread(buff, 1, fsize, fp);
         fclose(fp);
-        printf("%s\n", buff);
-        send_response(fd, "HTTP/1.1 200 OK", "text/html", buff, fsize);
+        printf("size: %ld, buffer: %s\n", fsize, buff);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type_get(request_path), buff, fsize);
     }
 }
 
