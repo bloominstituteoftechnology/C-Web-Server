@@ -759,6 +759,59 @@ best on your particular network configuration.
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>What's a normal rate of packet loss?</b></summary><p>
+
+It absolutely depends on tremendous variety of factors, but on a
+regularly-loaded network, it's probably around 1-2%.
+
+If you start flooding your Ethernet with tons of UDP packets as fast as you can,
+you'll see a much higher loss rate.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Does <i>most</i> of the UDP data normally arrive?</b></summary><p>
+
+Yes, in normal circumstances, _most_ of the UDP packets arrive. You should never
+count on any of them arriving, though.
+
+If the network is congested, or if someone puts a backhoe through a fiber trunk,
+the loss rates will increase.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Do packets get delivered in the order they're sent or do they get jumbled up by the process?</b></summary><p>
+
+They get jumbled. TCP unjumbles them. UDP does not.
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>Can different packets from the same request can take a different routes to stop bottle necks?</b></summary><p>
+
+Yes, but it happens transparently to you.
+
+You're coding at the application layer, and the routing takes place at the IP
+layer, two layers down.
+
+* [Dynamic Routing at Wikipedia](https://en.wikipedia.org/wiki/Dynamic_routing)
+
+</p></details></p>
+
+<!-- ============================================================================= -->
+
+<p><details><summary><b>if your request hits a load balancer will it remember such that each subsequent request you send will be sent to the same server?</b></summary><p>
+
+Yes. Otherwise writing server software would be quite a juggling act.
+
+</p></details></p>
+
 <!--
 TODO:
 -->
