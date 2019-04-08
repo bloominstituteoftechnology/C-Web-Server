@@ -178,6 +178,21 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    char method[200];
+    char path[8192];
+
+    sscanf(request, '%s %s', method, path);
+
+    if(strcmp(method, "GET") == 0 & strcmp(path, "/d20") == 0)
+    {
+        get_d20(fd);
+    }
+    else
+    {
+        resp_404(fd);
+    }
+
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
