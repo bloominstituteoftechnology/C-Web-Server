@@ -54,13 +54,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
-    int response_length = sscanf(response, max_response_size,
-                                 "%s\n"
-                                 "Content-Type: %s\n"
-                                 "Content-Length: %s\n"
-                                 "Connection: close\n"
-                                 "\n",
-                                 header, content_type, content_length);
+    int response_length = snprintf(response, max_response_size,
+                                   "%s\n"
+                                   "Content-Type: %s\n"
+                                   "Content-Length: %d\n"
+                                   "Connection: close\n"
+                                   "\n",
+                                   header, content_type, content_length);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -81,13 +81,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    int random = (rand() % 20) + 1;
+    int body = (rand() % 20) + 1;
+
+    char *status = "HTTP/1.1 200 OK\n";
+    char *type = "text/plain\n";
+    char res_body[20];
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    sprintf(res_body, "%d\n", body);
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, status, type, res_body, strlen(res_body));
 }
 
 /**

@@ -10,7 +10,7 @@
 
 int main(void)
 {
-    char *s = "GET /foobar HTTP/1.1\nHost: www.example.com\nConnection: clone\n";
+    char *s = "GET /foobar HTTP/1.1\nHost: www.example.com\nConnection: close\n";
 
     // buffer to hold the method
     char method[200];
