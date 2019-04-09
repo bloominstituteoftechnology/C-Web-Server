@@ -812,6 +812,20 @@ Yes. Otherwise writing server software would be quite a juggling act.
 
 </p></details></p>
 
+<!-- ============================================================================= -->
+
+<p><details><summary><b>I'm trying to test with <tt>curl</tt> or the browser, and it's telling me "<tt>Connection refused</tt>". Why?</b></summary><p>
+
+That's the error you get if you try to connect to a port and no one is listening
+on it.
+
+Typically means that your server isn't running. Start it up and then try again.
+
+Barring that, make sure you've specified the right port number to `curl` or the
+browser.
+
+</p></details></p>
+
 <!--
 TODO:
 -->
