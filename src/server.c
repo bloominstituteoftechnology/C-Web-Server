@@ -158,7 +158,16 @@ void get_file(int fd, struct cache *cache, char *request_path)
     if (filedata == NULL)
     {
         resp_404(fd);
+        return;
     }
+
+    char *mime_type = mime_type_get(filepath);
+    // we fetched a valid file
+    // make sure we send it!
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    // free file data struct after it's been sent
+    file_free(filedata);
 }
 
 /**
@@ -200,7 +209,7 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
-    sscanf(request, "%s %s" request_type, request_path);
+    sscanf(request, "%s %s", request_type, request_path);
 
     printf("REQUEST: %s %s\n", request_type, request_path);
 
@@ -216,13 +225,6 @@ void handle_http_request(int fd, struct cache *cache)
         get_file(fd, cache, request_path);
     }
 
-    char *mime_type = mime_type_get(file_data);
-
-    //we fetched the valid file
-    // make sure we send it
-    send_response(fd, "HTTP/1.1 200 OK", mime_type, file_data->data, file_data->data);
-    // free the file data struct after it's been sent
-    file_free(file_data);
     // (Stretch) If POST, handle the post request
 }
 
