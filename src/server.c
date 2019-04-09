@@ -50,20 +50,33 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
-    const int max_response_size = 262144;
-    char response[max_response_size];
+    const int max_res_size = 262144;
+    char res[max_res_size];
+    int res_length = 0;
+    time_t t = time(NULL); // Unix timestamp
 
-    // Build HTTP response and store it in response
-    int response_length = snprintf(response, max_response_size,
-                                   "%s\n"
-                                   "Content-Type: %s\n"
-                                   "Content-Length: %d\n"
-                                   "Connection: close\n"
-                                   "\n",
-                                   header, content_type, content_length);
+    (void)header;
+    (void)content_type;
+    (void)body;
+    (void)content_length;
+    // Build HTTP res and store it in res
+
+    res_length = sprintf(res,
+                         "%s\n"                 // header
+                         "Date: %s"             // date
+                         "Connection: close\n"  // close
+                         "Content-Length: %d\n" // length
+                         "Content-Type: %s\n"   // type
+                         "\n",                  // mandatory space
+                         header,
+                         asctime(gmtime(&t)),
+                         content_length,
+                         content_type);
+
+    memcpy(res + res_length, body, content_length);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, res, res_length + content_length, 0);
 
     if (rv < 0)
     {
@@ -133,24 +146,19 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     char filepath[4096];
     struct file_data *filedata;
-    char *mime_type;
+    (void)cache;
 
-    // Fetch the 404.html file
-    snprintf(filepath, sizeof filepath + sizeof request_path, "%s/%s", SERVER_FILES, request_path);
+    // construct the full file path
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    // can also use sprintf if you're feeling lazy
+    // sprintf(filepath, "%s%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
+    // check to see if file_load returned a valid file
     if (filedata == NULL)
     {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        resp_404(fd);
     }
-
-    mime_type = mime_type_get(filepath);
-
-    send_response(fd, "HTTP/1.1", mime_type, filedata->data, filedata->size);
-
-    file_free(filedata);
 }
 
 /**
@@ -159,12 +167,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
  * "Newlines" in HTTP can be \r\n (carriage return followed by newline) or \n
  * (newline) or \r (carriage return).
  */
-char *find_start_of_body(char *header)
-{
-    ///////////////////
-    // IMPLEMENT ME! // (Stretch)
-    ///////////////////
-}
+// char *find_start_of_body(char *header)
+// {
+//     ///////////////////
+//     // IMPLEMENT ME! // (Stretch)
+//     ///////////////////
+// }
 
 /**
  * Handle HTTP request and send response
@@ -173,6 +181,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8];
+    char request_path[1024];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -183,17 +193,36 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    (void)cache;
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Read the three components of the first request line
+    sscanf(request, "%s %s" request_type, request_path);
+
+    printf("REQUEST: %s %s\n", request_type, request_path);
 
     // If GET, handle the get endpoints
+    if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/d20") == 0)
+    {
+        //    Check if it's /d20 and handle that special case
+        get_d20(fd);
+    }
+    else
+    {
+        //    Otherwise serve the requested file by calling get_file()
+        get_file(fd, cache, request_path);
+    }
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
+    char *mime_type = mime_type_get(file_data);
 
+    //we fetched the valid file
+    // make sure we send it
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, file_data->data, file_data->data);
+    // free the file data struct after it's been sent
+    file_free(file_data);
     // (Stretch) If POST, handle the post request
 }
 
