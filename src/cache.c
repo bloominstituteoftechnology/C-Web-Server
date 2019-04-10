@@ -4,6 +4,8 @@
 #include "hashtable.h"
 #include "cache.h"
 
+//LRU = least recently used
+
 /**
  * Allocate a cache entry
  */
@@ -23,9 +25,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    free(entry);
 }
 
 /**
@@ -164,3 +164,5 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
         return cache->head;
     }
 }
+
+dll

@@ -51,39 +51,38 @@
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 262144;
+    int response_length = 0;
 
     // Build HTTP response and store it in response
     char response[max_response_size];
-    time_t time_res;
+    time_t t = time(NULL);
     struct tm *timestamp;
-    char buffer[50];
-    time(&time_res);
+    // char buffer[50];
+    // time(&ctime_r);
 
-    timestamp = localtime(&time_res);
-    strftime(buffer, 50, "%a %b %d %T %Z %Y", timestamp);
+    // timestamp = asctime(gmtime(&t));
+    // strftime(buffer, 50, "%a %b %d %T %Z %Y", timestamp);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    response_length = sprintf(
+        response,
+        "%s\n"
+        "Date: %s\n"
+        "Connection: close \n"
+        "Content_Length: %d\n"
+        "Content-Type: %s\n"
+        "\n",
+        header,
+        asctime(gmtime(&t)),
+        // buffer,
+        content_length,
+        content_type);
 
-    char *new_body = body;
-
-    sprintf(response,
-            "%s\n"
-            "Date: %s\n"
-            "Connection: close \n"
-            "Content_Length: %d\n"
-            "Content-Type: %s\n"
-            "\n"
-            "%s\n",
-            header, buffer, content_length, content_type, new_body);
-
-    int response_length = strlen(response);
+    memcpy(response + response_length, body, content_length);
 
     printf("Response: %s\n", response);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, response_length + content_length, 0);
 
     if (rv < 0)
     {
@@ -149,9 +148,17 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    (void)cache;
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
+    struct cache_entry *entry = cache_get(cache, request_path);
+
+    if (entry != NULL)
+    {
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+        return;
+    }
 
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
@@ -190,6 +197,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    (void)header;
 }
 
 /**
@@ -199,6 +207,8 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char request_type[8];
+    char request_path[1024];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -209,18 +219,21 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    char method[200];
-    char path[8192];
+    (void)cache;
 
-    sscanf(request, '%s %s', method, path);
+    // sscanf(request, '%s %s', request_type, request_path);
 
-    if (strcmp(method, "GET") == 0 & strcmp(path, "/d20") == 0)
+    // printf("REQUEST: %s %s\n", request_type, request_path);
+
+    resp_404(fd);
+
+    if (strcmp(request_type, "GET") == 0 & strcmp(request_path, "/d20") == 0)
     {
         get_d20(fd);
     }
     else
     {
-        get_file(fd, cache, path);
+        get_file(fd, cache, request_path);
     }
 
     ///////////////////
