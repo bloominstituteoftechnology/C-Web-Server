@@ -12,6 +12,17 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    struct cache_entry *entry = malloc(sizeof(struct cache_entry));
+
+    entry->path = path;
+    entry->content_type = content_type;
+    entry->content = content;
+    entry->content_length = content_length;
+    entry->next = NULL;
+    entry->prev = NULL;
+
+    return entry;
 }
 
 /**
@@ -22,6 +33,7 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry);
 }
 
 /**
@@ -94,6 +106,14 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache *newcache = malloc(sizeof(struct cache));
+    newcache->index = hashtable_create(hashsize, NULL);
+    newcache->head = NULL;
+    newcache->tail = NULL;
+    newcache->max_size = max_size;
+    newcache->cur_size = 0;
+
+    return newcache;
 }
 
 void cache_free(struct cache *cache)
@@ -125,6 +145,20 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    struct cache_entry *entry = alloc_entry(path, content_type, content, content_length);
+    dllist_insert_head(cache, entry);
+    hashtable_put(cache->index, path, entry);
+    cache->cur_size++;
+    if(cache->cur_size > cache->max_size){
+        struct cache_entry *tail = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, tail->path);
+        free_entry(tail);
+        if(cache->cur_size > cache->max_size){
+            cache->cur_size--;
+        }
+
+    }
 }
 
 /**
@@ -135,4 +169,10 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *pointer = hashtable_get(cache->index, path);
+    if(pointer == NULL){
+        return NULL;
+    }
+    dllist_move_to_head(cache, pointer);
+    return pointer;
 }

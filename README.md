@@ -39,7 +39,7 @@ requests for HTML pages), and returns responses (e.g. HTML pages). Other common 
 We will write a simple web server that returns files and some specialized data on a certain endpoint.
 
 * `http://localhost:3490/d20` should return a random number between 1 and 20 inclusive as `text/plain` data.
-* Any other URL should map to the `serverroot` directory and files that lie within. For example:
+* Any other URL should map to the `serverroot` directory and files that lie within. For example: 
 
   ```
   http://localhost:3490/index.html
