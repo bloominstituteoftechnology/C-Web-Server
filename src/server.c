@@ -28,6 +28,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <sys/file.h>
+#include <time.h>
 #include <fcntl.h>
 #include "net.h"
 #include "file.h"
@@ -53,14 +54,29 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Remove Body so it can be sent separately from the header (uses 2 send())
+    snprintf(response, max_response_size,
+        "%s\n" 
+        "Content-Type: %s\n"
+        "Content-Length: %d\n" 
+        "Connection: close\n"
+        "\n",
+        header, content_type, content_length
+    );
+
+    printf("%s", response); // send()
+
+    int response_length = strlen(response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
+
+    if (rv < 0) {
+        perror("send");
+    }
+
+    rv = send(fd, body, content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -76,16 +92,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    const int max_int_size = 16;
+    char random_str_num[max_int_size];
+    srand(time(0));
+    unsigned int random_num = 1 + rand()%20;
 
-    // Use send_response() to send it back as text/plain data
+    snprintf(random_str_num, max_int_size, "%d\n", random_num
+    );
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // printf("%s", random_str_num);
+
+    int r_str_num_len = strlen(random_str_num);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", random_str_num, r_str_num_len);
 }
 
 /**
@@ -119,9 +138,51 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+// 1. Check if the file is in the cache.
+// 2. If it is, serve it. We're done.
+// 3. If it's not in the cache, load it from disk.
+// 4. Save it in the cache.
+// 5. Serve it.
+
+    struct cache_entry * ce = cache_get(cache, request_path);
+
+    if (ce != NULL) {
+        send_response(fd, "HTTP/1.1 200 OK", ce->content_type, ce->content, ce->content_length);
+    }
+    
+    char filepath[4096];
+    // char filepath[8388608];
+    struct file_data *filedata; 
+    char *mime_type;
+
+    // Fetch Server Root file
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+  
+
+    if (filedata == NULL) {
+        if (strcmp(request_path, "/") == 0) {
+            request_path = "/index.html";
+            snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+            filedata = file_load(filepath);
+            mime_type = mime_type_get(filepath);
+            send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+        }
+        resp_404(fd);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    if (ce) {
+        send_response(fd, "HTTP/1.1 200 OK", ce->content_type, ce->content, ce->content_length);
+    }
+
+    cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -135,6 +196,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return 0;
 }
 
 /**
@@ -142,8 +204,11 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
+    // const unsigned long long int request_buffer_size = 8388608;
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char method[512];
+    char path[2048];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -154,19 +219,28 @@ void handle_http_request(int fd, struct cache *cache)
     }
 
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    sscanf(request, "%s %s", method, path);
+    printf("Method, path: %s %s\n", method, path);
 
-    // Read the three components of the first request line
+    if (strcmp(method, "GET") == 0) {
+        if(strcmp(path, "/d20") == 0) {
+            get_d20(fd);
+        }
+        else {
 
-    // If GET, handle the get endpoints
-
+            get_file(fd, cache, path);
+        }
+    } else if (strcmp(method, "POST") == 0) {
+        send_response(fd, "HTTP/1.1 201 Created", "text/plain", "Stretch ", 8);
+    } else {
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
-
-    // (Stretch) If POST, handle the post request
+    // (Stretch) If POST, handle the post request    
+    // memset(path, 0, sizeof(path));
+    // memset(word, 0, sizeof(word));
 }
 
 /**
@@ -179,7 +253,7 @@ int main(void)
     char s[INET6_ADDRSTRLEN];
 
     struct cache *cache = cache_create(10, 0);
-
+    
     // Get a listening socket
     int listenfd = get_listener_socket(PORT);
 
@@ -193,7 +267,7 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
+    // resp_404(listenfd);
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
@@ -209,13 +283,11 @@ int main(void)
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
-        printf("server: got connection from %s\n", s);
+        printf("\nserver: got connection from %s\n", s);
         
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
-
         handle_http_request(newfd, cache);
-
         close(newfd);
     }
 

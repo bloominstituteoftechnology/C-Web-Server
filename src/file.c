@@ -13,7 +13,7 @@ struct file_data *file_load(char *filename)
     char *buffer, *p;
     struct stat buf;
     int bytes_read, bytes_remaining, total_bytes = 0;
-
+    // unsigned long long int bytes_read, bytes_remaining, total_bytes = 0;
     // Get the file size
     if (stat(filename, &buf) == -1) {
         return NULL;
@@ -40,8 +40,10 @@ struct file_data *file_load(char *filename)
     }
 
     // Read in the entire file
+    // unsigned long long int minus_one = -1;
     while (bytes_read = fread(p, 1, bytes_remaining, fp), bytes_read != 0 && bytes_remaining > 0) {
         if (bytes_read == -1) {
+        // if (bytes_read == minus_one) {
             free(buffer);
             return NULL;
         }
