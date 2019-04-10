@@ -1,8 +1,81 @@
 # Web Server FAQ
 
-<!-- ============================================================================= -->
+## Contents
 
-<p><details><summary><b>Why do we have to specify the <tt>Host</tt> field in the HTTP request? Isn't it redundant since we just connected to that host?</b></summary><p>
+### Common Problems
+
+* [I rebuilt and re-ran the server, but nothing's happening.](#q300)
+* [After sending the request and getting the response, my client is just sitting there, waiting, and not closing the connection.](#q600)
+* [After sending a `GET` request, the server is just sitting there waiting for something and not responding.](#q700)
+* [I tried to do the `telnet` demo, but it instantly comes back with a 501 response.](#q1500)
+* [I added the `Date` HTTP header using `asctime()` (or `ctime()`) but now everything shows up in my browser as plain text and some of the headers are in the body, as well.](#q3100)
+* [I'm trying to test with `curl` or the browser, and it's telling me "`Connection refused`". Why?](#q4100)
+
+### General
+
+* [How can I use `curl` on the command line to test my server?](#q800)
+* [How do browsers handle caches?](#q900)
+* [Our server only sends out one file at a time. How do browsers get multiple files, like if `index.html` refers to `styles.css`?](#q1300)
+* [How can I fix my server to return binary data as well as text data? I want to get `cat.png` back to the browser.](#q1400)
+* [What is an "octet"?](#q2300)
+* [What's a normal rate of packet loss?](#q3600)
+* [Do packets get delivered in the order they're sent or do they get jumbled up by the process?](#q3800)
+* [Can different packets from the same request can take a different routes to stop bottle necks?](#q3900)
+* [If your request hits a load balancer will it remember such that each subsequent request you send will be sent to the same server?](#q4000)
+
+### Sockets
+
+* [What C libraries do we need for working with sockets?](#q2600)
+* [Do other higher-level languages use sockets under the hood for network communication?](#q3200)
+
+### TCP/UDP/IP, Network Stack
+
+* [What are the layers of the network stack?](#q1900)
+* [How do you know which layer of the network stack is causing a problem?](#q2000)
+* [What's the main difference between TCP and UDP, and when to use each?](#q1600)
+* [Does the "T" in TCP stand for Transport or Transmission?](#q1700)
+* [How are UDP packets lost?](#q1800)
+* [Will we work with both UDP and TCP on this project or just TCP?](#q2500)
+* [In TCP, what is the Transmission Control Block (TCB)?](#q3300)
+* [Does UDP ever send the same data multiple times?](#q3400)
+* [How much faster is UDP than TCP? How can I measure it?](#q3500)
+* [What's a normal rate of packet loss?](#q3600)
+* [Does <i>most</i> of the UDP data normally arrive?](#q3700)
+* [Do packets get delivered in the order they're sent or do they get jumbled up by the process?](#q3800)
+* [Can different packets from the same request can take a different routes to stop bottle necks?](#q3900)
+* [If your request hits a load balancer will it remember such that each subsequent request you send will be sent to the same server?](#q4000)
+
+### HTTP
+
+* [Why do we have to specify the `Host` field in the HTTP request? Isn't it redundant since we just connected to that host?](#q100)
+* [Why is the `Content-Length` different than the number of bytes we pass to `send()`?](#q400)
+* [Does the order of the fields in the HTTP header matter?](#q500)
+* [Will we be diving into HTTPS or any type of secured connection protocols?](#q2400)
+* [I added the `Date` HTTP header using `asctime()` (or `ctime()`) but now everything shows up in my browser as plain text and some of the headers are in the body, as well.](#q3100)
+
+### Existing Code
+
+* [In `send_response()`, the `body` argument is passed as a `void*`. Is there some scenario where the `body` is not a string?](#q200)
+* [What does the `flags` parameter do in `send()` and `recv()`?](#q2100)
+* [What is that `fd` variable?](#q2200)
+
+### MIME
+
+* [What is MIME? Outside of web servers, where are MIME types used?](#q1000)
+* [Where can I find a complete list of MIME types?](#q1100)
+* [How does MIME multipart work?](#q1200)
+
+### LRU Cache
+
+* [For the LRU cache, why do we need a doubly-linked list? Are there other data structures that could work?](#q2700)
+* [How do we add an age to the cache entries to remove them when they get old?](#q2800)
+* [What about an LFU cache (Least <i>Frequently</i> Used) instead of an LRU cache?](#q2900)
+* [Would using Python's `OrderedDict` data structure be better or worse than using a doubly-linked list for an LRU cache?](#q3000)
+
+## Questions
+
+<a name="q100"></a>
+### Why do we have to specify the `Host` field in the HTTP request? Isn't it redundant since we just connected to that host?
 
 In the good old days, there was typically only one host per IP address, and
 vice-versa. That is, if we connected to IP address, `198.51.100.20`, there would
@@ -22,11 +95,10 @@ server, and hundreds of `/funnycat.gif` files.
 So the `Host` field becomes necessary. The client not only needs to specify the
 file they're interested in, but also the domain they're expecting to find it on.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>In <tt>send_response()</tt>, the <tt>body</tt> argument is passed as a <tt>void*</tt>. Is there some scenario where the <tt>body</tt> is not a string?</b></summary><p>
+<a name="q200"></a>
+### In `send_response()`, the `body` argument is passed as a `void*`. Is there some scenario where the `body` is not a string?
 
 In the MVP, no it's always a string.
 
@@ -36,11 +108,12 @@ But if you want to serve any kind of binary file (e.g. `foo.jpg`), you'll be
 This is why `send_response()` takes a `void*`--it can point to any type of data,
 string or not.
 
-</p></details></p>
 
-<!-- ============================================================================= -->
 
-<p><details><summary><b>I rebuilt and re-ran the server, but nothing's happening.</b></summary><p>
+------------------------------------------------------------------------
+
+<a name="q300"></a>
+### I rebuilt and re-ran the server, but nothing's happening.
 
 You have to hit it with a web request. Either send your browser to
 `http://localhost:3490/`, or run curl:
@@ -49,11 +122,12 @@ You have to hit it with a web request. Either send your browser to
 curl -D - http://localhost:3490/
 ```
 
-</p></details></p>
 
-<!-- ============================================================================= -->
 
-<p><details><summary><b>Why is the <tt>Content-Length</tt> different than the number of bytes we pass to <tt>send()</tt>?</b></summary><p>
+------------------------------------------------------------------------
+
+<a name="q400"></a>
+### Why is the `Content-Length` different than the number of bytes we pass to `send()`?
 
 It's because they refer to the size of the _payload_ at different layers in the
 protocol stack.
@@ -69,11 +143,12 @@ when we call `send()`.) So the entirety of the HTTP data, header and body, needs
 to be wrapped up in TCP and sent. So when we call `send()`, we give it that
 entire length.
 
-</p></details></p>
 
-<!-- ============================================================================= -->
 
-<p><details><summary><b>Does the order of the fields in the HTTP header matter?</b></summary><p>
+------------------------------------------------------------------------
+
+<a name="q500"></a>
+### Does the order of the fields in the HTTP header matter?
 
 No. The key-value pairs can be in any order.
 
@@ -93,11 +168,10 @@ But _after_ that, with all the things like `Content-Length` and `Content-Type` a
 
 Don't forget to end your header with an empty line!
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>After sending the request and getting the response, my client is just sitting there, waiting, and not closing the connection.</b></summary><p>
+<a name="q600"></a>
+### After sending the request and getting the response, my client is just sitting there, waiting, and not closing the connection.
 
 Make sure you have the
 
@@ -107,20 +181,18 @@ Connection: close
 
 field in your header.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>After sending a <tt>GET</tt> request, the server is just sitting there waiting for something and not responding.</b></summary><p>
+<a name="q700"></a>
+### After sending a `GET` request, the server is just sitting there waiting for something and not responding.
 
 Make sure you end your request header with a blank line. That's how the server
 knows the header is complete.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>How can I use <tt>curl</tt> on the command line to test my server?</b></summary><p>
+<a name="q800"></a>
+### How can I use `curl` on the command line to test my server?
 
 `curl` sends web requests from the command line and prints the results on
 standard output.
@@ -144,11 +216,10 @@ headers and body:
 curl -v http://localhost:3490/
 ```
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>How do browsers handle caches?</b></summary><p>
+<a name="q900"></a>
+### How do browsers handle caches?
 
 The browser-side cache (as opposed to the server-side cache that you'll be
 writing) has the goal of speeding web page loads by reducing network traffic.
@@ -177,11 +248,10 @@ A web server can offer hints to a web browser about how data should be cached.
 For more information, see the [Cache-Control
 header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What is MIME? Outside of web servers, where are MIME types used?</b></summary><p>
+<a name="q1000"></a>
+### What is MIME? Outside of web servers, where are MIME types used?
 
 The idea with MIME is that you're going to attach a piece of metadata to the
 data you're sending to let the receiver know what _type_ (or kind) of data it is
@@ -212,11 +282,10 @@ email today.
 Aside from that, there are a variety of miscellaneous uses, but web and email
 cover 99.9% of all of them.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Where can I find a complete list of MIME types?</b></summary><p>
+<a name="q1100"></a>
+### Where can I find a complete list of MIME types?
 
 Since people are adding new MIME types all the time, there's not really a such
 thing as a _complete_ list.
@@ -227,22 +296,20 @@ of the MIME type should be prefixed with `x-`, like `application/x-bzip`.)
 Common MIME types can be found at [MDN's incomplete list of MIME
 types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types).
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>How does MIME multipart work?</b></summary><p>
+<a name="q1200"></a>
+### How does MIME multipart work?
 
 It splits the body up into separate MIME sections, each with its own MIME type.
 
 See Wikipedia: [MIME multipart
 messages](https://en.wikipedia.org/wiki/MIME#Multipart_messages)
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Our server only sends out one file at a time. How do browsers get multiple files, like if <tt>index.html</tt> refers to <tt>styles.css</tt>?</b></summary><p>
+<a name="q1300"></a>
+### Our server only sends out one file at a time. How do browsers get multiple files, like if `index.html` refers to `styles.css`?
 
 Turns out they do them in separate requests.
 
@@ -264,11 +331,10 @@ Connection: close
 which tells the browser we're hanging up after this one response. This is just
 to make our code easier.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>How can I fix my server to return binary data as well as text data? I want to get <tt>cat.png</tt> back to the browser.</b></summary><p>
+<a name="q1400"></a>
+### How can I fix my server to return binary data as well as text data? I want to get `cat.png` back to the browser.
 
 If you are building your HTTP response, both header and body, with a single
 `sprintf()`, you'll have trouble getting the body in there. This is because
@@ -299,22 +365,20 @@ There are two options here:
 
    3. Call `send()` to send out the complete HTTP response.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>I tried to do the <tt>telnet</tt> demo, but it instantly comes back with a 501 response.</b></summary><p>
+<a name="q1500"></a>
+### I tried to do the `telnet` demo, but it instantly comes back with a 501 response.
 
 Telnet can optionally send some control commands back and forth per the [telnet
 protocol](https://tools.ietf.org/html/rfc854) and it seems the Windows version
 of telnet does this. Try the
 [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) version.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What's the main difference between TCP and UDP, and when to use each?</b></summary><p>
+<a name="q1600"></a>
+### What's the main difference between TCP and UDP, and when to use each?
 
 TCP offers:
 
@@ -342,22 +406,20 @@ loss.
 But player type-written chat data, that's something else. When you send a chat,
 you expect it to arrive. TCP is much better.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Does the "T" in TCP stand for Transport or Transmission?</b></summary><p>
+<a name="q1700"></a>
+### Does the "T" in TCP stand for Transport or Transmission?
 
 It stands for [Transmission](https://tools.ietf.org/html/rfc793).
 
 Confusingly, it is located at the Transport layer of the [OSI layered network
 model](https://en.wikipedia.org/wiki/OSI_model).
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>How are UDP packets lost?</b></summary><p>
+<a name="q1800"></a>
+### How are UDP packets lost?
 
 The non-answer is that from our perspectives as programmers, it doesn't matter.
 Could have been goats chewing on cables, could have been a meteorite strike,
@@ -383,11 +445,10 @@ their internet backbone.
 In those cases, the internet tries to heal the problem by routing around the
 damage, if possible.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What are the layers of the network stack?</b></summary><p>
+<a name="q1900"></a>
+### What are the layers of the network stack?
 
 The full stack is described in [OSI layered network
 model](https://en.wikipedia.org/wiki/OSI_model). But this is overkill for
@@ -402,12 +463,10 @@ The simplified four-layer model commonly in use from a programmer perspective:
 |   Network Layer   | IP                                  |
 |    Link Layer     | Ethernet (wifi or wired)            |
 
-</p></details></p>
+------------------------------------------------------------------------
 
-
-<!-- ============================================================================= -->
-
-<p><details><summary><b>How do you know which layer of the network stack is causing a problem?</b></summary><p>
+<a name="q2000"></a>
+### How do you know which layer of the network stack is causing a problem?
 
 It's comes down to learning how to troubleshoot network problems.
 
@@ -425,11 +484,10 @@ Ethernet layer.
 Application layer issues (HTTP, FTP, etc) tend to be program bugs, and you just
 debug them normally.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What does the <tt>flags</tt> parameter do in <tt>send()</tt> and <tt>recv()</tt>?</b></summary><p>
+<a name="q2100"></a>
+### What does the `flags` parameter do in `send()` and `recv()`?
 
 It gives you additional control over how the data is sent. (Using `read()` or
 `write()` with a socket descriptor is the same as calling `recv()` or `send()`
@@ -442,11 +500,10 @@ priority or exception data. The receiving side gets a signal indicating that
 some out of band data has arrived and that normal processing should be
 interrupted to handle it.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What is that <tt>fd</tt> variable?</b></summary><p>
+<a name="q2200"></a>
+### What is that `fd` variable?
 
 `fd` is the traditional name of a variable that holds a _file descriptor_.
 
@@ -476,11 +533,10 @@ disk, and the other is a socket, the OS treats them both like files.
 Turns out with sockets, a `write()` is the same as a `send()` with the `flags`
 parameter set to `0`. Same with `read()` and `recv()`.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What is an "octet"?</b></summary><p>
+<a name="q2300"></a>
+### What is an "octet"?
 
 It's another word for _byte_, practically speaking.
 
@@ -492,11 +548,10 @@ bits.
 
 The term _octet_ removes the ambiguity.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Will we be diving into HTTPS or any type of secured connection protocols?</b></summary><p>
+<a name="q2400"></a>
+### Will we be diving into HTTPS or any type of secured connection protocols?
 
 Not in this class.
 
@@ -510,11 +565,10 @@ responsible for the encryption.
 
 But the details of how that is done is beyond the scope of the class.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Will we work with both UDP and TCP on this project or just TCP?</b></summary><p>
+<a name="q2500"></a>
+### Will we work with both UDP and TCP on this project or just TCP?
 
 Just TCP.
 
@@ -525,11 +579,10 @@ people use TCP. That is, they use HTTP/TCP/IP as opposed to HTTP/UDP/IP.
 
 See also: [RFC 1149](https://tools.ietf.org/html/rfc1149).
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What C libraries do we need for working with sockets?</b></summary><p>
+<a name="q2600"></a>
+### What C libraries do we need for working with sockets?
 
 On a Unix system, you don't need to specify anything additional for the build.
 But you do need to include the proper header files for particular functions
@@ -541,11 +594,10 @@ tell you what files you need to `#include`.
 
 See also: [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/).
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>For the LRU cache, why do we need a doubly-linked list? Are there other data structures that could work?</b></summary><p>
+<a name="q2700"></a>
+### For the LRU cache, why do we need a doubly-linked list? Are there other data structures that could work?
 
 One of the things the LRU cache needs to do is delete an item from the middle of
 the list and move it to the head of the list. And we want to do this fast.
@@ -560,11 +612,10 @@ The doubly-linked list has the scaling characteristics that we're looking for.
 If you have another data structure that works as well, you could use that
 instead.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>How do we add an age to the cache entries to remove them when they get old?</b></summary><p>
+<a name="q2800"></a>
+### How do we add an age to the cache entries to remove them when they get old?
 
 Add a timestamp to the cache entry structure.
 
@@ -580,11 +631,10 @@ Another thing you can do is only check for expired cache entries on a _cache
 hit_. When you fetch an item from the cache and are about to serve it, check the
 time. If it's too old, delete it from the cache and refresh it from disk.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What about an LFU cache (Least <i>Frequently</i> Used) instead of an LRU cache?</b></summary><p>
+<a name="q2900"></a>
+### What about an LFU cache (Least <i>Frequently</i> Used) instead of an LRU cache?
 
 LFU is a similar caching strategy. One place it might differ is if you have a
 file that got accessed a million times in a short timeframe, and then never
@@ -598,11 +648,10 @@ It's not a _bad_ strategy--it's just not one that's well-suited for our use.
 
 See also: [Cache Replacement Policies](https://en.wikipedia.org/wiki/Cache_replacement_policies)
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Would using Python's <tt>OrderedDict</tt> data structure be better or worse than using a doubly-linked list for an LRU cache?</b></summary><p>
+<a name="q3000"></a>
+### Would using Python's `OrderedDict` data structure be better or worse than using a doubly-linked list for an LRU cache?
 
 Turns out it would be the same!
 
@@ -622,11 +671,10 @@ is implemented using a doubly-linked list!
 In fact, the `OrderedDict` implementation is already very similar to our LRU
 cache in many respects.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>I added the <tt>Date</tt> HTTP header using <tt>asctime()</tt> (or <tt>ctime()</tt>) but now everything shows up in my browser as plain text and some of the headers are in the body, as well.</b></summary><p>
+<a name="q3100"></a>
+### I added the `Date` HTTP header using `asctime()` (or `ctime()`) but now everything shows up in my browser as plain text and some of the headers are in the body, as well.
 
 `asctime()` and `ctime()` add a newline for you, so you don't need to add one in
 your `sprintf()`.
@@ -684,11 +732,10 @@ page](https://linux.die.net/man/3/asctime):
 
 Note the included trailing newline.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Do other higher-level languages use sockets under the hood for network communication?</b></summary><p>
+<a name="q3200"></a>
+### Do other higher-level languages use sockets under the hood for network communication?
 
 Short answer: yes, or something equivalent.
 
@@ -702,11 +749,10 @@ If you're on Windows, it uses a different API called
 [Winsock](https://en.wikipedia.org/wiki/Winsock), which basically does the same
 thing.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>In TCP, what is the Transmission Control Block (TCB)?</b></summary><p>
+<a name="q3300"></a>
+### In TCP, what is the Transmission Control Block (TCB)?
 
 It's an internal data structure in the OS that's used to hold metadata about a
 single TCP connection. It's not something that users interact with directly.
@@ -724,22 +770,20 @@ connection. That place is the TCB data structure.
 
 * [More at Wikipedia](https://en.wikipedia.org/wiki/Transmission_Control_Protocol#Resource_usage)
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Does UDP ever send the same data multiple times?</b></summary><p>
+<a name="q3400"></a>
+### Does UDP ever send the same data multiple times?
 
 No. There is no automatic retransmission with UDP.
 
 Rarely a UDP packet might get duplicated in transit by a buggy system or some
 weird router configuration.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>How much faster is UDP than TCP? How can I measure it?</b></summary><p>
+<a name="q3500"></a>
+### How much faster is UDP than TCP? How can I measure it?
 
 The answer to this question is surprisingly complex, and there are a significant
 number of cases where TCP can outperform UDP.
@@ -757,11 +801,10 @@ best on your particular network configuration.
 
 * [Informative discussion on SO](https://stackoverflow.com/questions/47903/udp-vs-tcp-how-much-faster-is-it)
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>What's a normal rate of packet loss?</b></summary><p>
+<a name="q3600"></a>
+### What's a normal rate of packet loss?
 
 It absolutely depends on tremendous variety of factors, but on a
 regularly-loaded network, it's probably around 1-2%.
@@ -769,11 +812,10 @@ regularly-loaded network, it's probably around 1-2%.
 If you start flooding your Ethernet with tons of UDP packets as fast as you can,
 you'll see a much higher loss rate.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Does <i>most</i> of the UDP data normally arrive?</b></summary><p>
+<a name="q3700"></a>
+### Does <i>most</i> of the UDP data normally arrive?
 
 Yes, in normal circumstances, _most_ of the UDP packets arrive. You should never
 count on any of them arriving, though.
@@ -781,19 +823,17 @@ count on any of them arriving, though.
 If the network is congested, or if someone puts a backhoe through a fiber trunk,
 the loss rates will increase.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Do packets get delivered in the order they're sent or do they get jumbled up by the process?</b></summary><p>
+<a name="q3800"></a>
+### Do packets get delivered in the order they're sent or do they get jumbled up by the process?
 
 They get jumbled. TCP unjumbles them. UDP does not.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>Can different packets from the same request can take a different routes to stop bottle necks?</b></summary><p>
+<a name="q3900"></a>
+### Can different packets from the same request can take a different routes to stop bottle necks?
 
 Yes, but it happens transparently to you.
 
@@ -802,19 +842,17 @@ layer, two layers down.
 
 * [Dynamic Routing at Wikipedia](https://en.wikipedia.org/wiki/Dynamic_routing)
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>if your request hits a load balancer will it remember such that each subsequent request you send will be sent to the same server?</b></summary><p>
+<a name="q4000"></a>
+### If your request hits a load balancer will it remember such that each subsequent request you send will be sent to the same server?
 
 Yes. Otherwise writing server software would be quite a juggling act.
 
-</p></details></p>
+------------------------------------------------------------------------
 
-<!-- ============================================================================= -->
-
-<p><details><summary><b>I'm trying to test with <tt>curl</tt> or the browser, and it's telling me "<tt>Connection refused</tt>". Why?</b></summary><p>
+<a name="q4100"></a>
+### I'm trying to test with `curl` or the browser, and it's telling me "`Connection refused`". Why?
 
 That's the error you get if you try to connect to a port and no one is listening
 on it.
@@ -824,18 +862,4 @@ Typically means that your server isn't running. Start it up and then try again.
 Barring that, make sure you've specified the right port number to `curl` or the
 browser.
 
-</p></details></p>
-
-<!--
-TODO:
--->
-
-<!-- ============================================================================= -->
-
-<!--
-Template:
-
-<p><details><summary><b></b></summary><p>
-</p></details></p>
-
--->
+------------------------------------------------------------------------
