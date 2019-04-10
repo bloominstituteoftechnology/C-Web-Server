@@ -131,6 +131,41 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *cache_entry = cache_get(cache, request_path);
+
+    if (cache_entry != NULL)
+    {
+        send_response(fd, "HTTP/1.1 200 OK", cache_entry->content_type, cache_entry->content, cache_entry->content_length);
+    }
+    else
+    {
+        char filepath[4096];
+        struct file_data *filedata;
+        char *mime_type;
+        if (strcmp(request_path, "/") == 0 || strcmp(request_path, "/index.html") == 0)
+        {
+            snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+        }
+        else
+        {
+            snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+        }
+
+        filedata = file_load(filepath);
+
+        if (filedata == NULL)
+        {
+            resp_404(fd);
+            return;
+        }
+
+        mime_type = mime_type_get(filepath);
+
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
 }
 
 /**
@@ -151,21 +186,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
-    char request[request_buffer_size];
-
-    // Read request
-    int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
-
-    if (bytes_recvd < 0) {
-        perror("recv");
-        return;
-    }
-
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+        const int request_buffer_size = 65536; // 64K
 
     // Read the three components of the first request line
 
