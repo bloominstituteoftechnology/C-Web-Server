@@ -2,22 +2,22 @@
 #define _WEBCACHE_H_
 
 // Individual hash table entry
-struct cache_entry {
+typedef struct cache_entry {
     char *path;   // Endpoint path--key to the cache
     char *content_type;
     int content_length;
     void *content;
 
     struct cache_entry *prev, *next; // Doubly-linked list
-};
+} cache_entry;
 
 // A cache
-struct cache {
+typedef struct cache {
     struct hashtable *index;
     struct cache_entry *head, *tail; // Doubly-linked list
     int max_size; // Maxiumum number of entries
     int cur_size; // Current number of entries
-};
+}cache;
 
 extern struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length);
 extern void free_entry(struct cache_entry *entry);
