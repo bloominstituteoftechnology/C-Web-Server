@@ -1,4 +1,4 @@
-/**
+/** 
  * webserver.c -- A webserver written in C
  * 
  * Test with curl (if you don't have it, install it):
@@ -56,7 +56,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Build HTTP response and store it in response
     char response[max_response_size];
     time_t t = time(NULL);
-    struct tm *timestamp;
+    // struct tm *timestamp;
     // char buffer[50];
     // time(&ctime_r);
 
@@ -66,7 +66,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     response_length = sprintf(
         response,
         "%s\n"
-        "Date: %s\n"
+        "Date: %s"
         "Connection: close \n"
         "Content_Length: %d\n"
         "Content-Type: %s\n"
@@ -221,11 +221,11 @@ void handle_http_request(int fd, struct cache *cache)
 
     (void)cache;
 
-    // sscanf(request, '%s %s', request_type, request_path);
+    sscanf(request, "%s %s", request_type, request_path);
 
-    // printf("REQUEST: %s %s\n", request_type, request_path);
+    printf("REQUEST: %s %s\n", request_type, request_path);
 
-    resp_404(fd);
+    // resp_404(fd);
 
     if (strcmp(request_type, "GET") == 0 & strcmp(request_path, "/d20") == 0)
     {

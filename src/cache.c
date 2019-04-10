@@ -165,4 +165,3 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     }
 }
 
-dll
