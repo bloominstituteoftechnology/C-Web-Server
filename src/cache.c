@@ -11,10 +11,26 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    struct cache_entry *new_cache_entry = malloc(sizeof(struct cache_entry));
-    new_cache_entry->path = path;
-    new_cache_entry->content_type = content_type;
-    new_cache_entry->content = content;
+    struct cache_entry *new_cache_entry = malloc(sizeof(*new_cache_entry));
+    // new_cache_entry->path = path;
+    // new_cache_entry->content_type = content_type;
+    // new_cache_entry->content = content;
+    // new_cache_entry->content_length = content_length;
+
+    // grab memory for the path string
+    new_cache_entry->path = malloc(strlen(path) + 1);
+    strcpy(new_cache_entry->path, path);
+
+    // grab memory for the content_type string
+    new_cache_entry->content_type = malloc(strlen(content_type) + 1);
+    strcpy(new_cache_entry->content_type, content_type);
+
+    // grab memory for the content string
+    //  NOTE- using content_length in case of binary data (strlen won't work)
+    new_cache_entry->content = malloc(content_length + 1);
+    memcpy(new_cache_entry->content, content, content_length);
+
+    // numbers are easy - don't even have to free
     new_cache_entry->content_length = content_length;
 
     return new_cache_entry;
@@ -100,9 +116,16 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    struct cache *new_cache = malloc(sizeof(*new_cache));
+    struct hashtable *hash_table = hashtable_create(hashsize, NULL);
+
+    new_cache->head = NULL;
+    new_cache->tail = NULL;
+    new_cache->cur_size = 0;
+    new_cache->max_size = max_size;
+    new_cache->index = hash_table;
+
+    return new_cache;
 }
 
 void cache_free(struct cache *cache)
@@ -164,4 +187,3 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
         return cache->head;
     }
 }
-
