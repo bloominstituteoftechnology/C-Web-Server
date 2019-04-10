@@ -108,8 +108,6 @@ But if you want to serve any kind of binary file (e.g. `foo.jpg`), you'll be
 This is why `send_response()` takes a `void*`--it can point to any type of data,
 string or not.
 
-
-
 ------------------------------------------------------------------------
 
 <a name="q300"></a>
@@ -121,8 +119,6 @@ You have to hit it with a web request. Either send your browser to
 ```shell
 curl -D - http://localhost:3490/
 ```
-
-
 
 ------------------------------------------------------------------------
 
@@ -142,8 +138,6 @@ But then we wrap _that entire thing_ inside TCP. (Well, the OS does it for us
 when we call `send()`.) So the entirety of the HTTP data, header and body, needs
 to be wrapped up in TCP and sent. So when we call `send()`, we give it that
 entire length.
-
-
 
 ------------------------------------------------------------------------
 
