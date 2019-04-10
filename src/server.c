@@ -53,11 +53,31 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+    time_t response_time;
+    struct tm *timestamp;
+    char buffer[50];
+    time(&response_time);
 
+    timestamp = localtime(&response_time);
+    strftime(buffer, 50, "%a %b %d %T %Z %Y", timestamp);
+    // Build HTTP response and store it in response
+    
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char *body_data = body;
+
+    sprintf(response, "%s\n"
+        "Date: %s\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n\n"
+        "%s\n\n",
+        header, buffer, content_length, content_type, body_data);
+    
+    int response_length = strlen(response);
+    printf("Response from server: %s\n", response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -75,14 +95,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    char body[3];
     // Generate a random number between 1 and 20 inclusive
-    
+    int rng = rand() % 21;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
-
+    sprintf(body, "%d", rng);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -122,6 +144,25 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    /* requires same variable setup as the 404 response */
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if(filedata == NULL) {
+        fprintf(stderr, "Cannot find file at path %s\n", request_path);
+        exit(3);
+        /* there's probably a better way to do this that doesn't force the exit each time */
+    }
+
+    mime_type = mime_type_get(filepath);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    
+    file_free(filedata);
 }
 
 /**
@@ -159,12 +200,23 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the three components of the first request line
+    /* set method and path first */
+    char method[200];
+    char path[8192];
+
+    sscanf(request, "%s %s", method, path);
 
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
+    if(strcmp(method, "GET") == 0 & strcmp(path, "/d20") == 0) {
+        get_d20(fd);
+    }
+    else {
+        get_file(fd, cache, path);
+    }
 
     // (Stretch) If POST, handle the post request
 }
