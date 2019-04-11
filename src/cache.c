@@ -151,9 +151,33 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // Allocate a new cache entry
+    struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length);
+
+    // Insert the entry at the head of the dll
+    dllist_insert_head(cache, new_entry);
+
+    // Store the entry into the hashtable
+    hashtable_put(cache->index, path, new_entry);
+
+    // Increment the current size of the cache
+    cache->cur_size += 1;
+
+    // If the cache size is greater than max size
+    if (cache->cur_size > cache->max_size)
+    {
+        // Remove the entry from dll tail
+        struct cache_entry *old_entry = dllist_remove_tail(cache);
+        // remove the entry from hash
+        hashtable_delete(cache->index, old_entry->path);
+        // Free the cache entry
+        free_entry(old_entry);
+        // bring down current size to be no bigger than max size
+        if (cache->cur_size > cache->max_size)
+        {
+            cache->cur_size -= 1;
+        }
+    }
 }
 
 /**
@@ -161,7 +185,14 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // if entry at index is NULL
+    if (hashtable_get(cache->index, path) == NULL)
+    {
+        return NULL;
+    }
+    else
+    { // Move entry to head of the dll
+        dllist_move_to_head(cache, hashtable_get(cache->index, path));
+        return cache->head;
+    }
 }
