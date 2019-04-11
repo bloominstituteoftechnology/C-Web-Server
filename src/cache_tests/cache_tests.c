@@ -63,7 +63,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->head, test_entry_1) == 0, "Your cache_put function did not put an entry into the head of the empty cache with the expected form");
   mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not put an entry into the tail of the empty cache with the expected form");
   mu_assert(check_cache_entries(hashtable_get(cache->index, "/1"), test_entry_1) == 0, "Your cache_put function did not put the expected entry into the hashtable");
-
+  
   // Add in a second entry to the cache
   cache_put(cache, test_entry_2->path, test_entry_2->content_type, test_entry_2->content, test_entry_2->content_length);
   // Check that the cache is handling both entries as expected
@@ -72,7 +72,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not move the oldest entry in the cache to the tail of the cache");
   mu_assert(check_cache_entries(cache->head->next, test_entry_1) == 0, "Your cache_put function did not correctly set the head->next pointer of the cache");
   mu_assert(check_cache_entries(hashtable_get(cache->index, "/2"), test_entry_2) == 0, "Your cache_put function did not put the expected entry into the hashtable");
-
+  
   // Add in a third entry to the cache
   cache_put(cache, test_entry_3->path, test_entry_3->content_type, test_entry_3->content, test_entry_3->content_length);
   // Check that the cache is handling all three entries as expected
@@ -83,7 +83,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->head->next->next, test_entry_1) == 0, "Your cache_put function did not update the head->next->next pointer to point to the tail entry");
   mu_assert(check_cache_entries(cache->tail->prev, test_entry_2) == 0, "Your cache_put function did not update the tail->prev pointer to poin to the second-to-last entry");
   mu_assert(check_cache_entries(cache->tail, test_entry_1) == 0, "Your cache_put function did not correctly update the tail pointer of the cache"); 
-
+  
   // Add in a fourth entry to the cache
   cache_put(cache, test_entry_4->path, test_entry_4->content_type, test_entry_4->content, test_entry_4->content_length);
   // Check that the cache removed the oldest entry and is handling the three most-recent entries correctly
@@ -94,7 +94,7 @@ char *test_cache_put()
   mu_assert(check_cache_entries(cache->head->next->next, test_entry_2) == 0, "Your cache_put function did not update the head->next->next pointer to point to the tail entry");
   mu_assert(check_cache_entries(cache->tail->prev, test_entry_3) == 0, "Your cache_put function did not update the tail->prev pointer to poin to the second-to-last entry");
   mu_assert(check_cache_entries(cache->tail, test_entry_2) == 0, "Your cache_put function did not correctly handle the tail of an already-full cache");
-
+  
   cache_free(cache);
 
   return NULL;

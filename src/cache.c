@@ -12,6 +12,24 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //allocate space for the struct were going to return
+    struct cache_entry *ce = malloc(sizeof *ce);  //size of dereference ce if dereffed it is cache_entry
+    //set all fields to values being passed in to initialize
+    //have a pointer to something but have to make sure what you are pointing to persists(make sure it doesnt accidentally get freed)
+    ce->path = malloc(strlen(path) + 1); //so make a copy of path we know will persist. +1 for null terminator
+    strcpy(ce->path, path);  //(dest, args) copy path into allocated memory. this is deep copy.
+
+    ce->content_type = malloc(strlen(content_type) +1);
+    strcpy(ce->content_type, content_type);
+
+    ce->content = malloc(content_length); //content is void pointer so dont know what type so cant use strlen, but know its length so can use that 
+    memcpy(ce->content, content, content_length); //(dest, src, size)
+
+    ce->content_length = content_length;  //int so dont have to malloc 
+
+    ce->prev = ce->next = NULL;
+
+    return ce;
 }
 
 /**
@@ -22,6 +40,12 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //have to free the cache entry passed in but have to free everything we malloc'ed space for
+    //free everything in stucture, then free the structure itself so entry last
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
+    free(entry);
 }
 
 /**
@@ -93,7 +117,19 @@ struct cache *cache_create(int max_size, int hashsize)
 {
     ///////////////////
     // IMPLEMENT ME! //
-    ///////////////////
+    ///////////////////  going in opposite order from cache free below. also refer to cache struct in cache.h
+    //allocate cache
+    struct cache *cache = malloc(sizeof *cache);
+    //functions in hashtable.h and c
+    cache->index = hashtable_create(hashsize, NULL); //size and pointer to a function (that takes in certain values and returns int)
+    //initialize head and tail null
+    cache->head = cache->tail = NULL;
+
+    cache->max_size = max_size; //int so dont allocate space
+
+    cache->cur_size = 0;   
+    
+    return cache;
 }
 
 void cache_free(struct cache *cache)
@@ -113,6 +149,15 @@ void cache_free(struct cache *cache)
     free(cache);
 }
 
+void clean_lru(struct cache *cache)
+{
+    while (cache->cur_size > cache->max_size) {
+        struct cache_entry *oldtail = dllist_remove_tail(cache);
+
+        hashtable_delete(cache->index, oldtail->path);
+        free_entry(oldtail);
+    }
+}
 /**
  * Store an entry in the cache
  *
@@ -125,6 +170,26 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //Allocate a new cache entry with the passed parameters
+    struct cache_entry *ce = alloc_entry(path, content_type, content, content_length);
+    //Insert the entry at the head of the doubly-linked list
+    dllist_insert_head(cache, ce);
+    //Store the entry in the hashtable as well, indexed by the entry's path
+    hashtable_put(cache->index, ce->path, ce);
+    //Increment the current size of the cache
+    cache->cur_size++;
+    clean_lru(cache);
+    //If the cache size is greater than the max size
+    // if (cache->cur_size > cache->max_size) {
+    //     //Remove the cache entry at the tail of the linked list
+    //     dllist_remove_tail(ce);
+    //     //Remove that same entry from the hashtable, using the entry's path and the hashtable_delete function
+    //     hashtable_delete(ce->path, ce);
+    //     //Free the cache entry
+    //     cache_free(ce);
+    //     //Ensure the size counter for the number of entries in the cache is correct
+    //     cache->cur_size--;
+    // }
 }
 
 /**
@@ -135,4 +200,14 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    //Attempt to find the cache entry pointer by path in the hash table. If not found, return NULL
+    struct cache_entry *ce = hashtable_get(cache->index, path);
+    
+    if (ce == NULL) {
+        return NULL;
+    }
+    //Move the cache entry to the head of the doubly-linked list
+    dllist_move_to_head(cache, ce);
+    //Return the cache entry pointer
+    return ce;
 }
