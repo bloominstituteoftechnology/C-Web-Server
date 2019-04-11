@@ -187,15 +187,30 @@ char *find_start_of_body(char *header)
 void handle_http_request(int fd, struct cache *cache)
 {
         const int request_buffer_size = 65536; // 64K
+        char request[ request_buffer_size];
+        char method[200];
+        char path[8192];
+        char protocol [1785];
 
-    // Read the three components of the first request line
+        int byte_recieved= recv(fd,request, request_buffer_size-1,0);
 
-    // If GET, handle the get endpoints
+        if(byte_recieved<0){
+            perror("recv");
+            return;
+        }
+        sscanf(request, "%s %s %s", method, path, protocol);
 
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
+        if(strcmp(method,"GET")==0)
+        {
+            if(strcmp(path, "/d20")==0){
+                get_d20(fd);
+            }
+            else
+            {
+                get_file(fd,cache,path);
+            }
+           resp_404(fd); 
+        }
     // (Stretch) If POST, handle the post request
 }
 
