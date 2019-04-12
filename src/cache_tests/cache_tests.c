@@ -41,7 +41,7 @@ char *test_cache_alloc_entry()
   mu_assert(ce->content_length == content_len, "Your alloc_entry function did not allocate the content_length field to the expected length");
 
   free_entry(ce);
-
+  
   return NULL;
 }
 

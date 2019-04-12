@@ -52,14 +52,29 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
+    time_t time_res;
+    struct tm *timestamp;
+    char buffer[50];
+    time(&time_res);
 
-    // Build HTTP response and store it in response
+    timestamp = localtime(&time_res);
+    strftime(buffer, 50, "%a %b %d %T %Z %Y", timestamp);
+    
+    char *new_body = body;
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    sprintf(response, "%s\n"
+        "Date: %s\n"
+        "Connection: close\n"
+        "Content-Length: %d\n"
+        "Content-Type: %s\n"
+        "\n"
+        "%s\n",
+        header, buffer, content_length, content_type, new_body);
 
-    // Send it all!
+    int response_length = strlen(response);
+
+    printf("Response: %s\n", response);
+    
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0) {
@@ -75,17 +90,10 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
-    // Generate a random number between 1 and 20 inclusive
-    
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char body[3];
+    int random_int = rand() % 21;
+    sprintf(body, "%d", random_int);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
 }
 
 /**
@@ -119,9 +127,45 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata; 
+    char *mime_type;
+    struct cache_entry *entry = cache_get(cache, request_path);
+    
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (entry != NULL)
+    {
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+        printf("\n%s\n", "from cache");
+        return;
+    }
+    else
+    {
+        cache_put(cache, request_path, mime_type_get(filepath), filedata->data, filedata->size);
+    }
+
+    if (filedata == NULL & strcmp(request_path, "/") == 0) {
+        fprintf(stderr, "cannot find %s\n", request_path);
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+        filedata = file_load(filepath);
+        mime_type = mime_type_get(filepath);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+        return;
+    }
+    else if (filedata == NULL) {
+        fprintf(stderr, "cannot find %s\n", request_path);
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -144,8 +188,7 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
-
-    // Read request
+    
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
 
     if (bytes_recvd < 0) {
@@ -153,19 +196,19 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    char method[200];
+    char path[8192];
+  
+    sscanf(request, "%s %s", method, path);
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    // Read the three components of the first request line
-
-    // If GET, handle the get endpoints
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-
+    if(strcmp(method, "GET") == 0 & strcmp(path, "/d20") == 0)
+    {
+        get_d20(fd);
+    }
+    else
+    {
+        get_file(fd, cache, path);
+    }
     // (Stretch) If POST, handle the post request
 }
 
@@ -193,7 +236,6 @@ int main(void)
     // This is the main loop that accepts incoming connections and
     // forks a handler process to take care of it. The main parent
     // process then goes back to waiting for new connections.
-    
     while(1) {
         socklen_t sin_size = sizeof their_addr;
 
