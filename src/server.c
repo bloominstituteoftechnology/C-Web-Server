@@ -158,8 +158,8 @@ void handle_http_request(int fd, struct cache *cache)
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Read the three components of the first request line
-
+    // Read the first two components of the first line of the request 
+ 
     // If GET, handle the get endpoints
 
     //    Check if it's /d20 and handle that special case
@@ -191,8 +191,8 @@ int main(void)
     printf("webserver: waiting for connections on port %s...\n", PORT);
 
     // This is the main loop that accepts incoming connections and
-    // forks a handler process to take care of it. The main parent
-    // process then goes back to waiting for new connections.
+    // responds to the request. The main parent process
+    // then goes back to waiting for new connections.
     
     while(1) {
         socklen_t sin_size = sizeof their_addr;
