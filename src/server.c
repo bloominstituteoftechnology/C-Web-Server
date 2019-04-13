@@ -62,11 +62,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&rawtime);
     i = localtime(&rawtime);
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "%s \n Connection: close \n Date: %s \n Content-Type:%s \n Content-length:%d\n""\n",header,asctime(i),content_type,content_length);
+    int response_length = sprintf(response, " %s \n Connection: close \n Date: %s Content-Type:%s \n Content-length:%d\n""\n",header,asctime(i),content_type,content_length);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-    
+    printf("%s",response);
     // Send it all!
     //send response
     memcpy(response + response_length, body, content_length);

@@ -249,3 +249,15 @@ Be sure to lock the cache when a thread accesses it so the threads don't step on
 Also have thread cleanup handlers to handle threads that have died.
 
 //
+
+1. LRU Cache - least recently used 
+2. TCP - main protocal used - 3 way hand shake - provides reliable, ordered, and error-checked delivery -transport layer of a packet or internet protocal suite  
+3. UDP- used for main streaming of data - unreliable  
+4. URL- uniform resource locater - url helps locate server
+5. HTTP Header - HTTP headers allow the client and the server to pass additional information with the request or the response. such as auth info
+6. HTTP Sockets- this protocal helps two way communiation in tcp full duplex
+7. HTTP Protocol -protocol defines how messages are formatted and transmitted on the outer most layer of the packet
+8. Network Protocol-network protocol is a set of rules followed by the network.defines communication between two or more devices over a network.
+9. Sockets- one endpoint in a two way communication link between two programs running
+10. MIME Type multipurpose int
+11. Doubly Linked List
