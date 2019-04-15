@@ -91,6 +91,7 @@ void get_d20(int fd)
     srand(1);
     float d20_val = rand();
     
+    printf("d20 roll: %f\n", d20_val);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -172,16 +173,42 @@ void handle_http_request(int fd, struct cache *cache)
     // IMPLEMENT ME! //
     ///////////////////
 
-    // Read the first two components of the first line of the request 
+    // char *request_parts = strtok(request, " ");
+
     
-    resp_404(fd);
+    // parse header
+
+    // Read the first two components of the first line of the request 
+    printf("request: %s\n", request);
  
     // If GET, handle the get endpoints
+    char *is_get = strstr(request, "GET");
+    char *route = strstr(request, "/");
+
+
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+    if (is_get == "GET") {
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_FILES);
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            fprintf(stderr, "cannot find index.html\n");
+            exit(3);
+        }
+
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 200 index.html", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+    }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
-
+    resp_404(fd);
     // (Stretch) If POST, handle the post request
 }
 
