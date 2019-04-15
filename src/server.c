@@ -54,10 +54,21 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    body = "<div>Hello</div>";
+    int response_length = strlen(body);
+
+    sprintf(response, "HTTP/1.1 200 OK\n"
+            "Content-Type: text/html\n"
+            "Content-Length: %d\n"
+            "Connection: close\n"
+            "\n"
+            "%s", response_length, body);
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    printf("test");
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -65,6 +76,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     if (rv < 0) {
         perror("send");
     }
+
 
     return rv;
 }
@@ -76,6 +88,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
+    srand(1);
+    float d20_val = rand();
     
     ///////////////////
     // IMPLEMENT ME! //
@@ -159,6 +173,8 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the first two components of the first line of the request 
+    
+    resp_404(fd);
  
     // If GET, handle the get endpoints
 
