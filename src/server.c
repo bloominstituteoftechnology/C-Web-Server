@@ -202,7 +202,7 @@ void handle_http_request(int fd, struct cache *cache)
     char *mime_type;
 
 
-    if (strcmp(request_type, "GET") == 0 ) 
+    if (strcmp(request_type, "GET") == 0 && strcmp(path, "/index.html") == 0) 
     {
         printf("is get\n");
 
@@ -221,7 +221,7 @@ void handle_http_request(int fd, struct cache *cache)
     }
     else 
     {
-        printf("is get is null: \n");
+        printf("path does not exist \n");
         resp_404(fd);
     }
 
