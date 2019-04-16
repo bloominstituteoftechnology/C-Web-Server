@@ -58,29 +58,24 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Build HTTP response and store it in response
-    // body = "<div>Hello</div>";
-    int body_length = strlen(body);
 
-    printf("body:%s\n%i",body, body_length);
-
+    // gets current time as a string
     time_t rawtime;
     struct tm * timeinfo;
-
     time (&rawtime);
     timeinfo = localtime (&rawtime);
-    char * current_date = asctime(timeinfo);
-    printf ("Current local time and date: %s", current_date);
 
-    int response_length = sprintf(&response, "HTTP/1.1 200 OK\n"
+    char * current_date = asctime(timeinfo);
+
+    int response_length = sprintf(&response, "%s\n"
             "Date: %s"
-            "Connection: keep-alive\n"
+            "Connection: close\n"
             "Content-Length: %d\n"
             "Content-Type: text/html\n"
             "\n"
-            "%s", current_date, body_length,  body);
+            "%s", header, current_date, content_length,  body);
 
-    printf("sr sprintf:%s\n-----------\n", response);
-
+    printf("response\n------------\n%s\n-----------\n", response);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -88,7 +83,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     if (rv < 0) {
         perror("send");
     }
-
 
     return rv;
 }
@@ -169,7 +163,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 262144; // 256 kb
     char request[request_buffer_size];
 
     // Read request
@@ -186,7 +180,11 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // char *request_parts = strtok(request, " ");
+    // printf("request verb: %s request endpoint: %s", request_parts[0],request_parts[1]);
 
+    char request_type[10], path[50];
+    sscanf(request, "%s %s", request_type, path);
+    printf("request: %s %s\n", request_type, path);
     
     // parse header
 
@@ -194,21 +192,19 @@ void handle_http_request(int fd, struct cache *cache)
     // printf("request: %s\n", request);
  
     // If GET, handle the get endpoints
-    char *is_get = strstr(request, "GET");
-    char *route = strchr(request, '/');
+    // char *is_get = strstr(request, "GET");
+    // char *route = strchr(request, '/');
 
-    printf("request endpoint: \"%s\" \"%s\"\n", is_get, route);
+    // printf("request endpoint: \"%s\" \"%s\"\n", is_get, route);
 
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
 
 
-    // trying to get a response
-    resp_404(fd);
-
-/*
-    if (is_get == "GET" || is_get != NULL) {
+    if (strcmp(request_type, "GET") == 0 ) 
+    {
+        printf("is get\n");
 
         snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
         filedata = file_load(filepath);
@@ -220,14 +216,14 @@ void handle_http_request(int fd, struct cache *cache)
 
         mime_type = mime_type_get(filepath);
 
-        send_response(fd, "HTTP/1.1 200 index.html", mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 /index.html", mime_type, filedata->data, filedata->size);
         file_free(filedata);
     }
     else 
     {
         printf("is get is null: \n");
+        resp_404(fd);
     }
-*/
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
