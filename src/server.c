@@ -81,11 +81,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         // // Get the time
         // header, asctime(localtime(&time_res_sent)),
         content_length,
-        content_type);
+        content_type, body);
 
     // printf("Date: %s\n", response_length + content_length);
-    printf("Connection: close\n", response_length + content_length);
-    printf("Content-Length: %d\n", response_length + content_length);
+    // printf("Connection: close\n", response_length + content_length);
+    // printf("Content-Length: %d\n", response_length + content_length);
+    printf("%s\n", response);
 
     // memcpy(void *to, const void *from, size_t n)
     // Copies n from a memory area pointed to by 'from' to a memory area pointed to by 'to'
@@ -116,11 +117,21 @@ void get_d20(int fd)
     // IMPLEMENT ME! //
     ///////////////////
 
+    // Initialize an 8-bit char
+    char body_content[8];
+
+    // Generate a random number between 1 and 20 inclusive
+    int random_num = (rand() % 20) + 1;
+
+    // sprintf the random number into body_content
+    sprintf(body_content, "%d\n", random_num);
+
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body_content, strlen(body_content));
 }
 
 /**
