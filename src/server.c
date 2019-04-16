@@ -69,23 +69,16 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     char *body_str = body;
 
-    // // Marker for time
-    // time_t time_res_sent = time(NULL);
-
     // Response length
     int response_length = sprintf(
         response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n",
-        header, asctime(time_info),
 
         // asctime() returns a string containing the date and time information
-        // // Get the time
-        // header, asctime(localtime(&time_res_sent)),
+        // Get the time
+        header, asctime(time_info),
         content_length,
         content_type, body);
 
-    // printf("Date: %s\n", response_length + content_length);
-    // printf("Connection: close\n", response_length + content_length);
-    // printf("Content-Length: %d\n", response_length + content_length);
     printf("%s\n", response);
 
     // memcpy(void *to, const void *from, size_t n)
@@ -243,9 +236,8 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
 
     // Buffers for the request:
-    char req_method[200]; // HOST, HTTP/1.1
-    char req_type[8];     // GET, POST, etc.
-    char req_path[2048];  // URL path info, for /d20
+    char req_type[8];    // GET, POST, etc.
+    char req_path[2048]; // URL path info, for /d20
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -261,9 +253,9 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the first two components of the first line of the request
-    sscanf(request, "%s %s %s", req_type, req_path, req_method);
+    sscanf(request, "%s %s %s", req_type, req_path);
 
-    printf("\nHTTP Request: \nType:%s \nPath: %s \nMethod:%s\n", req_type, req_path, req_method);
+    printf("\nHTTP Request: \nType:%s \nPath: %s \n", req_type, req_path);
 
     // strcmp() compares the two strings character by character
     // starting from the first character until the characters in both strings are equal
