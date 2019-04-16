@@ -53,22 +53,34 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
-    body = "<div>Hello</div>";
-    int response_length = strlen(body);
-
-    sprintf(response, "HTTP/1.1 200 OK\n"
-            "Content-Type: text/html\n"
-            "Content-Length: %d\n"
-            "Connection: close\n"
-            "\n"
-            "%s", response_length, body);
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
-    printf("test");
+    // Build HTTP response and store it in response
+    // body = "<div>Hello</div>";
+    int body_length = strlen(body);
+
+    printf("body:%s\n%i",body, body_length);
+
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    char * current_date = asctime(timeinfo);
+    printf ("Current local time and date: %s", current_date);
+
+    int response_length = sprintf(&response, "HTTP/1.1 200 OK\n"
+            "Date: %s"
+            "Connection: keep-alive\n"
+            "Content-Length: %d\n"
+            "Content-Type: text/html\n"
+            "\n"
+            "%s", current_date, body_length,  body);
+
+    printf("sr sprintf:%s\n-----------\n", response);
+
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -123,7 +135,7 @@ void resp_404(int fd)
     }
 
     mime_type = mime_type_get(filepath);
-
+    // printf("\"%s\"", filedata->data);
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
@@ -179,19 +191,26 @@ void handle_http_request(int fd, struct cache *cache)
     // parse header
 
     // Read the first two components of the first line of the request 
-    printf("request: %s\n", request);
+    // printf("request: %s\n", request);
  
     // If GET, handle the get endpoints
     char *is_get = strstr(request, "GET");
-    char *route = strstr(request, "/");
+    char *route = strchr(request, '/');
 
-
+    printf("request endpoint: \"%s\" \"%s\"\n", is_get, route);
 
     char filepath[4096];
     struct file_data *filedata;
     char *mime_type;
-    if (is_get == "GET") {
-        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_FILES);
+
+
+    // trying to get a response
+    resp_404(fd);
+
+/*
+    if (is_get == "GET" || is_get != NULL) {
+
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
         filedata = file_load(filepath);
 
         if (filedata == NULL) {
@@ -204,11 +223,15 @@ void handle_http_request(int fd, struct cache *cache)
         send_response(fd, "HTTP/1.1 200 index.html", mime_type, filedata->data, filedata->size);
         file_free(filedata);
     }
+    else 
+    {
+        printf("is get is null: \n");
+    }
+*/
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
-    resp_404(fd);
     // (Stretch) If POST, handle the post request
 }
 
