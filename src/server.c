@@ -39,6 +39,15 @@
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
 
+// int get_current_time() {
+//         // gets current time as a string
+//     time_t rawtime;
+//     struct tm * timeinfo;
+//     time (&rawtime);
+//     timeinfo = localtime (&rawtime);
+//     return timeinfo;
+// }
+
 /**
  * Send an HTTP response
  *
@@ -94,19 +103,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    srand(1);
-    float d20_val = rand();
-    
-    printf("d20 roll: %f\n", d20_val);
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // time_t rawtime;
+    srand(time(NULL));
+    int d20_val = rand();
+    
+    char output[100]; // one hundred just to be safe
+    sprintf(output, "%d\0", d20_val);
+
+    int output_len = strlen(output);//(int)((ceil(log10(d20_val))+1)*sizeof(char));
+    printf("d20 roll: %f\n", d20_val);
 
     // Use send_response() to send it back as text/plain data
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "http/1.1 200 /d20", "text/plain", output, output_len);
 }
 
 /**
@@ -218,6 +235,10 @@ void handle_http_request(int fd, struct cache *cache)
 
         send_response(fd, "HTTP/1.1 200 /index.html", mime_type, filedata->data, filedata->size);
         file_free(filedata);
+    }
+    else if (strcmp(request_type, "GET") == 0 && strcmp(path, "/d20") == 0) 
+    {
+        get_d20(fd);
     }
     else 
     {
