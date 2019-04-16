@@ -59,29 +59,33 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
-    // // time_t is an arithmetic type suitable to represent time
-    // time_t secs;
-    // // struct tm is a structure type for holding components of calendar time
-    // struct tm *time_info;
+    // time_t is an arithmetic type suitable to represent time
+    time_t secs;
+    // struct tm is a structure type for holding components of calendar time
+    struct tm *time_info;
 
-    // time(&secs);
-    // time_info = localtime(&secs);
+    time(&secs);
+    time_info = localtime(&secs);
 
-    // char *body_str = body;
+    char *body_str = body;
 
-    // Marker for time
-    time_t time_res_sent = time(NULL);
+    // // Marker for time
+    // time_t time_res_sent = time(NULL);
 
     // Response length
     int response_length = sprintf(
         response, "%s\nDate: %sConnection: close\nContent-Length: %d\nContent-Type: %s\n\n",
-        // header, asctime(time_info),
+        header, asctime(time_info),
 
         // asctime() returns a string containing the date and time information
-        // Get the time
-        header, asctime(localtime(&time_res_sent)),
+        // // Get the time
+        // header, asctime(localtime(&time_res_sent)),
         content_length,
         content_type);
+
+    // printf("Date: %s\n", response_length + content_length);
+    printf("Connection: close\n", response_length + content_length);
+    printf("Content-Length: %d\n", response_length + content_length);
 
     // memcpy(void *to, const void *from, size_t n)
     // Copies n from a memory area pointed to by 'from' to a memory area pointed to by 'to'
@@ -149,11 +153,61 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
+// request_path should map to file name in serverroot directory
+// use methods in file.c to load/read the corresponding file
+// use methods in mime.c to set the content-type header based on the type of data in the file
 void get_file(int fd, struct cache *cache, char *request_path)
 {
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // Pointer to a file_data struct
+    struct file_data *filedata = NULL;
+    // Pointer to a mime_type aka content_type
+    char *mime_type;
+    // Declare an array to store the file path
+    char file_path[4096];
+
+    // Use request_path for the cache; use full file_path (./serverroot + req_path) for loading files not in the cache
+    // Get the specified entry from the cache
+    struct cache_entry *entry = cache_get(cache, request_path);
+
+    // If cache has no entry with the given request_path
+    if (entry == NULL)
+    {
+        // Build a full file path into the ./serverroot directory
+        sprintf(file_path, "./serverroot%s", request_path);
+        // Returns filedata->data and filedata->size
+        filedata = file_load(file_path);
+
+        // If user inputs '/' as the path, and serve index.html file
+        if (filedata == NULL)
+        {
+            sprintf(file_path, "./serverroot%s/index.html", request_path);
+            filedata = file_load(file_path);
+            if (filedata == NULL)
+            {
+                resp_404(fd);
+                return;
+            }
+        }
+
+        // else filedata != NULL
+        // Checks the file extension and returns `content-type` string
+        mime_type = mime_type_get(file_path);
+
+        // Put an entry in cache for the given file
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+        return;
+    }
+    // else entry != NULL:
+
+    send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
+    return;
 }
 
 /**
@@ -178,8 +232,9 @@ void handle_http_request(int fd, struct cache *cache)
     char request[request_buffer_size];
 
     // Buffers for the request:
-    char req_type[8];    // GET, POST, etc.
-    char req_path[1024]; // URL path info, for /d20
+    char req_method[200]; // HOST, HTTP/1.1
+    char req_type[8];     // GET, POST, etc.
+    char req_path[2048];  // URL path info, for /d20
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -195,9 +250,9 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the first two components of the first line of the request
-    sscanf(request, "%s %s", req_type, req_path);
+    sscanf(request, "%s %s %s", req_type, req_path, req_method);
 
-    printf("\nHTTP Request: \nType:%s \nPath: %s ", req_type, req_path);
+    printf("\nHTTP Request: \nType:%s \nPath: %s \nMethod:%s\n", req_type, req_path, req_method);
 
     // strcmp() compares the two strings character by character
     // starting from the first character until the characters in both strings are equal
@@ -276,10 +331,10 @@ int main(void)
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
-        // testing send_response
-        resp_404(newfd);
+        // // testing send_response
+        // resp_404(newfd);
 
-        // handle_http_request(newfd, cache);
+        handle_http_request(newfd, cache);
 
         close(newfd);
     }
