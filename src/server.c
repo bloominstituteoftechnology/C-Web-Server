@@ -48,20 +48,6 @@
 //     return timeinfo;
 // }
 
-void mem_copy(void *dest, const void *src, int n)
-{
-    // type cast to char
-    char * chardest = (char*) dest;
-    char * charsrc = (char*) src;
-    // get num chars from bytes
-    int length = n / sizeof(char);
-    // copy values
-    for (int i = 0; i < length; i++) {
-        chardest[i] = charsrc[i];
-    }
-    chardest[length+1] = '\0';
-}
-
 /**
  * Send an HTTP response
  *
@@ -76,10 +62,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
     // Build HTTP response and store it in response
 
     // gets current time as a string
@@ -90,7 +72,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     char * current_date = asctime(timeinfo);
 
-    int header_length = sprintf(&response, "%s\n"
+    int header_length = sprintf(response, "%s\n"
             "Date: %s"
             "Connection: close\n"
             "Content-Length: %d\n"
@@ -100,6 +82,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // char *file_blob = malloc(content_length);
     printf("copying memory %d - %d\n", header_length, content_length);
 
+    if (header_length + content_length > max_response_size) {
+        content_length = content_length - (header_length + content_length - max_response_size);
+    }
     memcpy(response + header_length , body, content_length);
 
     // response[header_length + content_length+1] = '\0';
@@ -133,10 +118,10 @@ void get_d20(int fd)
     int d20_val = rand();
     
     char output[100]; // one hundred just to be safe
-    sprintf(output, "%d\0", d20_val);
+    sprintf(output, "%d", d20_val);
 
     int output_len = strlen(output);//(int)((ceil(log10(d20_val))+1)*sizeof(char));
-    printf("d20 roll: %f\n", d20_val);
+    printf("d20 roll: %d\n", d20_val);
 
     // Use send_response() to send it back as text/plain data
     ///////////////////
@@ -184,29 +169,44 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata;
     char *mime_type;
     char filepath[4096];
-
-
-    // snprintf(request_path, sizeof request_path, "%s/index.html", SERVER_ROOT);
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    printf("getting file: %s\n", filepath);
-    filedata = file_load(filepath);
-
-    if (filedata == NULL) {
-        fprintf(stderr, "cannot find %s\n", filepath);
-        printf("path does not exist \n");
-        resp_404(fd);
-        // exit(3);
-        return;
-    }
+    char header[64];
 
     mime_type = mime_type_get(filepath);
-
-    char header[64];
     sprintf(header, "HTTP/1.1 200 %s", request_path);
-    printf("header: %s\n", header);
 
-    send_response(fd, header, mime_type, filedata->data, filedata->size);
-    file_free(filedata);
+    struct cache_entry * cached_entry = cache_get(cache, request_path);
+    // snprintf(request_path, sizeof request_path, "%s/index.html", SERVER_ROOT);
+    if (cached_entry != NULL) // file was cached
+    {
+        printf("serving cached file: %s \n", request_path);
+        send_response(fd, header, mime_type, cached_entry->content, cached_entry->content_length);
+    }
+    else // load from disk
+    {
+
+
+        // concat request_path with local dir
+        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+        printf("getting file: %s\n", filepath);
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            fprintf(stderr, "cannot find %s\n", filepath);
+            printf("path does not exist \n");
+            resp_404(fd);
+            // exit(3);
+            return;
+        }
+
+        // cache file
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+
+        // mime_type = mime_type_get(filepath);
+        printf("header: %s\n", header);
+
+        send_response(fd, header, mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+    }
 }
 
 /**
@@ -220,6 +220,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return "";
 }
 
 /**
@@ -268,20 +269,35 @@ void handle_http_request(int fd, struct cache *cache)
 
     if (strcmp(request_type, "GET") == 0 && strcmp(path, "/index.html") == 0) 
     {
-        printf("is get\n");
 
-        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
-        filedata = file_load(filepath);
 
-        if (filedata == NULL) {
-            fprintf(stderr, "cannot find index.html\n");
-            exit(3);
+        // I could make this into another function
+        printf("is get index.html\n");
+        struct cache_entry * cached_entry = cache_get(cache, path);
+        if (cached_entry == NULL) 
+        {
+
+            snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+            filedata = file_load(filepath);
+
+            if (filedata == NULL) {
+                fprintf(stderr, "cannot find index.html\n");
+                exit(3);
+            }
+
+            mime_type = mime_type_get(filepath);
+
+            cache_put(cache, path, mime_type, filedata->data, filedata->size);
+            send_response(fd, "HTTP/1.1 200 /index.html", mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+        }
+        else
+        {
+
+            printf("serving cached file: %s \n", path);
+            send_response(fd, "HTTP/1.1 200 /index.html", mime_type, cached_entry->content, cached_entry->content_length);
         }
 
-        mime_type = mime_type_get(filepath);
-
-        send_response(fd, "HTTP/1.1 200 /index.html", mime_type, filedata->data, filedata->size);
-        file_free(filedata);
     }
     else if (strcmp(request_type, "GET") == 0 && strcmp(path, "/d20") == 0) 
     {
