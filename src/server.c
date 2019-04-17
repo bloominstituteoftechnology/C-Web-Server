@@ -48,6 +48,20 @@
 //     return timeinfo;
 // }
 
+void mem_copy(void *dest, const void *src, int n)
+{
+    // type cast to char
+    char * chardest = (char*) dest;
+    char * charsrc = (char*) src;
+    // get num chars from bytes
+    int length = n / sizeof(char);
+    // copy values
+    for (int i = 0; i < length; i++) {
+        chardest[i] = charsrc[i];
+    }
+    chardest[length+1] = '\0';
+}
+
 /**
  * Send an HTTP response
  *
@@ -76,18 +90,24 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     char * current_date = asctime(timeinfo);
 
-    int response_length = sprintf(&response, "%s\n"
+    int header_length = sprintf(&response, "%s\n"
             "Date: %s"
             "Connection: close\n"
             "Content-Length: %d\n"
-            "Content-Type: text/html\n"
-            "\n"
-            "%s", header, current_date, content_length,  body);
+            "Content-Type: %s\n"
+            "\n", header, current_date, content_length, content_type);
+
+    // char *file_blob = malloc(content_length);
+    printf("copying memory %d - %d\n", header_length, content_length);
+
+    memcpy(response + header_length , body, content_length);
+
+    // response[header_length + content_length+1] = '\0';
 
     printf("response\n------------\n%s\n-----------\n", response);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, header_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -160,6 +180,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    struct file_data *filedata;
+    char *mime_type;
+    char filepath[4096];
+
+
+    // snprintf(request_path, sizeof request_path, "%s/index.html", SERVER_ROOT);
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    printf("getting file: %s\n", filepath);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        fprintf(stderr, "cannot find %s\n", filepath);
+        printf("path does not exist \n");
+        resp_404(fd);
+        // exit(3);
+        return;
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    char header[64];
+    sprintf(header, "HTTP/1.1 200 %s", request_path);
+    printf("header: %s\n", header);
+
+    send_response(fd, header, mime_type, filedata->data, filedata->size);
+    file_free(filedata);
 }
 
 /**
@@ -238,14 +285,19 @@ void handle_http_request(int fd, struct cache *cache)
     }
     else if (strcmp(request_type, "GET") == 0 && strcmp(path, "/d20") == 0) 
     {
+
         get_d20(fd);
     }
     else 
     {
-        printf("path does not exist \n");
-        resp_404(fd);
-    }
 
+        // snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, path);
+        // printf("%s", filepath);
+
+        // check if file exists?
+        get_file(fd, cache, path);
+
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
