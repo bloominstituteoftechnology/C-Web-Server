@@ -67,7 +67,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     time(&secs);
     time_info = localtime(&secs);
 
-    char *body_str = body;
+    // char *body_str = body;
 
     // Response length
     int response_length = sprintf(
@@ -77,7 +77,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
         // Get the time
         header, asctime(time_info),
         content_length,
-        content_type, body);
+        content_type);
 
     printf("%s\n", response);
 
@@ -253,7 +253,7 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the first two components of the first line of the request
-    sscanf(request, "%s %s %s", req_type, req_path);
+    sscanf(request, "%s %s", req_type, req_path);
 
     printf("\nHTTP Request: \nType:%s \nPath: %s \n", req_type, req_path);
 
