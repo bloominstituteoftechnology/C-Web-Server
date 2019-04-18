@@ -274,6 +274,8 @@ void handle_http_request(int fd, struct cache *cache)
         // I could make this into another function
         printf("is get index.html\n");
         struct cache_entry * cached_entry = cache_get(cache, path);
+        get_file(fd, cache, "index.html");
+        /*
         if (cached_entry == NULL) 
         {
 
@@ -297,6 +299,7 @@ void handle_http_request(int fd, struct cache *cache)
             printf("serving cached file: %s \n", path);
             send_response(fd, "HTTP/1.1 200 /index.html", mime_type, cached_entry->content, cached_entry->content_length);
         }
+        */
 
     }
     else if (strcmp(request_type, "GET") == 0 && strcmp(path, "/d20") == 0) 
