@@ -13,21 +13,6 @@ use rand::Rng;
 use file_lock::FileLock;
 use lru_cache::LruCache;
 
-fn main() {
-    let listener = TcpListener::bind("127.0.0.1:3490").expect("Error binding to the specified host and port");
-    let pool = ThreadPool::new(4);
-
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
-
-        pool.execute(|| {
-            handle_connection(stream);
-        });
-    }
-
-    println!("Shutting down.");
-}
-
 fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 512];
     stream.read(&mut buffer).expect("Error reading from stream");
@@ -124,5 +109,22 @@ fn send_response(mut stream: TcpStream, status_line: &str, contents: &str) {
 
     stream.write(response.as_bytes()).unwrap();
     stream.flush().unwrap();
+}
+
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:3490")
+        .expect("Error binding to the specified host and port");
+    
+    let pool = ThreadPool::new(4);
+
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
+
+        pool.execute(|| {
+            handle_connection(stream);
+        });
+    }
+
+    println!("Shutting down.");
 }
 
