@@ -2,7 +2,7 @@
 
 This is an implementation of the C Web Server project, but written in [Rust](https://www.rust-lang.org/en-US/), a modern systems programming language that serves as an alternative to C and C++.
 
-This implementation is heavily based on [this one](https://doc.rust-lang.org/book/second-edition/ch20-00-final-project-a-web-server.html) and exhibits the following features:
+This implementation is based on [this one](https://doc.rust-lang.org/book/second-edition/ch20-00-final-project-a-web-server.html) and exhibits the following features:
 
  * It handles the same endpoints as the ones the C web server handles, namely `/` or `/index.html`, and `/d20`.
  * It handles arbitrary file serving.
