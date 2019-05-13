@@ -2,7 +2,7 @@
 
 ## Contents
 
-### Common Problems
+### Troubleshooting
 
 * [I rebuilt and re-ran the server, but nothing's happening.](#q300)
 * [After sending the request and getting the response, my client is just sitting there, waiting, and not closing the connection.](#q600)
@@ -10,6 +10,7 @@
 * [I tried to do the `telnet` demo, but it instantly comes back with a 501 response.](#q1500)
 * [I added the `Date` HTTP header using `asctime()` (or `ctime()`) but now everything shows up in my browser as plain text and some of the headers are in the body, as well.](#q3100)
 * [I'm trying to test with `curl` or the browser, and it's telling me "`Connection refused`". Why?](#q4100)
+* [My server seems to hang indefinitely on the line `newfd = accept(listenfd, ...)` in the `main` function. It never moves past it when requests are made to it. What's going on?](#q4200)
 
 ### General
 
@@ -857,3 +858,12 @@ Barring that, make sure you've specified the right port number to `curl` or the
 browser.
 
 ------------------------------------------------------------------------
+
+<a name="q4200"></a>
+### My server seems to hang indefinitely on the line `newfd = accept(listenfd, ...)` in the `main` function. It never moves past it when requests are made to it. What's going on?
+
+First thing to check would be your task manager (i.e. Task Manager in Windows, or by typing `jobs` in your terminal if you have `bash`). If you look there and see that you have any server processes in a "Suspended" state, then most likely it means you're halting each server process using `CTRL-Z` instead of what you should be using to exit each server process which is `CTRL-C`. `CTRL-Z` suspends the given process, which in this case means the suspended server process is now just squatting on the port, such that that port can now no longer be accessed by a fresh server process instance if you decide to fire the server up again. 
+
+You can move any of the suspended server processes to the foreground by typing `fg %x` where `x` is the job number of the suspended server, or kill any of them with `kill %x` where `x` is again the job number of the process.
+
+-----------------------------------------------------------------------
