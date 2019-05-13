@@ -67,7 +67,7 @@ Type `./server` to run the server.
 
 _Read through all the main and stretch goals before writing any code to get an overall view, then come back to goal #1 and dig in._
 
-#### Days 1 and 2
+#### Part 1
 
 1. Implement `send_response()`.
 
@@ -135,7 +135,7 @@ _Read through all the main and stretch goals before writing any code to get an o
    You also need to set the `Content-Type` header depending on what data is in
    the file. `mime.c` has useful functionality for this.
 
-#### Days 3 and 4
+#### Part 2
 
 Implement an LRU cache. This will be used to cache files in RAM so you don't have to load them through the OS.
 
