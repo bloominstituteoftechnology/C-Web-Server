@@ -53,6 +53,7 @@
 * [Does the order of the fields in the HTTP header matter?](#q500)
 * [Will we be diving into HTTPS or any type of secured connection protocols?](#q2400)
 * [I added the `Date` HTTP header using `asctime()` (or `ctime()`) but now everything shows up in my browser as plain text and some of the headers are in the body, as well.](#q3100)
+* [When I request the `cat.jpg` image, I just get a black screen rendered in my browser. What's the problem?](#q4300)
 
 ### Existing Code
 
@@ -867,3 +868,14 @@ First thing to check would be your task manager (i.e. Task Manager in Windows, o
 You can move any of the suspended server processes to the foreground by typing `fg %x` where `x` is the job number of the suspended server, or kill any of them with `kill %x` where `x` is again the job number of the process.
 
 -----------------------------------------------------------------------
+
+<a name="q4300"></a>
+### When I request the `cat.jpg` image, I just get a black screen rendered in my browser. What's the problem?
+
+If you open up the developer console in the browser, you'll likely see `ERR CONTENT LENGTH MISMATCH`. If this is the case, the reason is that the client isn't receiving all of the data from the server. 
+
+This is most likely happening because the response is being built using `sprintf`. `sprintf` is fine to use when the server sends text data (plaintext, html, json, etc.), which is all UTF-8 encoded. However, image data is not UTF-8 encoded. It uses a different encoding that `sprintf` cannot handle. 
+
+What's happening is that `sprintf` is treating the image data as if it were UTF-8 encoded, and it probably encounters bytes in the image data that in UTF-8 represent a null terminator. So `sprintf` thinks that's the end of the image and doesn't write the rest of the image data to the response buffer before sending the response data to the client, so the client doesn't get all of the expected data. 
+
+The solution is that we need to write the image data to the response buffer in a way that is encoding-agnostic. Something like `memcpy` would work very well for this, as `memcpy` doesn't assume anything about the encoding of the data. 
