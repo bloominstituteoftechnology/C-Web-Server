@@ -23,6 +23,7 @@
 * [Do packets get delivered in the order they're sent or do they get jumbled up by the process?](#q3800)
 * [Can different packets from the same request can take a different routes to stop bottle necks?](#q3900)
 * [If your request hits a load balancer will it remember such that each subsequent request you send will be sent to the same server?](#q4000)
+* [What's the difference between `sprintf` and `snprintf`? When do I use one over the other?](#q4300)
 
 ### Sockets
 
@@ -879,3 +880,12 @@ This is most likely happening because the response is being built using `sprintf
 What's happening is that `sprintf` is treating the image data as if it were UTF-8 encoded, and it probably encounters bytes in the image data that in UTF-8 represent a null terminator. So `sprintf` thinks that's the end of the image and doesn't write the rest of the image data to the response buffer before sending the response data to the client, so the client doesn't get all of the expected data. 
 
 The solution is that we need to write the image data to the response buffer in a way that is encoding-agnostic. Something like `memcpy` would work very well for this, as `memcpy` doesn't assume anything about the encoding of the data. 
+
+-----------------------------------------------------------------------
+
+<a name="q4400"></a>
+### What's the difference between `sprintf` and `snprintf`? When do I use one over the other?
+
+The only difference between `sprintf` and `snprintf` is that `snprintf` accepts an `n` argument that specifies the maximum number of bytes that will be written to the buffer that it is writing to. The purpose of this is to better ensure that the buffer being written to doesn't overflow from too many bytes. 
+
+As far as when to use one over the other, really, you could use either, most of the time. The only time you might want to consider `sprintf` over `snprintf` is when we don't know how many bytes we'll want written to the buffer. `sprintf` returns the number of bytes written to the buffer. 
