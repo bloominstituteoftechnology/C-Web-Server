@@ -893,7 +893,7 @@ As far as when to use one over the other, really, you could use either, most of 
 
 -----------------------------------------------------------------------
 
-<a name="q=4500"></a>
+<a name="q4500"></a>
 ### When serving a file that is in the cache, the browser renders some garbage text instead of/in addition to what is expected to be rendered.
 
 The fact that garbage is being rendered seems to indicate that the content of the file you're sending down to the client is not well-formed. One likely cause of this could be if you called `free` on the `file_data` struct on the pointer pointing to the `file_data` struct somewhere else in your server code. This points to the likely fact that cache entries do not own the content they're responsible for. To put this more concretely, if each allocated entry only has a pointer to its content instead of a _copy_ of its content, then this is likely the cause of the problem:
