@@ -1,4 +1,5 @@
 /target
+.vscode/
 **/*.rs.bk
 data.txt
 .DS_Store

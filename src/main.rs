@@ -41,6 +41,8 @@ fn get_d20(stream: TcpStream) {
 }
 
 fn get_file(stream: TcpStream, buffer: &mut [u8]) {
+    // Using `from_utf8_lossy` means non-text based resources
+    // cannot be sent down the pipe
     let request = String::from_utf8_lossy(buffer);
     let path = request.split(' ').nth(1).expect("No path found in request string");
 
