@@ -86,7 +86,7 @@ _Read through all the main and stretch goals before writing any code to get an o
    > the header. But the `response_length` variable used by `send()` is the
    > total length of both header and body.
 
-   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function, and seeing if the client receives the 404 response. 
+   You can test whether you've gotten `send_response` working by calling the `resp_404` function from somewhere inside the `main` function and passing it the `newfd` socket (make sure you do this _after_ the `newfd` socket has been initialized by the `accept` system call in the while loop). If the client receives the 404 response when you make a request to the server, then that's a pretty clear indication that your `send_response` is working. 
 
 2. Examine `handle_http_request()` in the file `server.c`.
 
