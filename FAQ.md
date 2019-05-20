@@ -11,6 +11,7 @@
 * [I added the `Date` HTTP header using `asctime()` (or `ctime()`) but now everything shows up in my browser as plain text and some of the headers are in the body, as well.](#q3100)
 * [I'm trying to test with `curl` or the browser, and it's telling me "`Connection refused`". Why?](#q4100)
 * [My server seems to hang indefinitely on the line `newfd = accept(listenfd, ...)` in the `main` function. It never moves past it when requests are made to it. What's going on?](#q4200)
+* [When serving a file that is in the cache, the browser renders some garbage text instead of/in addition to what is expected to be rendered.](#q4500)
 
 ### General
 
@@ -23,6 +24,7 @@
 * [Do packets get delivered in the order they're sent or do they get jumbled up by the process?](#q3800)
 * [Can different packets from the same request can take a different routes to stop bottle necks?](#q3900)
 * [If your request hits a load balancer will it remember such that each subsequent request you send will be sent to the same server?](#q4000)
+* [What's the difference between `sprintf` and `snprintf`? When do I use one over the other?](#q4300)
 
 ### Sockets
 
@@ -879,3 +881,39 @@ This is most likely happening because the response is being built using `sprintf
 What's happening is that `sprintf` is treating the image data as if it were UTF-8 encoded, and it probably encounters bytes in the image data that in UTF-8 represent a null terminator. So `sprintf` thinks that's the end of the image and doesn't write the rest of the image data to the response buffer before sending the response data to the client, so the client doesn't get all of the expected data. 
 
 The solution is that we need to write the image data to the response buffer in a way that is encoding-agnostic. Something like `memcpy` would work very well for this, as `memcpy` doesn't assume anything about the encoding of the data. 
+
+-----------------------------------------------------------------------
+
+<a name="q4400"></a>
+### What's the difference between `sprintf` and `snprintf`? When do I use one over the other?
+
+The only difference between `sprintf` and `snprintf` is that `snprintf` accepts an `n` argument that specifies the maximum number of bytes that will be written to the buffer that it is writing to. The purpose of this is to better ensure that the buffer being written to doesn't overflow from too many bytes. 
+
+As far as when to use one over the other, really, you could use either, most of the time. The only time you might want to consider `sprintf` over `snprintf` is when we don't know how many bytes we'll want written to the buffer. `sprintf` returns the number of bytes written to the buffer. 
+
+-----------------------------------------------------------------------
+
+<a name="q4500"></a>
+### When serving a file that is in the cache, the browser renders some garbage text instead of/in addition to what is expected to be rendered.
+
+The fact that garbage is being rendered seems to indicate that the content of the file you're sending down to the client is not well-formed. One likely cause of this could be if you called `free` on the `file_data` struct on the pointer pointing to the `file_data` struct somewhere else in your server code. This points to the likely fact that cache entries do not own the content they're responsible for. To put this more concretely, if each allocated entry only has a pointer to its content instead of a _copy_ of its content, then this is likely the cause of the problem:
+```c
+struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
+{
+    struct cache_entry *ce = malloc(sizeof *ce);
+    ce->content = content;     // <--- Here, the entry only has a shared pointer to the content
+    ...
+}
+```
+With the above code, since the entry only has a _shared_ reference to to the content, the content can be `free`d from another shared pointer somewhere else in the code.
+
+To circumvent this issue, when allocating a new entry in the cache, each cache entry should own a copy of the content that it is storing. In other words, allocate and copy additional memory for each entry that has enough space to hold a fresh copy of the content so that `free`ing the `file_data` struct somewhere else in the server doesn't affect `file_data` structs.
+```c
+struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
+{
+    struct cache_entry *ce = malloc(sizeof *ce);
+    ce->content = malloc(content_length);
+    memcpy(ce->content, content, content_length);  // <--- Now, the entry has its own allocated chunk of memory with the content
+    ...
+}
+```
