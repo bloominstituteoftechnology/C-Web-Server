@@ -76,7 +76,7 @@ _Read through all the main and stretch goals before writing any code to get an o
    The total length of the header **and** body should be stored in the `response_length` variable so that the `send()` call knows how many bytes to
    send out over the wire.
 
-   See the [HTTP](#guides/net.md) section above for an example of an HTTP response and use that to build your own.
+   See the [HTTP](https://github.com/LambdaSchool/C-Web-Server/blob/master/guides/net.md) section above for an example of an HTTP response and use that to build your own.
 
    Hint: `sprintf()` for creating the HTTP response. `strlen()` for computing
    content length. `sprintf()` also returns the total number of bytes in the
