@@ -1,0 +1,1 @@
+make clean; clear; make && ./server

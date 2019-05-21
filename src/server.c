@@ -39,6 +39,15 @@
 #define SERVER_FILES "./serverfiles"
 #define SERVER_ROOT "./serverroot"
 
+// int get_current_time() {
+//         // gets current time as a string
+//     time_t rawtime;
+//     struct tm * timeinfo;
+//     time (&rawtime);
+//     timeinfo = localtime (&rawtime);
+//     return timeinfo;
+// }
+
 /**
  * Send an HTTP response
  *
@@ -55,12 +64,35 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // gets current time as a string
+    time_t rawtime;
+    struct tm * timeinfo;
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+
+    char * current_date = asctime(timeinfo);
+
+    int header_length = sprintf(response, "%s\n"
+            "Date: %s"
+            "Connection: close\n"
+            "Content-Length: %d\n"
+            "Content-Type: %s\n"
+            "\n", header, current_date, content_length, content_type);
+
+    // char *file_blob = malloc(content_length);
+    printf("copying memory %d - %d\n", header_length, content_length);
+
+    if (header_length + content_length > max_response_size) {
+        content_length = content_length - (header_length + content_length - max_response_size);
+    }
+    memcpy(response + header_length , body, content_length);
+
+    // response[header_length + content_length+1] = '\0';
+
+    printf("response\n------------\n%s\n-----------\n", response);
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, header_length + content_length, 0);
 
     if (rv < 0) {
         perror("send");
@@ -76,16 +108,27 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    // time_t rawtime;
+    srand(time(NULL));
+    int d20_val = rand();
+    
+    char output[100]; // one hundred just to be safe
+    sprintf(output, "%d", d20_val);
+
+    int output_len = strlen(output);//(int)((ceil(log10(d20_val))+1)*sizeof(char));
+    printf("d20 roll: %d\n", d20_val);
 
     // Use send_response() to send it back as text/plain data
-
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "http/1.1 200 /d20", "text/plain", output, output_len);
 }
 
 /**
@@ -108,7 +151,7 @@ void resp_404(int fd)
     }
 
     mime_type = mime_type_get(filepath);
-
+    // printf("\"%s\"", filedata->data);
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
     file_free(filedata);
@@ -122,6 +165,48 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    struct file_data *filedata;
+    char *mime_type;
+    char filepath[4096];
+    char header[64];
+
+    mime_type = mime_type_get(filepath);
+    sprintf(header, "HTTP/1.1 200 %s", request_path);
+
+    struct cache_entry * cached_entry = cache_get(cache, request_path);
+    // snprintf(request_path, sizeof request_path, "%s/index.html", SERVER_ROOT);
+    if (cached_entry != NULL) // file was cached
+    {
+        printf("serving cached file: %s \n", request_path);
+        send_response(fd, header, mime_type, cached_entry->content, cached_entry->content_length);
+    }
+    else // load from disk
+    {
+
+
+        // concat request_path with local dir
+        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+        printf("getting file: %s\n", filepath);
+        filedata = file_load(filepath);
+
+        if (filedata == NULL) {
+            fprintf(stderr, "cannot find %s\n", filepath);
+            printf("path does not exist \n");
+            resp_404(fd);
+            // exit(3);
+            return;
+        }
+
+        // cache file
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+
+        // mime_type = mime_type_get(filepath);
+        printf("header: %s\n", header);
+
+        send_response(fd, header, mime_type, filedata->data, filedata->size);
+        file_free(filedata);
+    }
 }
 
 /**
@@ -135,6 +220,7 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+    return "";
 }
 
 /**
@@ -142,7 +228,7 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    const int request_buffer_size = 65536; // 64K
+    const int request_buffer_size = 262144; // 256 kb
     char request[request_buffer_size];
 
     // Read request
@@ -158,13 +244,81 @@ void handle_http_request(int fd, struct cache *cache)
     // IMPLEMENT ME! //
     ///////////////////
 
+    // char *request_parts = strtok(request, " ");
+    // printf("request verb: %s request endpoint: %s", request_parts[0],request_parts[1]);
+
+    char request_type[10], path[50];
+    sscanf(request, "%s %s", request_type, path);
+    printf("request: %s %s\n", request_type, path);
+    
+    // parse header
+
     // Read the first two components of the first line of the request 
+    // printf("request: %s\n", request);
  
     // If GET, handle the get endpoints
+    // char *is_get = strstr(request, "GET");
+    // char *route = strchr(request, '/');
 
+    // printf("request endpoint: \"%s\" \"%s\"\n", is_get, route);
+
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+
+    if (strcmp(request_type, "GET") == 0 && strcmp(path, "/index.html") == 0) 
+    {
+
+
+        // I could make this into another function
+        printf("is get index.html\n");
+        struct cache_entry * cached_entry = cache_get(cache, path);
+        get_file(fd, cache, "index.html");
+        /*
+        if (cached_entry == NULL) 
+        {
+
+            snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+            filedata = file_load(filepath);
+
+            if (filedata == NULL) {
+                fprintf(stderr, "cannot find index.html\n");
+                exit(3);
+            }
+
+            mime_type = mime_type_get(filepath);
+
+            cache_put(cache, path, mime_type, filedata->data, filedata->size);
+            send_response(fd, "HTTP/1.1 200 /index.html", mime_type, filedata->data, filedata->size);
+            file_free(filedata);
+        }
+        else
+        {
+
+            printf("serving cached file: %s \n", path);
+            send_response(fd, "HTTP/1.1 200 /index.html", mime_type, cached_entry->content, cached_entry->content_length);
+        }
+        */
+
+    }
+    else if (strcmp(request_type, "GET") == 0 && strcmp(path, "/d20") == 0) 
+    {
+
+        get_d20(fd);
+    }
+    else 
+    {
+
+        // snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, path);
+        // printf("%s", filepath);
+
+        // check if file exists?
+        get_file(fd, cache, path);
+
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
-
 
     // (Stretch) If POST, handle the post request
 }
