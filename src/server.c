@@ -52,7 +52,18 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    sprintf(response, 
+            "%s\n"
+            "Date: %s"
+            "Content-Type: %s\n"
+            "Content-Length: %d\n"
+            "Connection: close\n"
+            "\n"
+            "%s",
+            header, asctime(tm), content_type, content_length, body
+            );
     // Build HTTP response and store it in response
 
     ///////////////////
@@ -60,7 +71,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
 
     // Send it all!
-    int rv = send(fd, response, response_length, 0);
+    int rv = send(fd, response, strlen(response), 0);
 
     if (rv < 0) {
         perror("send");
@@ -76,11 +87,13 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    int randomNum = rand() % (20 + 1 - 1) + 1;
+    char num[50];
+    sprintf(num, "%i", randomNum);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
-
+    send_response(fd, "HTTP 200 OK", "text/plain", num, 1);
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
@@ -103,8 +116,8 @@ void resp_404(int fd)
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
-        exit(3);
+        resp_404(fd);
+        return;
     }
 
     mime_type = mime_type_get(filepath);
@@ -119,9 +132,29 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+   
+    char filepath[4096];
+    struct file_data *filedata;
+    char * mime_type;
+
+    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+    mime_type = mime_type_get(filepath);
+
+    struct cache_entry *pointer = cache_get(cache, request_path);
+    if(pointer != NULL) {
+        fprintf(stderr, "CHECKED");
+        send_response(fd, "HTTP 200 OK", pointer->content_type, pointer->content, pointer->content_length);
+    } else {
+        cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP 200 OK", mime_type, filedata->data, filedata->size);
+    }
+    
 }
 
 /**
@@ -153,6 +186,16 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
+    char request_type[8000];
+    char path[8000];
+    char header[8000];
+    
+
+    sscanf(request, "%s %s %s", request_type, path, header);
+
+    fprintf(stderr, "%s %s %s\n", request_type, path, header);
+    
+
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -161,7 +204,17 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the first two components of the first line of the request 
  
     // If GET, handle the get endpoints
-
+    if(strcmp(request_type, "GET") == 0) {
+       
+        if(strcmp(path, "/d20") == 0) {
+            get_d20(fd);
+        } else {
+            get_file(fd, cache, path);
+        }
+    } else {
+         
+        resp_404(fd);
+    }
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
@@ -177,7 +230,7 @@ int main(void)
     int newfd;  // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
-
+    
     struct cache *cache = cache_create(10, 0);
 
     // Get a listening socket
@@ -215,7 +268,6 @@ int main(void)
         // listenfd is still listening for new connections.
 
         handle_http_request(newfd, cache);
-
         close(newfd);
     }
 
