@@ -54,10 +54,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+    int counter = 0;
+    while (header[counter] != '\0'){
+        counter++;
+    }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int response_length = counter;
+    counter = 0; 
+
+    while (body)
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
