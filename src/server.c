@@ -169,11 +169,35 @@ void handle_http_request(int fd, struct cache *cache)
     ///////////////////
 
     // Read the first two components of the first line of the request 
+
+    char method[200];
+	char path[8192];
+    char protocol[200];
+
+    sscanf(request, "%s %s %s", method, path, protocol);
+
+    printf("request: %s", request);
+    printf("method: %s\n",method);
+    printf("path: %s\n",path);
+    printf("protocol: %s\n",protocol);
  
     // If GET, handle the get endpoints
-
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
+
+    if (strcmp(method,"GET") == 0)
+    {
+        printf("GET\n");
+        if (strcmp(path,"/d20") == 0)
+        {
+            printf("/d20\n");
+        }else{
+            resp_404(fd);
+        }
+        
+    }
+    
+
 
 
     // (Stretch) If POST, handle the post request
@@ -225,7 +249,7 @@ int main(void)
         // listenfd is still listening for new connections.
 
         // Test for send_response();
-        resp_404(newfd);
+        // resp_404(newfd);
         // ------------------------
 
         handle_http_request(newfd, cache);
