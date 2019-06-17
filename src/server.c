@@ -58,15 +58,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // printf("header: %s\n",header);
+    // printf("content_type: %s\n",content_type);
+    // printf("body: %s\n",body);
+    // printf("content_length: %d\n",content_length);
 
     int response_length = sprintf(response, 
     "%s\n" 
     "Content-Type: %s\n"
-    "Content_Length: %s\n",
+    "Content-Length: %d\n"
     "Connection: close\n"
     "\n"
     "%s"
-    , header, content_type, content_length, body
+    "\n"
+    , header, content_type, content_length + 1, body
     );
 
     // Send it all!
@@ -90,12 +95,18 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char number[10];
+    int num = (rand() % 20) + 1;
+    sprintf(number, "%i", num);
+    printf("number: %s\n", number);
 
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", number, strlen(number));
 }
 
 /**
@@ -191,15 +202,11 @@ void handle_http_request(int fd, struct cache *cache)
         if (strcmp(path,"/d20") == 0)
         {
             printf("/d20\n");
+            get_d20(fd);
         }else{
             resp_404(fd);
         }
-        
     }
-    
-
-
-
     // (Stretch) If POST, handle the post request
 }
 
