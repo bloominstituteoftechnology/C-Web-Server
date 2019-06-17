@@ -55,9 +55,17 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int body_length = strlen(body);
+    int header_length = strlen(header);
+    int response_length = body_length + header_length;
+
+    sprintf(response, "%s\n"
+                      "Content-Type: %s\n"
+                      "Content-Length: %d\n"
+                      "Connection: close\n"
+                      "\n"
+                      "%s",
+            header, content_type, body_length, body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -165,6 +173,25 @@ void handle_http_request(int fd, struct cache *cache)
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
+    char method[200];
+    char path[8192];
+    char req_body[8192];
+
+    sscanf(request, "%s %s %s", method, path, req_body);
+    printf("method: \"%s\"\n", method);
+    printf("path: \"%s\"\n", path);
+    printf("req \"%s\"\n", request);
+    if (strcmp(method, "GET") == 0)
+    {
+        if (strcmp(path, "/d20") == 0)
+        {
+            get_d20(fd);
+        }
+        else
+        {
+            resp_404(fd);
+        }
+    }
 
     // (Stretch) If POST, handle the post request
 }
