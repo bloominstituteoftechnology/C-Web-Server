@@ -196,32 +196,37 @@ void get_file(int fd, struct cache *cache, char *request_path)
 {
     char filepath[4096];
     struct file_data *filedata;
+    struct cache_entry *entry;
     char *mime_type;
-    // char src[4096], dest[4096];
 
-    // strcpy(src, request_path);
-    // strcpy(dest, "%s");
-
-    // strcat(dest, src);
-    // printf("dest: %s", dest);
-
-    // Fetch the cat.jpeg file
     snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
 
-    if (filedata == NULL)
+    entry = cache_get(cache, filepath);
+
+    if (entry != NULL)
     {
-        // TODO: make this non-fatal
-        fprintf(stderr, "cannot find file %s\n", request_path);
-        exit(3);
+        send_response(fd, "HTTP/1.1 200 FOUND", entry->content_type, entry->content, entry->content_length);
     }
+    else
+    {
+        filedata = file_load(filepath);
 
-    mime_type = mime_type_get(filepath);
-    printf("mime_type: %s", mime_type);
+        if (filedata == NULL)
+        {
+            // TODO: make this non-fatal
+            // fprintf(stderr, "cannot find file %s\n", request_path);
+            // exit(3);
+            resp_404(fd);
+            return;
+        }
 
-    send_response(fd, "HTTP/1.1 200 FOUND", mime_type, filedata->data, filedata->size);
+        mime_type = mime_type_get(filepath);
+        printf("mime_type: %s", mime_type);
 
-    file_free(filedata);
+        send_response(fd, "HTTP/1.1 200 FOUND", mime_type, filedata->data, filedata->size);
+
+        file_free(filedata);
+    }
 }
 
 /**
