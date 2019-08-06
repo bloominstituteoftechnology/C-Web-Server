@@ -57,6 +57,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     struct tm *local_time = localtime(&t);
     char *timestamp = asctime(local_time);
 
+    printf("X\n");
+
     response_length = sprintf(response, "%s\nDate %sConnection: close\nContent-Type: %s\nContent-Length: %d\n\n", header, timestamp, content_type, content_length);
     memcpy(response + response_length, body, content_length);
     response_length += content_length;
@@ -117,8 +119,6 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    (void)cache;
-
     char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
@@ -133,14 +133,24 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     if (filedata == NULL) {
 
+        printf("No data...\n");
+
         resp_404(fd);
-        
+
     } else {
         
+        printf("Got the data...\n");
+
         mime_type = mime_type_get(filepath);
 
-        send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
+        printf("about to put the cache\n");
 
+        cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
+
+        printf("finished putting the cache\n");
+
+        send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
+        
         free(mime_type);
     }
 
@@ -168,7 +178,6 @@ char *find_start_of_body(char *header)
  */
 void handle_http_request(int fd, struct cache *cache)
 {
-    (void)cache;
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
 
@@ -184,30 +193,26 @@ void handle_http_request(int fd, struct cache *cache)
 
     sscanf(request, "%s %s", method, path);
 
-    if (strcmp("/d20", path) == 0) {
+    struct cache_entry *entry = cache_get(cache, path);
 
-        get_d20(fd);
-    
-    } else if (strcmp("GET", method) == 0) {
-
-        get_file(fd, cache, path);
-
-    } else if (strcmp("POST", method) == 0) {
-
-        // (Stretch) If POST, handle the post request
-
+    if (entry != NULL) {
+        send_response(fd, "HTTP/1.1 OK", entry->content_type, entry->content, entry->content_length);
     } else {
 
-        resp_404(fd);
+        if (strcmp("/d20", path) == 0) {
+            get_d20(fd);
+        
+        } else if (strcmp("GET", method) == 0) {
+            get_file(fd, cache, path);
 
+        } else if (strcmp("POST", method) == 0) {
+
+            // (Stretch) If POST, handle the post request
+
+        } else {
+            resp_404(fd);
+        }
     }
-
-    // Read the first two components of the first line of the request 
-
-    // If GET, handle the get endpoints
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-    
 }
 
 /**
