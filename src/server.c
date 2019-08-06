@@ -57,7 +57,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     struct tm *local_time = localtime(&t);
     char *timestamp = asctime(local_time);
 
-    response_length = sprintf(response, "%s\nConnection: close\nDate %s\nContent-Type: %s\nContent-Length: %d\n\n%s", header, timestamp, content_type, content_length);
+    response_length = sprintf(response, "%s\nDate %sConnection: close\nContent-Type: %s\nContent-Length: %d\n\n", header, timestamp, content_type, content_length);
     memcpy(response + response_length, body, content_length);
     response_length += content_length;
 
@@ -123,21 +123,29 @@ void get_file(int fd, struct cache *cache, char *request_path)
     struct file_data *filedata; 
     char *mime_type;
 
-    snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
-    filedata = file_load(filepath);
-
-    printf("%s\n", filepath);
-
-    if (filedata == NULL) {
-        fprintf(stderr, "cannot find file\n");
-        exit(3);
+    if (strcmp(request_path, "/") == 0) {
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+    } else {
+        snprintf(filepath, sizeof filepath, "%s%s", SERVER_ROOT, request_path);
     }
 
-    mime_type = mime_type_get(filepath);
+    filedata = file_load(filepath);
 
-    send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
+    if (filedata == NULL) {
+
+        resp_404(fd);
+        
+    } else {
+        
+        mime_type = mime_type_get(filepath);
+
+        send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
+
+        free(mime_type);
+    }
 
     file_free(filedata);
+    free(filepath);
 }
 
 /**
