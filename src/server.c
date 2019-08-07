@@ -57,7 +57,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     struct tm *local_time = localtime(&t);
     char *timestamp = asctime(local_time);
 
-    response_length = sprintf(response, "%s\nDate %sConnection: close\nContent-Type: %s\nContent-Length: %d\n\n", header, timestamp, content_type, content_length);
+    response_length = sprintf(response, "%s\nDate %s\nConnection: close\nContent-Type: %s\nContent-Length: %d\n\n", header, timestamp, content_type, content_length);
     memcpy(response + response_length, body, content_length);
     response_length += content_length;
 
@@ -106,9 +106,7 @@ void resp_404(int fd)
     }
 
     mime_type = mime_type_get(filepath);
-
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
-
     file_free(filedata);
 }
 
@@ -130,24 +128,12 @@ void get_file(int fd, struct cache *cache, char *request_path)
     filedata = file_load(filepath);
 
     if (filedata == NULL) {
-
-        printf("No data...\n");
-
         resp_404(fd);
-
+        return;
     } else {
-        
-        printf("Got the data...\n");
-
         mime_type = mime_type_get(filepath);
-
-        printf("about to put the cache\n");
-
         cache_put(cache, filepath, mime_type, filedata->data, filedata->size);
-
-        printf("finished putting the cache\n");
-
-        send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
     }
 
     file_free(filedata);
@@ -191,7 +177,7 @@ void handle_http_request(int fd, struct cache *cache)
     struct cache_entry *entry = cache_get(cache, path);
 
     if (entry != NULL) {
-        send_response(fd, "HTTP/1.1 OK", entry->content_type, entry->content, entry->content_length);
+        send_response(fd, "HTTP/1.1 200 OK", entry->content_type, entry->content, entry->content_length);
     } else {
 
         if (strcmp("/d20", path) == 0) {
@@ -206,6 +192,7 @@ void handle_http_request(int fd, struct cache *cache)
 
         } else {
             resp_404(fd);
+            return;
         }
     }
 
