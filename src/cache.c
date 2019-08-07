@@ -11,10 +11,12 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 {
     struct cache_entry *new_entry = malloc(sizeof(*new_entry));
 
-    new_entry->path = path;
-    new_entry->content_type = content_type;
+    new_entry->path = strdup(path);
+    new_entry->content_type = strdup(content_type);
     new_entry->content_length = content_length;
-    new_entry->content = content;
+
+    new_entry->content = malloc(content_length);
+    memcpy(new_entry->content, content, content_length);
     new_entry->prev = NULL;
     new_entry->next = NULL;
 
@@ -26,19 +28,10 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    entry->prev->next = entry->next;
-    entry->next->prev = entry->prev;
-    entry->prev = NULL;
-    entry->next = NULL;
-
     free(entry->path);
     free(entry->content_type);
     free(entry->content);
-    free(entry->prev);
-    free(entry->next);
-
     free(entry);
-    printf("free!!\n");
 }
 
 /**
@@ -108,7 +101,7 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    struct cache *new_cache = malloc(sizeof(struct cache));
+    struct cache *new_cache = malloc(sizeof(*new_cache));
 
     new_cache->index = hashtable_create(hashsize, NULL);
     new_cache->head = NULL;
@@ -149,15 +142,12 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
     dllist_insert_head(cache, new_entry);
 
-    hashtable_put(cache->index, path, &new_entry);
+    hashtable_put(cache->index, path, new_entry);
 
     cache->cur_size++;
 
     if (cache->cur_size > cache->max_size) {
         struct cache_entry *old_entry = dllist_remove_tail(cache);
-
-        printf("Old entry: %s\n", old_entry->path);
-
         hashtable_delete(cache->index, old_entry->path);
         free_entry(old_entry);
     }
