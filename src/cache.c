@@ -9,7 +9,7 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
+    struct cache_entry *new_entry = malloc(sizeof(*new_entry));
 
     new_entry->path = path;
     new_entry->content_type = content_type;
@@ -26,11 +26,17 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    printf("about to free\n");
     entry->prev->next = entry->next;
     entry->next->prev = entry->prev;
     entry->prev = NULL;
     entry->next = NULL;
+
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
+    free(entry->prev);
+    free(entry->next);
+
     free(entry);
     printf("free!!\n");
 }
@@ -143,12 +149,15 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
 
     dllist_insert_head(cache, new_entry);
 
-    hashtable_put(cache->index, path, new_entry);
+    hashtable_put(cache->index, path, &new_entry);
 
     cache->cur_size++;
 
     if (cache->cur_size > cache->max_size) {
         struct cache_entry *old_entry = dllist_remove_tail(cache);
+
+        printf("Old entry: %s\n", old_entry->path);
+
         hashtable_delete(cache->index, old_entry->path);
         free_entry(old_entry);
     }

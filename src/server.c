@@ -57,8 +57,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     struct tm *local_time = localtime(&t);
     char *timestamp = asctime(local_time);
 
-    printf("X\n");
-
     response_length = sprintf(response, "%s\nDate %sConnection: close\nContent-Type: %s\nContent-Length: %d\n\n", header, timestamp, content_type, content_length);
     memcpy(response + response_length, body, content_length);
     response_length += content_length;
@@ -150,12 +148,9 @@ void get_file(int fd, struct cache *cache, char *request_path)
         printf("finished putting the cache\n");
 
         send_response(fd, "HTTP/1.1 OK", mime_type, filedata->data, filedata->size);
-        
-        free(mime_type);
     }
 
     file_free(filedata);
-    free(filepath);
 }
 
 /**
@@ -213,6 +208,8 @@ void handle_http_request(int fd, struct cache *cache)
             resp_404(fd);
         }
     }
+
+    free(entry);
 }
 
 /**
