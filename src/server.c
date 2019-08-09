@@ -57,7 +57,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     struct tm *local_time = localtime(&t);
     char *timestamp = asctime(local_time);
 
-    response_length = sprintf(response, "%s\nDate %s\nConnection: close\nContent-Type: %s\nContent-Length: %d\n\n", header, timestamp, content_type, content_length);
+    response_length = sprintf(response, "%s\nDate %s Connection: close\nContent-Type: %s\nContent-Length: %d\n\n", header, timestamp, content_type, content_length);
     memcpy(response + response_length, body, content_length);
     response_length += content_length;
 
@@ -83,7 +83,7 @@ void get_d20(int fd)
 
     string_length = sprintf(number_string, "%d", random_number);
     
-    send_response(fd, "HTTP/1.1 OK", "text/plain", number_string, string_length);
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", number_string, string_length);
 }
 
 /**
