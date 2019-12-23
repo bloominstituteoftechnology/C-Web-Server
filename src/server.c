@@ -59,6 +59,25 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // IMPLEMENT ME! //
     ///////////////////
 
+    time_t t1 = time(NULL);
+    struct tm *ltime = localtime(&t1);
+
+    int response_length = sprintf(response,
+      "%s\n"
+      "Date: %s"
+      "Connection: close\n"
+      "Content-Length: %d\n"
+      "Content-Type: %s\n"
+      "\n"
+      "%s\n",
+
+      header,
+      asctime(ltime),
+      content_length,
+      content_type,
+      body
+    );
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
@@ -81,11 +100,18 @@ void get_d20(int fd)
     // IMPLEMENT ME! //
     ///////////////////
 
+    srand(time(NULL) + getpid());
+
+    char response_body[8];
+    sprintf(response_body, "%d\n", (rand()%20)+1);
+
     // Use send_response() to send it back as text/plain data
 
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", response_body, strlen(response_body));
 }
 
 /**
@@ -122,6 +148,33 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char filepath[4096];
+
+    struct file_data *filedata;
+    char *mime_type;
+
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+      snprintf(filepath, sizeof filepath, "%s%s/index.html", SERVER_ROOT, request_path);
+      filedata = file_load(filepath);
+
+      if (filedata == NULL)
+      {
+        resp_404(fd);
+        return;
+      }
+    }
+    
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -144,6 +197,10 @@ void handle_http_request(int fd, struct cache *cache)
 {
     const int request_buffer_size = 65536; // 64K
     char request[request_buffer_size];
+    char *p;
+    char request_type[8];
+    char request_path[1024];
+    char request_protocol[128];
 
     // Read request
     int bytes_recvd = recv(fd, request, request_buffer_size - 1, 0);
@@ -167,6 +224,40 @@ void handle_http_request(int fd, struct cache *cache)
 
 
     // (Stretch) If POST, handle the post request
+
+    request[bytes_recvd] = '\0';
+
+    p = find_start_of_body(request);
+
+    if (p == NULL)
+    {
+      printf("Error finding header end");
+      exit(1);
+    }
+
+    char *body = p;
+
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+
+    printf("Request: %s %s %s\n", request_type, request_path, request_protocol);
+
+    if (strcmp(request_type, "GET") == 0)
+    {
+      if(strcmp(request_path, "/d20") == 0)
+      {
+        get_d20(fd);
+      }
+      else
+      {
+        get_file(fd, cache, request_path);
+      }
+    }
+
+    else 
+    {
+      fprintf(stderr, "Unknown request type: %s\n", request_type);
+      return;
+    }
 }
 
 /**
