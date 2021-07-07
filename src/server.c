@@ -53,8 +53,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
 
-    // Build HTTP response and store it in response
+        int response_length = 0;
+        time_t rawtime;
+        struct tm *timeinfo;
 
+        time(&rawtime);
+
+        timeinfo = localtime(&rawtime);
+
+    // Build HTTP response and store it in response
+     response_length=sprintf(response, "s%\nConnection: close\nContent-Length: %d\nContent-Type: %s\nDate: %s\n",
+                            header, content_length, content_type, asctime(timeinfo));
+
+    memcpy(response+response_length, body, content_length);
+    response_length += content_length;
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -76,12 +88,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
-    
+    char numb[10];
+    int rand_num = rand() % 20 + 1;
+    int len =sprintf(numb, "%d", rand_num);
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
 
     // Use send_response() to send it back as text/plain data
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", numb, len);
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -103,13 +118,14 @@ void resp_404(int fd)
 
     if (filedata == NULL) {
         // TODO: make this non-fatal
-        fprintf(stderr, "cannot find system 404 file\n");
+        fprintf(stderr, "cannot find 404 file\n");
         exit(3);
     }
 
     mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, 
+    filedata->data, filedata->size);
 
     file_free(filedata);
 }
@@ -117,11 +133,36 @@ void resp_404(int fd)
 /**
  * Read and return a file from disk or cache
  */
-void get_file(int fd, struct cache *cache, char *request_path)
+void get_file(int fd, struct cache *cache, char *request_fpath)
 {
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char path[4096];
+    struct file_data *filedata;
+    struct cashe_entry *check_cashe;
+    char *mime_type;
+
+    snprintf(path, "%s%s", SERVER_ROOT, request_fpath);
+
+    if (check_cache !=NULL) {
+        send_respon se(fd, "HTTP/1.1 200 OK", check_cache->content_type, 
+        check_cache->content, check_cache->content_length);
+    } else{
+    filedata = file_load(path);
+
+    if(filedata==NULL){
+        resp_404(fd);
+        return;
+
+        }
+
+    mime_type=mime_type_get(path);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+    cach_put(cache, path, mime_type, filedata->data, filedata->size);
+    file_free(filedata);
+    }
+    return 0;
 }
 
 /**
@@ -161,7 +202,8 @@ void handle_http_request(int fd, struct cache *cache)
     // Read the first two components of the first line of the request 
  
     // If GET, handle the get endpoints
-
+    printf("Request %s\n", request);
+    char method[5] file[20], protocol[20];
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
 
