@@ -16,6 +16,7 @@
  * (Posting data is harder to test from a browser.)
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -54,6 +55,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     char response[max_response_size];
 
     // Build HTTP response and store it in response
+  
+
+    int response_length = sprintf(response, 
+    "%s\nDate: Wed Dec 20 13:05:11 PST 2017\nConnection: close\nContent_Length: %d\nContent_Type: %s\n\n%s\n",header,
+    content_length,
+    content_type,
+    body
+    );
 
     ///////////////////
     // IMPLEMENT ME! //
@@ -80,9 +89,12 @@ void get_d20(int fd)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char body[8];
+    int randomNumber = rand() % 21;
+    sprintf(body, "%d\n", randomNumber); 
 
     // Use send_response() to send it back as text/plain data
-
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
@@ -122,6 +134,21 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    char fpath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+     sprintf(fpath, "%s%s", SERVER_ROOT, request_path);
+     filedata = file_load(fpath);
+
+     if (filedata == NULL) {
+        resp_404(fd);
+        return;
+    }
+     mime_type = mime_type_get(fpath);
+
+     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+     
+     file_free(filedata);
 }
 
 /**
@@ -152,6 +179,30 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
+    
+        // Read the three components of the first request line
+        char method[8];
+        char endpoint[1024];
+        char http_vers[128];
+        
+        sscanf(request, "%s %s %s", method, endpoint, http_vers);
+       
+
+        // If GET, handle the get endpoints
+        if (strcmp(method, "GET") == 0) {
+            if (strcmp(endpoint, "/d20") == 0) {   
+                get_d20(fd);
+                } 
+            else {
+                get_file(fd, cache, endpoint);    
+                }
+        }
+
+        // (Stretch) If POST, handle the post request
+       
+
+
+    }
 
 
     ///////////////////
@@ -167,7 +218,7 @@ void handle_http_request(int fd, struct cache *cache)
 
 
     // (Stretch) If POST, handle the post request
-}
+
 
 /**
  * Main
@@ -204,6 +255,7 @@ int main(void)
             perror("accept");
             continue;
         }
+    
 
         // Print out a message that we got the connection
         inet_ntop(their_addr.ss_family,

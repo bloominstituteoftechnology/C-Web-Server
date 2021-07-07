@@ -48,7 +48,6 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 {
     if (ce != cache->head) {
         if (ce == cache->tail) {
-            // We're the tail
             cache->tail = ce->prev;
             cache->tail->next = NULL;
 
@@ -125,6 +124,25 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    // Allocate new cashe entry
+    struct cache_entry *new = alloc_entry(path, content_type, content, content_length);
+    // Insert at head of doubly linked list
+    dllist_insert_head(cache, new);
+    // Store entry in hashtable
+    hashtable_put(cache->index, path, new);
+    // increment size of cashe
+    cache->cur_size++;
+    // If cashe greater than max size
+    if (cache->cur_size > cache->max_size) {
+        // Remove old entry from hashtable
+        hashtable_delete(cache->index, cache->tail->path);
+        // Remove entry at tail
+        struct cache_entry *old = dllist_remove_tail(cache);
+        // Free cashe entry
+        free_entry(old);
+      
+        
+    }
 }
 
 /**
@@ -135,4 +153,5 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    
 }
