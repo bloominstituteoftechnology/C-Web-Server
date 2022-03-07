@@ -50,6 +50,7 @@
  */
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
+
     const int max_response_size = 262144;
     char response[max_response_size];
 
@@ -58,6 +59,72 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char* http_version = "HTTP/1.1";
+    char* status = "OK";
+    char* status_code = "200";
+
+    int idx = 0;
+    for(int j=0; j < http_version[j] != NULL; idx++, j++){
+        response[idx] = http_version[j];
+    }
+    response[idx++] = ' ';
+    
+    for(int j=0; j < status[j] != NULL; idx++, j++){
+        response[idx] = status[j];
+    }
+
+    response[idx++] = ' ';
+
+    for(int j=0; j < status_code[j] != NULL; idx++, j++){
+        response[idx] = status_code[j];
+    }
+
+    response[idx++] = '\n';
+
+
+    //date is optional
+    time_t now = time(NULL);
+    struct tm *time_struct = localtime(&now);
+    char* localtime = time_struct->tm_year;
+
+    //connection status
+    char* connection_status = "Connection: close";
+    for(int j=0; j < connection_status[j] != NULL; idx++, j++){
+        response[idx] = connection_status[j];
+    }
+    response[idx++] = '\n';
+
+    //content(body) length
+    char content_length_key[20] = "Content-Length: ";
+    char content_length_str[20];
+    sprintf(content_length_str,"%d",content_length);  // int -> str
+    
+    for(int j=0; j < content_length_key[j] != NULL; idx++, j++){
+        response[idx] = content_length_key[j];
+    }
+
+    for(int j=0; j < content_length_str[j] != NULL; idx++, j++){
+        response[idx] = content_length_str[j];
+    }
+    response[idx++] = '\n';
+    
+    int response_length = strlen(header) + strlen(body);
+
+      //content-type
+    char content_type_total[30] = "Content-Type: ";
+    strcat(content_type_total, content_type);
+
+    for(int j=0; j < content_type_total[j] != NULL; idx++, j++){
+        response[idx] = content_type_total[j];
+    }
+    response[idx++] = '\n';
+    response[idx++] = '\n';
+
+    //debug response
+    for(int j=0;j<idx;j++){
+        printf("%c", response[j]);
+    }
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -211,6 +278,9 @@ int main(void)
             s, sizeof s);
         printf("server: got connection from %s\n", s);
         
+        //test
+        resp_404(newfd);
+
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
 
