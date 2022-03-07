@@ -73,11 +73,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     char* token = strtok(tmpheader," ");
     
-    // printf("%s\n",token);
-    
-    // char *http_version = "HTTP/1.1";
-    // char *status ="OK";
-    // char *status_code ="200";
     char *http_version = token;
     token = strtok(NULL," ");
 
