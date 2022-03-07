@@ -98,10 +98,14 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     idx = append_str(response, status_code, idx);
     response[idx++] = '\n';
 
-    // date is optional이라 생략
-    time_t now = time(NULL);
-    struct tm *time_struct = localtime(&now);
-    char *localtime = time_struct->tm_year;
+    // date is optional
+    time_t now = time(0);
+    char* time_str = ctime(&now);
+    time_str[strlen(time_str) - 1] ='\0'; 
+
+    idx = append_str(response, "Date: ",idx);
+    idx = append_str(response, time_str,idx);
+    response[idx++] = '\n';
 
     // connection status
     char *connection_status = "Connection: close";
