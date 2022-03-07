@@ -66,9 +66,28 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // Build HTTP response and store it in response
 
-    char *http_version = "HTTP/1.1";
-    char *status = "OK";
-    char *status_code = "200";
+    char tmpheader[30];
+    for(int i=0;header[i]!=NULL;i++){
+        tmpheader[i] = header[i];
+    }
+
+    char* token = strtok(tmpheader," ");
+    
+    // printf("%s\n",token);
+    
+    // char *http_version = "HTTP/1.1";
+    // char *status ="OK";
+    // char *status_code ="200";
+    char *http_version = token;
+    token = strtok(NULL," ");
+
+    char *status = token;
+    token = strtok(NULL," ");
+
+    char status_code[10];
+    for(int i=0;token[i]!=NULL;i++){
+        status_code[i] = token[i];
+    }
 
     int idx = 0;
 
@@ -111,6 +130,9 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     response[idx++] = '\n';
     response[idx++] = '\n';
 
+    //body
+    idx = append_str(response,body,idx);
+
     // debug response
     for (int j = 0; j < idx; j++)
     {
@@ -118,7 +140,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     }
 
     int response_length = strlen(header) + strlen(body);
-    
+
     // Send it all!
     int rv = send(fd, response, response_length, 0);
 
