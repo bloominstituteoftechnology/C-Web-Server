@@ -1,3 +1,6 @@
+# 일정
+![웹서버개발계획](./%EC%9B%B9%EC%84%9C%EB%B2%84%EA%B0%9C%EB%B0%9C%EA%B3%84%ED%9A%8D.png)
+
 # A Simple Web Server in C
 
 In this project, we'll finish the implementation of a web server in C.
