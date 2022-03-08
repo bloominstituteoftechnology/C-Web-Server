@@ -176,32 +176,9 @@ void get_d20(int fd)
     int random = 1 + rand() % 20;
     printf("generated random number = %d\n",random);
 
-    // Use send_response() to send it back as text/plain data
-    // char filepath[4096];
-    // struct file_data *filedata;
-    // char *mime_type;
-
-    // // Fetch the d20.html file
-    // snprintf(filepath, sizeof filepath, "%s/d20.html", SERVER_FILES);
-    // filedata = file_load(filepath);
-    
-    // printf("filepath = %s\n",filepath);
-
-    // if (filedata == NULL)
-    // {
-    //     // TODO: make this non-fatal
-    //     fprintf(stderr, "cannot find \'d20.html\' file\n");
-    //     exit(3);
-    // }
-
     char random_number[10];
     sprintf(random_number, "%d", random); // int -> str
     send_response(fd, "HTTP/1.1 201 CREATED", "text/plain", random_number, 50);
-
-    // mime_type = mime_type_get(filepath);    //not use
-    // send_response(fd, "HTTP/1.1 201 CREATED", mime_type, filedata->data, filedata->size);
-    
-    // file_free(filedata);
 }
 
 /**
