@@ -67,21 +67,33 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // Build HTTP response and store it in response
 
     char tmpheader[30];
-    for(int i=0;header[i]!=NULL;i++){
+    for (int i = 0; header[i] != NULL; i++)
+    {
         tmpheader[i] = header[i];
     }
 
-    char* token = strtok(tmpheader," ");
-    
+    char *token = strtok(tmpheader, " ");
+
     char *http_version = token;
-    token = strtok(NULL," ");
+    token = strtok(NULL, " ");
 
     char *status = token;
-    token = strtok(NULL," ");
+    token = strtok(NULL, " ");
 
-    char status_code[10];
-    for(int i=0;token[i]!=NULL;i++){
-        status_code[i] = token[i];
+    char status_code[20];
+    int si=0;
+    for (int i = 0; token[i] != NULL; i++)
+    {
+        status_code[si++] = token[i];
+    }
+
+    if(strcmp(status_code,"NOT") == 0){
+        token = strtok(NULL, " ");
+        status_code[si++] = ' ';
+        for (int i = 0; token[i] != NULL; i++)
+        {
+            status_code[si++] = token[i];
+        }   
     }
 
     int idx = 0;
@@ -100,11 +112,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 
     // date is optional
     time_t now = time(0);
-    char* time_str = ctime(&now);
-    time_str[strlen(time_str) - 1] ='\0'; 
+    char *time_str = ctime(&now);
+    time_str[strlen(time_str) - 1] = '\0';
 
-    idx = append_str(response, "Date: ",idx);
-    idx = append_str(response, time_str,idx);
+    idx = append_str(response, "Date: ", idx);
+    idx = append_str(response, time_str, idx);
     response[idx++] = '\n';
 
     // connection status
@@ -129,16 +141,19 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     response[idx++] = '\n';
     response[idx++] = '\n';
 
-    //body
-    idx = append_str(response,body,idx);
+    // body
+    idx = append_str(response, body, idx);
 
     // debug response
+    printf("================ response ===============\n");
     for (int j = 0; j < idx; j++)
     {
         printf("%c", response[j]);
     }
+    printf("\n");
+    printf("=========================================\n");
 
-    int response_length = strlen(header) + strlen(body);
+    unsigned int response_length = strlen(header) + strlen(body);
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -158,15 +173,35 @@ void get_d20(int fd)
 {
     // Generate a random number between 1 and 20 inclusive
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    int random = 1 + rand() % 20;
+    printf("generated random number = %d\n",random);
 
     // Use send_response() to send it back as text/plain data
+    // char filepath[4096];
+    // struct file_data *filedata;
+    // char *mime_type;
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    // // Fetch the d20.html file
+    // snprintf(filepath, sizeof filepath, "%s/d20.html", SERVER_FILES);
+    // filedata = file_load(filepath);
+    
+    // printf("filepath = %s\n",filepath);
+
+    // if (filedata == NULL)
+    // {
+    //     // TODO: make this non-fatal
+    //     fprintf(stderr, "cannot find \'d20.html\' file\n");
+    //     exit(3);
+    // }
+
+    char random_number[10];
+    sprintf(random_number, "%d", random); // int -> str
+    send_response(fd, "HTTP/1.1 201 CREATED", "text/plain", random_number, 50);
+
+    // mime_type = mime_type_get(filepath);    //not use
+    // send_response(fd, "HTTP/1.1 201 CREATED", mime_type, filedata->data, filedata->size);
+    
+    // file_free(filedata);
 }
 
 /**
@@ -190,6 +225,8 @@ void resp_404(int fd)
     }
 
     mime_type = mime_type_get(filepath);
+
+    printf("filepath = %s\n",filepath);
 
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
@@ -236,13 +273,30 @@ void handle_http_request(int fd, struct cache *cache)
         return;
     }
 
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    printf("============= request ==============\n");
+    printf(request);
+    printf("====================================\n");
+
+    char request_type[30];
+    char path[100];
 
     // Read the first two components of the first line of the request
+    sscanf(request, "%s %s", request_type,path);
 
+    printf("%s %s\n",request_type,path);
+    
     // If GET, handle the get endpoints
+    if(strcmp(request_type,"GET") == 0){
+        printf("get request\n");
+
+        if(strcmp(path,"/d20") == 0){
+            printf("/d20 request\n");
+            get_d20(fd);
+        }else{
+            resp_404(fd);
+        }
+
+    }
 
     //    Check if it's /d20 and handle that special case
     //    Otherwise serve the requested file by calling get_file()
@@ -294,9 +348,6 @@ int main(void)
                   get_in_addr((struct sockaddr *)&their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
-
-        // test
-        resp_404(newfd);
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
