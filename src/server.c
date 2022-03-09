@@ -81,19 +81,20 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     token = strtok(NULL, " ");
 
     char status_code[20];
-    int si=0;
+    int si = 0;
     for (int i = 0; token[i] != NULL; i++)
     {
         status_code[si++] = token[i];
     }
 
-    if(strcmp(status_code,"NOT") == 0){
+    if (strcmp(status_code, "NOT") == 0)
+    {
         token = strtok(NULL, " ");
         status_code[si++] = ' ';
         for (int i = 0; token[i] != NULL; i++)
         {
             status_code[si++] = token[i];
-        }   
+        }
     }
 
     int idx = 0;
@@ -138,11 +139,15 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     strcat(content_type_total, content_type);
 
     idx = append_str(response, content_type_total, idx);
+    // idx += snprintf(response + idx, strlen(content_type_total), "%s\n", content_type_total); // snprintf로 다 바꾸고 싶은데 오류나네..
+
     response[idx++] = '\n';
     response[idx++] = '\n';
 
     // body
-    idx = append_str(response, body, idx);
+    // idx = append_str(response, body, idx);
+    printf("body = %s\n", body);
+    idx += snprintf(response + idx, strlen(body), "%s\n", body);
 
     // debug response
     printf("================ response ===============\n");
@@ -153,7 +158,8 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     printf("\n");
     printf("=========================================\n");
 
-    unsigned int response_length = strlen(header) + strlen(body);
+    // unsigned int response_length = strlen(header) + strlen(body);
+    unsigned int response_length = idx;
 
     // Send it all!
     int rv = send(fd, response, response_length, 0);
@@ -174,7 +180,7 @@ void get_d20(int fd)
     // Generate a random number between 1 and 20 inclusive
 
     int random = 1 + rand() % 20;
-    printf("generated random number = %d\n",random);
+    printf("generated random number = %d\n", random);
 
     char random_number[10];
     sprintf(random_number, "%d", random); // int -> str
@@ -203,7 +209,7 @@ void resp_404(int fd)
 
     mime_type = mime_type_get(filepath);
 
-    printf("filepath = %s\n",filepath);
+    printf("in resp_404(), filepath = %s\n", filepath);
 
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
 
@@ -215,9 +221,35 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    char filepath[4096];
+    struct file_data *filedata;
+    char *mime_type;
+
+    // Fetch the {filename}.html file
+
+    snprintf(filepath, sizeof filepath, "%s", SERVER_FILES);
+    strcat(filepath, request_path);
+
+    printf("in get_file(), filepath = %s\n", filepath);
+
+    filedata = file_load(filepath);
+
+    if (filedata == NULL)
+    {
+        // TODO: make this non-fatal
+        // fprintf(stderr, "cannot find system %s file\n", filepath);
+        resp_404(fd);
+        return;
+        // exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    printf("in get_file(), filepath = %s\n", filepath);
+
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    file_free(filedata);
 }
 
 /**
@@ -258,21 +290,25 @@ void handle_http_request(int fd, struct cache *cache)
     char path[100];
 
     // Read the first two components of the first line of the request
-    sscanf(request, "%s %s", request_type,path);
+    sscanf(request, "%s %s", request_type, path);
 
-    printf("%s %s\n",request_type,path);
-    
+    printf("%s %s\n", request_type, path);
+
     // If GET, handle the get endpoints
-    if(strcmp(request_type,"GET") == 0){
+    if (strcmp(request_type, "GET") == 0)
+    {
         printf("get request\n");
+        printf("request path = %s\n", path);
 
-        if(strcmp(path,"/d20") == 0){
-            printf("/d20 request\n");
+        if (strcmp(path, "/d20") == 0)
+        {
             get_d20(fd);
-        }else{
-            resp_404(fd);
         }
-
+        else
+        {
+            // resp_404(fd);
+            get_file(fd, NULL, path);
+        }
     }
 
     //    Check if it's /d20 and handle that special case
