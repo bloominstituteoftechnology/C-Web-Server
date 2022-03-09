@@ -5,3 +5,5 @@
 - rest 응답같은건 어떤 content-type으로 해야 하는지?
 
   application/json으로 하면 될 줄 알았는데 안 되네
+
+  => 그냥 body에 쓰여지는 게 전부임
