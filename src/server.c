@@ -147,7 +147,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // body
     // idx = append_str(response, body, idx);
     printf("body = %s\n", body);
-    idx += snprintf(response + idx, strlen(body), "%s\n", body);
+    idx += snprintf(response + idx, strlen(body)+1, "%s\n", body);
 
     // debug response
     printf("================ response ===============\n");
@@ -181,10 +181,11 @@ void get_d20(int fd)
 
     int random = 1 + rand() % 20;
     printf("generated random number = %d\n", random);
-
+    
     char random_number[10];
     sprintf(random_number, "%d", random); // int -> str
-    send_response(fd, "HTTP/1.1 201 CREATED", "text/plain", random_number, 50);
+
+    send_response(fd, "HTTP/1.1 200 OK", "text/html", random_number, strlen(random_number));
 }
 
 /**
