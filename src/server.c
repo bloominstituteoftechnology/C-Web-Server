@@ -33,6 +33,7 @@
 #include "file.h"
 #include "mime.h"
 #include "cache.h"
+#include "hashtable.h"
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -147,7 +148,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // body
     // idx = append_str(response, body, idx);
     printf("body = %s\n", body);
-    idx += snprintf(response + idx, strlen(body)+1, "%s\n", body);
+    idx += snprintf(response + idx, strlen(body) + 1, "%s\n", body);
 
     // debug response
     printf("================ response ===============\n");
@@ -181,7 +182,7 @@ void get_d20(int fd)
 
     int random = 1 + rand() % 20;
     printf("generated random number = %d\n", random);
-    
+
     char random_number[10];
     sprintf(random_number, "%d", random); // int -> str
 
@@ -227,7 +228,6 @@ void get_file(int fd, struct cache *cache, char *request_path)
     char *mime_type;
 
     // Fetch the {filename}.html file
-
     snprintf(filepath, sizeof filepath, "%s", SERVER_FILES);
     strcat(filepath, request_path);
 
@@ -246,7 +246,8 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     mime_type = mime_type_get(filepath);
 
-    printf("in get_file(), filepath = %s\n", filepath);
+    // cached list에 추가
+    cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
 
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
 
@@ -298,17 +299,27 @@ void handle_http_request(int fd, struct cache *cache)
     // If GET, handle the get endpoints
     if (strcmp(request_type, "GET") == 0)
     {
-        printf("get request\n");
-        printf("request path = %s\n", path);
-
         if (strcmp(path, "/d20") == 0)
         {
             get_d20(fd);
         }
         else
         {
-            // resp_404(fd);
-            get_file(fd, NULL, path);
+            struct hashtable *ht = cache->index;
+            struct cache_entry* cached_data = (struct cache_entry *)hashtable_get(ht, path);
+            
+            if (cached_data == NULL)
+            {
+                get_file(fd, cache, path);
+            }
+            else
+            {
+                char* cached_content = (char*)(cached_data->content);
+
+                // CONFUSE: 캐시 적용을 어디서 해야 할지..
+                // CONFUSE: mime_type 그냥 text/html로 고정했는데 수정해야 하나?
+                send_response(fd, "HTTP/1.1 200 OK", "text/html", cached_content, strlen(cached_content));
+            }
         }
     }
 
