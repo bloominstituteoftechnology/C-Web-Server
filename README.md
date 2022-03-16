@@ -1,6 +1,13 @@
 # 일정
 ![웹서버개발계획](./%EC%9B%B9%EC%84%9C%EB%B2%84%EA%B0%9C%EB%B0%9C%EA%B3%84%ED%9A%8D.png)
 
+# 이용 가능한 url
+서버 실행 후,
+- file serving :  http://localhost:3490/index.html 접속
+- 난수 리턴 : http://localhost:3490/d20 접속
+- post : curl -D - -X POST -H 'Content-Type: text/plain' -d 'Hello, sample data!' http://localhost:3490/save
+- post한 내용이 쓰여진 파일 보기 : http://localhost:3490/posted-file.txt 접속
+
 # tips
 - vscode 코드 포매팅 : shift + option + f 
 

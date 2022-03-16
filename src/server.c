@@ -3,15 +3,15 @@
  *
  * Test with curl (if you don't have it, install it):
  *
- * 
+ *
  *  <available now>
  *    curl -D - http://localhost:3490/index.html
  *    curl -D - http://localhost:3490/d20
- * 
+ *
  *  <not yet>
  *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/date
- * 
+ *
  *
  * You can also test the above URLs in your browser! They should work!
  *
@@ -117,7 +117,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // status code
     idx = append_str(response, status_code, idx);
     response[idx++] = '\n';
-    
+
     // date is optional
     time_t now = time(0);
     char *time_str = ctime(&now);
@@ -274,25 +274,29 @@ char *find_start_of_body(char *header)
 
     header = strtok(header, "\n");
     char *token;
-    for(;;){
-        token = strtok(NULL,"\n");
-        if(token == NULL){
+    for (;;)
+    {
+        token = strtok(NULL, "\n");
+        if (token == NULL)
+        {
             break;
         }
-        if(strcmp(token,"\r")==0){
+        if (strcmp(token, "\r") == 0)
+        {
             printf("found\n");
-            token = strtok(NULL,"\n");
+            token = strtok(NULL, "\n");
             break;
         }
-        printf("token = %s\n",token);
+        printf("token = %s\n", token);
     }
 
     return token;
 }
 
-int post_save(char* body){
-    FILE *fp = fopen("posted-file.txt","w");
-    fputs(body,fp);
+int post_save(char *body)
+{
+    FILE *fp = fopen("./serverfiles/posted-file.txt", "w");
+    fputs(body, fp);
     fclose(fp);
 
     return 0;
@@ -364,19 +368,24 @@ void handle_http_request(int fd, struct cache *cache)
                 }
             }
         }
-    }else if(strcmp(request_type, "POST") == 0){
+    }
+    else if (strcmp(request_type, "POST") == 0 && strcmp(path, "/save") == 0)
+    {
 
-        char* body = find_start_of_body(request);
-        printf("body = %s\n",body);
+        char *body = find_start_of_body(request);
+        printf("body = %s\n", body);
 
         int ret = post_save(body);
 
-        if(ret == 0 ){
+        if (ret == 0)
+        {
             printf("post success\n");
-            char* response = "{\"status\":\"ok\"}";
+            char *response = "{\"status\":\"ok\"}";
 
             send_response(fd, "HTTP/1.1 201 CREATED", "application/json", response, strlen(response));
-        }else{
+        }
+        else
+        {
             printf("post failed\n");
         }
     }
