@@ -3,9 +3,15 @@
  *
  * Test with curl (if you don't have it, install it):
  *
- *    curl -D - http://localhost:3490/
+ * 
+ *  <available now>
+ *    curl -D - http://localhost:3490/index.html
  *    curl -D - http://localhost:3490/d20
+ * 
+ *  <not yet>
+ *    curl -D - http://localhost:3490/
  *    curl -D - http://localhost:3490/date
+ * 
  *
  * You can also test the above URLs in your browser! They should work!
  *
@@ -111,7 +117,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     // status code
     idx = append_str(response, status_code, idx);
     response[idx++] = '\n';
-
+    
     // date is optional
     time_t now = time(0);
     char *time_str = ctime(&now);
@@ -136,7 +142,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     response[idx++] = '\n';
 
     // content-type
-    char content_type_total[30] = "Content-Type: ";
+    char content_type_total[50] = "Content-Type: ";
     strcat(content_type_total, content_type);
 
     idx = append_str(response, content_type_total, idx);
@@ -265,6 +271,31 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+
+    header = strtok(header, "\n");
+    char *token;
+    for(;;){
+        token = strtok(NULL,"\n");
+        if(token == NULL){
+            break;
+        }
+        if(strcmp(token,"\r")==0){
+            printf("found\n");
+            token = strtok(NULL,"\n");
+            break;
+        }
+        printf("token = %s\n",token);
+    }
+
+    return token;
+}
+
+int post_save(char* body){
+    FILE *fp = fopen("posted-file.txt","w");
+    fputs(body,fp);
+    fclose(fp);
+
+    return 0;
 }
 
 /**
@@ -333,12 +364,22 @@ void handle_http_request(int fd, struct cache *cache)
                 }
             }
         }
+    }else if(strcmp(request_type, "POST") == 0){
+
+        char* body = find_start_of_body(request);
+        printf("body = %s\n",body);
+
+        int ret = post_save(body);
+
+        if(ret == 0 ){
+            printf("post success\n");
+            char* response = "{\"status\":\"ok\"}";
+
+            send_response(fd, "HTTP/1.1 201 CREATED", "application/json", response, strlen(response));
+        }else{
+            printf("post failed\n");
+        }
     }
-
-    //    Check if it's /d20 and handle that special case
-    //    Otherwise serve the requested file by calling get_file()
-
-    // (Stretch) If POST, handle the post request
 }
 
 /**
