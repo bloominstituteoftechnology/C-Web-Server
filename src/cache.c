@@ -21,6 +21,8 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
 
     ret->prev = NULL;
     ret->next = NULL;
+    
+    ret->created_at = time(NULL);
 
     return ret;
 }
@@ -203,6 +205,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     }
 }
 
+// CONFUSE: 이 함수 쓰이나??
 /**
  * Retrieve an entry from the cache
  */
@@ -220,6 +223,7 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     else
     {
         data = (char *)data;
+
         struct cache_entry *target = cache->head;
 
         for (; target != cache->tail && strcmp(target->path, data) != 0; target = target->next)

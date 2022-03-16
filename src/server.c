@@ -306,19 +306,31 @@ void handle_http_request(int fd, struct cache *cache)
         else
         {
             struct hashtable *ht = cache->index;
-            struct cache_entry* cached_data = (struct cache_entry *)hashtable_get(ht, path);
-            
+            // struct cache_entry *cached_data = (struct cache_entry *)hashtable_get(ht, path);    // CONFUSE: hashtable_get 하면 LRU 기능 동작 안하지 않나? cached_get으로 가져와야 하는듯?
+            struct cache_entry *cached_data = cache_get(cache, path);
+
             if (cached_data == NULL)
             {
                 get_file(fd, cache, path);
             }
             else
             {
-                char* cached_content = (char*)(cached_data->content);
+                char *cached_content = (char *)(cached_data->content);
 
-                // CONFUSE: 캐시 적용을 어디서 해야 할지..
-                // CONFUSE: mime_type 그냥 text/html로 고정했는데 수정해야 하나?
-                send_response(fd, "HTTP/1.1 200 OK", "text/html", cached_content, strlen(cached_content));
+                time_t created_at = cached_data->created_at;
+                time_t now = time(NULL);
+                if (now - created_at > 60)
+                {
+                    printf("update cached data\n");
+                    get_file(fd, cache, path);
+                }
+                else
+                {
+                    printf("just use cached data\n");
+                    // CONFUSE: 캐시 적용을 어디서 해야 할지..
+                    // CONFUSE: mime_type 그냥 text/html로 고정했는데 수정해야 하나?
+                    send_response(fd, "HTTP/1.1 200 OK", "text/html", cached_content, strlen(cached_content));
+                }
             }
         }
     }
