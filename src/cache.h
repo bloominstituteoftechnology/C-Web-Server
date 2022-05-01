@@ -1,5 +1,6 @@
 #ifndef _WEBCACHE_H_
 #define _WEBCACHE_H_
+#include  <time.h>
 
 // Individual hash table entry
 struct cache_entry {
@@ -9,6 +10,8 @@ struct cache_entry {
     void *content;
 
     struct cache_entry *prev, *next; // Doubly-linked list
+
+    time_t created_at;
 };
 
 // A cache
