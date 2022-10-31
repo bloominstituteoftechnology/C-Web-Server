@@ -365,20 +365,8 @@ void modify_logs_output(int output)
 
     // log_error("Logger in a file mode!");
 }
-
-/**
- * Main
- */
-int main(void)
+int initialize_tcp_sockets()
 {
-
-    initalize_logs(); // bydefailt it will store in file log.txt
-
-    // initialize_tcp_sockets();
-    // initialize_tcp_sockets(){
-
-    // }
-
     int newfd;                          // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
@@ -426,8 +414,41 @@ int main(void)
 
         close(newfd);
     }
+}
+#define NUM_THREADS 2
 
-    // Unreachable code
+int initialize_threads(){
+  pthread_t thr[NUM_THREADS];
+      thread_data_t thr_data[NUM_THREADS];
+
+    for (i = 0; i < NUM_THREADS; ++i)
+    {
+        thr_data[i].tid = i;
+        if ((rc = pthread_create(&thr[i], NULL, thr_func, &thr_data[i])))
+        {
+            fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
+            return EXIT_FAILURE;
+        }
+    }
+    /* block until all threads complete */
+    for (i = 0; i < NUM_THREADS; ++i)
+    {
+        pthread_join(thr[i], NULL);
+    }
+}
+/**
+ * Main
+ */
+int main(void)
+{
+
+    initalize_logs(); // by default it will store in file log.txt
+
+    initialize_threads();
+
+    if(FAILURE==initialize_tcp_sockets())  // Unreachable code
+        log.error("TCP Initialization FAILED");
 
     return 0;
 }
+
