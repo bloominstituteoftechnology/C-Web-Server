@@ -34,6 +34,7 @@
 #include "mime.h"
 #include "cache.h"
 #include "server.h"
+#include "logger.c";
 
 #define PORT "3490" // the port users will be connecting to
 
@@ -54,7 +55,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     const int max_response_size = 262144;
     char response[max_response_size];
     // Build HTTP response and store it in response
-    int response_length = sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s",content_type, content_length,body);
+    int response_length = sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", content_type, content_length, body);
     int rv = send(fd, response, response_length, 0);
 
     if (rv < 0)
@@ -63,7 +64,6 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     }
     return rv;
 }
-
 
 /**
  * Send a 404 response
@@ -92,14 +92,12 @@ void resp_404(int fd)
     file_free(filedata);
 }
 
-
-
 void print_header(http_header *req_header)
 {
-    printf("HTTP Request \n");
-    printf("========= \n ");
-    printf("[%s] Request come from  [%s] for url=[%s] ", req_header->method,req_header->Host, req_header->url);
-    printf("\n========= \n ");
+    log_status("HTTP Request \n");
+    log_status("========= \n ");
+    log_status("[%s] Request come from  [%s] for url=[%s] ", req_header->method, req_header->Host, req_header->url);
+    log_status("\n========= \n ");
 }
 
 /**
@@ -114,7 +112,7 @@ int http_header_parser(http_header *req_header, char *request)
 
     // http_extract_header();
     char *pstr1 = request, *token[50] = {NULL, NULL, NULL, NULL, NULL};
-    // printf("request in parser = %s ", request);
+    // log_status("request in parser = %s ", request);
     int retval = SUCCESS;
     char *saveptr1 = NULL, *saveptr2 = NULL;
     int j;
@@ -123,7 +121,7 @@ int http_header_parser(http_header *req_header, char *request)
         token[j] = strtok_r(pstr1, "\r\n", &saveptr1);
         if (token[j] == NULL)
             break;
-        // printf(" GOT:: j:%d: %s \n", j, token[j]);
+        // log_debug(" GOT:: j:%d: %s \n", j, token[j]);
         char *tag = strtok_r(token[j], "\": \"", &saveptr2);
         char *value = strtok_r(NULL, "\": \"", &saveptr2);
         // if host found :: put all hostwith :
@@ -141,18 +139,18 @@ int http_header_parser(http_header *req_header, char *request)
         else if (!strcmp(tag, "Accept"))
             strcpy(req_header->Accept, value);
         else if (!strcmp(tag, "Connection"))
-            strcpy(req_header->Connection , value);
+            strcpy(req_header->Connection, value);
         else if (!strcmp(tag, "Referer"))
-            strcpy(req_header->Referer , value);
+            strcpy(req_header->Referer, value);
         else if (!strcmp(tag, "Accept-Encoding"))
-            strcpy(req_header-> Accept_Encoding, value);
+            strcpy(req_header->Accept_Encoding, value);
         else if (!strcmp(tag, "Upgrade-Insecure-Requests"))
-            strcpy(req_header-> Upgrade_Insecure_Request, value);
+            strcpy(req_header->Upgrade_Insecure_Request, value);
         else if (!strcmp(tag, "Content-Length"))
             strcpy(req_header->Content_Length, value); // store content-length //after that data start
 
         // after getting content length // after that data start
-        // printf(" GOT_TAG:: j:%d - -> tag = [%s] value = [%s]   \n", j, tag, value);
+        // log_debug(" GOT_TAG:: j:%d - -> tag = [%s] value = [%s]   \n", j, tag, value);
     }
     return retval;
 }
@@ -161,7 +159,7 @@ int http_body_parser(char *req_body, char *request)
 {
     int retval = SUCCESS;
     req_body = strstr(request, "\r\n\r\n"); // this will give data
-    printf("req_body=[%s]\n", req_body);
+    log_debug("req_body=[%s]\n", req_body);
     if (req_body != NULL)
         return retval;
     // else
@@ -177,7 +175,7 @@ int get_file_content(char *body, char *req_url, int *filesize)
 
     // Opening file in reading mode
 
-    printf("requested file = [%s] \n", req_url);
+    log_status("requested file = [%s] \n", req_url);
     char url[100];
     char public_directory[20] = "serverroot/"; // define in config file //TODO
     sprintf(url, "%s%s", public_directory, req_url);
@@ -185,34 +183,34 @@ int get_file_content(char *body, char *req_url, int *filesize)
 
     if (NULL == ptr)
     {
-        printf("file can't be opened \n");
+        log_error("file can't be opened \n");
         return FAILURE;
     }
 
-    printf("content of this file are \n");
+    log_debug("content of this file are \n");
 
     size_t file_size;
     size_t ret;
     fseek(ptr, 0, SEEK_END);
     file_size = ftell(ptr);
     fseek(ptr, 0, SEEK_SET);
-    printf("File size: %d\n", file_size);
+    log_debug("File size: %d\n", file_size);
 
     if (!file_size)
     {
-        printf("Warring! Empty input file!\n");
+        log_warning("Warring! Empty input file!\n");
     }
     else if (file_size >= BUFFER_SIZE)
     {
-        printf("Warring! File size greater than %d. File will be truncated!\n", BUFFER_SIZE);
+        log_warning("Warring! File size greater than %d. File will be truncated!\n", BUFFER_SIZE);
         file_size = BUFFER_SIZE;
     }
     ret = fread(body, sizeof(char), file_size, ptr);
     if (file_size != ret)
-        printf("I/O error\n");
+        log_error("I/O error\n");
     else
     {
-        printf("FILE %s Read successfully ", req_url);
+        log_status("FILE %s Read successfully ", req_url);
         *filesize = file_size;
     }
 
@@ -230,20 +228,21 @@ int get_requested_static_file(int fd, char *body, char *req_url)
     size_t filesize;
     if (SUCCESS == get_file_content(body, req_url, &filesize))
     {
-        // printf("body=[%s] file size= %d ", body, filesize);
+        // log_debug("body=[%s] file size= %d ", body, filesize);
         // set_http_response_header());
         char buffer[65000];
-        int size=(int*)filesize;
-        
-        char header[50],content_type[30];
-        sprintf(header,"http/1.1 200 OK");
-        sprintf(content_type,"text/html");
-        // printf(" type  = %d ", size);
-        send_response(fd,header,content_type,body,size);
+        int size = (int *)filesize;
+
+        char header[50], content_type[30];
+        sprintf(header, "http/1.1 200 OK");
+        sprintf(content_type, "text/html");
+        // log_debug(" type  = %d ", size);
+        // sleep(10);
+        send_response(fd, header, content_type, body, size);
         // if (send(fd, buffer, length, 0) != length)
-        //     printf("error in seding");
+        //     log_error("error in seding");
         // else
-        //     printf("sending ");
+        //     log_status("sending ");
         return SUCCESS;
     }
     else
@@ -258,18 +257,17 @@ int handle_http_get_request(int fd, char *req_url)
     response_header = (struct http_header *)malloc(sizeof(http_header)); // free this header after sending
     char body[65000];
 
-
     if (MATCH(req_url, "/index.html") || MATCH(req_url, "/") || MATCH(req_url, "/about.html"))
     {
         req_url++; // for removing /
         if (SUCCESS == get_requested_static_file(fd, body, req_url))
         {
-            printf("success ");
+            log_status("success ");
         }
     }
     else
     {
-        printf("INVALID URL = [%s] \n", req_url);
+        log_warning("Rejected Request: INVALID URL = [%s] \n", req_url);
         // send404 //TODO
         return FAILURE;
     }
@@ -290,7 +288,7 @@ void handle_http_request(int fd, struct cache *cache)
         perror("recv");
         return;
     }
-    // printf("========\n%s\n===========\n", request);
+    // log_status("========\n%s\n===========\n", request);
 
     // extracting the components
     http_header *req_header; // use pointer //malloc and dealloc after sending response
@@ -300,43 +298,72 @@ void handle_http_request(int fd, struct cache *cache)
     char *req_body;
     strcpy(req, request);
 
-
-    //parsing header
+    // parsing header
     if (http_header_parser(req_header, req) == FAILURE)
-        printf("Error in Parsing http request");
+        log_error("Error in Parsing http request");
 
     print_header(req_header);
 
-    //parsing body
+    // parsing body
     if (http_body_parser(req_body, request) == FAILURE)
-        printf("Error in Parsing http body");
+        log_error("Error in Parsing http body");
 
-    //valide http request
-    // if(validate_http_request()==FAILURE)
-    // {
-    // check user login
-    // send to user_login
-    // else do nothing
-    // }
+    // valide http request
+    //  if(validate_http_request()==FAILURE)
+    //  {
+    //  check user login
+    //  send to user_login
+    //  else do nothing
+    //  }
 
-    // printf("Got method = %s ", )
+    // log_status("Got method = %s ", )
     if (MATCH(req_header->method, "GET"))
     {
-        printf("get");
+        log_status("get");
         if (SUCCESS == handle_http_get_request(fd, req_header->url))
-            printf("handle_http_get_request SUCCESS\n");
+            log_status("handle_http_get_request SUCCESS\n");
         else
-            printf("Failure");
+            log_status("Failure");
     }
     else if (MATCH(req_header->method, "POST"))
     {
-        printf("post \n");
+        log_status("post \n");
         // handle_http_post_request(req_header->url, req_body);
     }
 
-
     free(req_header);
+}
 
+void initalize_logs()
+{
+    logger_reset_state(); // will got to syslog
+
+    // log_warning("This message goes to syslog");
+    logger_set_log_level(LOG_MAX_LEVEL_ERROR_WARNING_STATUS_DEBUG);
+
+    logger_set_out_stdout(); // will go to stdout
+
+    log_status("Hello!");
+
+    logger_set_log_file("log.txt"); // will go to log file
+
+    log_error("Logger in a file mode!");
+}
+#define ON_CONSOLE 1
+#define IN_FILE 2
+void modify_logs_output(int output)
+{
+    // logger_reset_state(); // will got to syslog
+
+    // log_warning("This message goes to syslog");
+    if (output == ON_CONSOLE)
+        logger_set_out_stdout(); // will go to stdout
+    else if (output == IN_FILE)
+        logger_set_log_file("log.txt"); // will go to log file
+
+    // log_status("Hello!");
+
+    // log_error("Logger in a file mode!");
 }
 
 /**
@@ -344,6 +371,14 @@ void handle_http_request(int fd, struct cache *cache)
  */
 int main(void)
 {
+
+    initalize_logs(); // bydefailt it will store in file log.txt
+
+    // initialize_tcp_sockets();
+    // initialize_tcp_sockets(){
+
+    // }
+
     int newfd;                          // listen on sock_fd, new connection on newfd
     struct sockaddr_storage their_addr; // connector's address information
     char s[INET6_ADDRSTRLEN];
@@ -359,7 +394,7 @@ int main(void)
         exit(1);
     }
 
-    printf("webserver: waiting for connections on port %s...\n", PORT);
+    log_status("webserver: waiting for connections on port %s...\n", PORT);
 
     // This is the main loop that accepts incoming connections and
     // responds to the request. The main parent process
@@ -382,7 +417,7 @@ int main(void)
         inet_ntop(their_addr.ss_family,
                   get_in_addr((struct sockaddr *)&their_addr),
                   s, sizeof s);
-        printf("server: got connection from %s\n", s);
+        log_status("server: got connection from %s\n", s);
 
         // newfd is a new socket descriptor for the new connection.
         // listenfd is still listening for new connections.
